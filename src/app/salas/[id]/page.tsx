@@ -1,35 +1,423 @@
 'use client';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
+import { useArenaBody } from '@/lib/useArenaBody';
+import Navbar from '@/components/Navbar';
+import ChatPanel from '@/components/ChatPanel';
+import Avatar from '@/components/Avatar';
+import {
+  etiquetaRol,
+  formatearMmr,
+  ICONOS_ROL,
+  ROLES_DOTA,
+  resumenRolesConIconos,
+} from '@/lib/balance';
+import type { Lobby, Participante, RolDota, Sala } from '@/lib/types';
 
-type Sala = {
-  id: string;
-  nombre: string;
-  cuota: number;
-  cupo: number;
-  comision_bp: number;
-  estado: string;
-};
-
-type Participante = {
-  user_id: string;
+function Columna({
+  equipo,
+  titulo,
+  descripcion,
+  jugadores,
+  capacidad,
+  horizontal = false,
+  columnas,
+  compacta = false,
+  borde,
+  cabecera,
+  boton,
+  icono,
+  esParticipante,
+  miEquipo,
+  userId,
+  puedeMoverse,
+  cambiandoEquipo,
+  onCambiarEquipo,
+}: {
   equipo: number | null;
-  profiles: {
-    nick: string;
-  };
-};
+  titulo: string;
+  descripcion: string;
+  jugadores: Participante[];
+  capacidad: number;
+  horizontal?: boolean;
+  columnas?: string;
+  compacta?: boolean;
+  borde: string;
+  cabecera: string;
+  boton: string;
+  icono: string;
+  esParticipante: boolean;
+  miEquipo: number | null;
+  userId: string;
+  puedeMoverse: boolean;
+  cambiandoEquipo: boolean;
+  onCambiarEquipo: (equipo: number | null) => void;
+}) {
+  const esMiEquipo = esParticipante && miEquipo === equipo;
+  const lleno = equipo !== null && jugadores.length >= capacidad;
 
-type Lobby = {
-  sala_id: string;
-  nombre: string;
-  clave: string;
-};
+  return (
+    <div className={`arena-card flex flex-col overflow-hidden rounded-xl border-2 bg-[#111827] shadow-arena-soft ${borde}`}>
+      <div className={`px-3 py-1.5 ${cabecera}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-base">{icono}</span>
+            <span className="font-bold text-white">{titulo}</span>
+          </div>
+          <span className="rounded-full bg-white/25 px-2 py-0.5 text-xs font-semibold text-white">
+            {jugadores.length}/{capacidad}
+          </span>
+        </div>
+        <p className="mt-0.5 text-[11px] text-white/80">{descripcion}</p>
+      </div>
+
+      <div
+        className={`flex-1 p-1.5 ${
+          horizontal
+            ? `grid gap-1.5 ${columnas ?? 'sm:grid-cols-2 lg:grid-cols-5'}`
+            : 'space-y-1'
+        }`}
+      >
+        {Array.from({ length: capacidad }).map((_, i) => {
+          const p = jugadores[i];
+
+          if (!p) {
+            return (
+              <div
+                key={`libre-${i}`}
+                className="flex min-h-10 items-center justify-center rounded-lg border-2 border-dashed border-white/10 text-xs text-slate-500"
+              >
+                Libre
+              </div>
+            );
+          }
+
+          const mmr = p.profiles?.mmr;
+          const roles = p.profiles?.roles_preferidos ?? [];
+          const detalle =
+            mmr != null
+              ? `MMR ${formatearMmr(mmr)} · ${resumenRolesConIconos(roles)}`
+              : `Sin MMR · ${resumenRolesConIconos(roles)}`;
+          const nick = p.profiles?.nick ?? 'Usuario';
+          const esTuyo = p.user_id === userId;
+
+          if (compacta) {
+            return (
+              <div
+                key={p.user_id}
+                className={`flex min-h-10 items-center gap-1.5 rounded-lg border px-1.5 py-0.5 ${
+                  esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
+                }`}
+              >
+                <Avatar
+                  nick={p.profiles?.nick}
+                  src={p.profiles?.steam_avatar_url}
+                  size="sm"
+                  ringClass="ring-2 ring-white/20"
+                  title={detalle}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-medium text-slate-100">
+                    {p.es_capitan ? '⭐ ' : ''}
+                    {nick}
+                    {esTuyo ? ' (tú)' : ''}
+                  </p>
+                  <div className="flex min-w-0 items-center justify-between gap-1">
+                    <p
+                      className={`truncate text-[11px] font-bold ${
+                        mmr != null ? 'text-prism-300' : 'text-slate-500'
+                      }`}
+                    >
+                      {mmr != null ? `MMR ${formatearMmr(mmr)}` : 'Sin MMR'}
+                    </p>
+                    {roles.length > 0 && (
+                      <span
+                        className="flex shrink-0 items-center gap-0.5"
+                        aria-label={`Roles: ${roles.map((r) => etiquetaRol(r)).join(', ')}`}
+                      >
+                        {roles.map((rol) => (
+                          <span
+                            key={rol}
+                            title={etiquetaRol(rol)}
+                            className="text-[11px] leading-none"
+                          >
+                            {ICONOS_ROL[rol]}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div
+              key={p.user_id}
+              className={`flex min-h-10 items-center gap-2 rounded-lg border px-2 py-0.5 ${
+                esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
+              }`}
+            >
+              <Avatar
+                nick={p.profiles?.nick}
+                src={p.profiles?.steam_avatar_url}
+                ringClass="ring-2 ring-white/20"
+                title={detalle}
+              />
+              <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-100">
+                    {p.es_capitan ? '⭐ ' : ''}
+                    {nick}
+                    {esTuyo ? ' (tú)' : ''}
+                  </p>
+                  <p className="truncate text-[10px] text-slate-500">
+                    {resumenRolesConIconos(roles)}
+                  </p>
+                </div>
+                <span
+                  className={`shrink-0 rounded px-2 py-0.5 text-sm font-extrabold ${
+                    mmr != null
+                      ? 'bg-prism-500/15 text-prism-200'
+                      : 'bg-white/5 text-slate-500'
+                  }`}
+                >
+                  {mmr != null ? `MMR ${formatearMmr(mmr)}` : 'Sin MMR'}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {puedeMoverse && (
+        <div className="border-t border-white/10 p-1.5">
+          {esMiEquipo ? (
+            <div className="rounded bg-white/5 py-1 text-center text-xs font-semibold text-slate-400">
+              Estás aquí
+            </div>
+          ) : (
+            <button
+              onClick={() => onCambiarEquipo(equipo)}
+              disabled={cambiandoEquipo || lleno}
+              className={`w-full rounded py-1 text-xs font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${boton}`}
+            >
+              {lleno
+                ? 'Equipo lleno'
+                : equipo === null
+                  ? 'Moverme a la espera'
+                  : `Unirme a ${titulo}`}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TableroPicks({
+  sala,
+  participantes,
+  userId,
+  segundosTurno,
+  procesando,
+  onElegirMoneda,
+  onElegirLado,
+  onPickear,
+}: {
+  sala: Sala;
+  participantes: Participante[];
+  userId: string;
+  segundosTurno: number | null;
+  procesando: boolean;
+  onElegirMoneda: (opcion: 'pickear_primero' | 'lado') => void;
+  onElegirLado: (equipo: number) => void;
+  onPickear: (userId: string) => void;
+}) {
+  const estado = sala.picks_estado ?? 'inactivo';
+  const nombre = (id?: string | null) =>
+    participantes.find((p) => p.user_id === id)?.profiles?.nick ?? '—';
+  const ordenar = (a: Participante, b: Participante) =>
+    (a.pick_orden ?? 999) - (b.pick_orden ?? 999);
+
+  const pool = participantes.filter((p) => p.equipo === null && !p.es_capitan);
+  const radiant = participantes.filter((p) => p.equipo === 1).sort(ordenar);
+  const dire = participantes.filter((p) => p.equipo === 2).sort(ordenar);
+
+  const deboDecidir = estado === 'eleccion' && sala.pick_decision_user_id === userId;
+  const miTurno = estado === 'en_curso' && sala.pick_turno_user_id === userId;
+
+  function Ficha({ p }: { p: Participante }) {
+    const perfil = p.profiles;
+    return (
+      <div
+        className={`rounded-lg border px-2 py-1.5 ${
+          p.user_id === userId
+            ? 'border-prism-400/60 bg-prism-500/10'
+            : 'border-white/10 bg-white/[0.03]'
+        }`}
+      >
+        <p className="truncate text-sm font-medium text-slate-100">
+          {p.es_capitan ? '⭐ ' : ''}
+          {perfil?.nick ?? 'Usuario'}
+        </p>
+        <p className="text-xs font-bold text-prism-300">
+          {perfil?.mmr != null ? `MMR ${formatearMmr(perfil.mmr)}` : 'Sin MMR'}
+        </p>
+        <p className="truncate text-[10px] text-slate-500">
+          {resumenRolesConIconos(perfil?.roles_preferidos)}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <section className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-4 shadow-arena-soft">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-display text-lg font-bold text-white">Fase de picks</h2>
+        <span className="rounded-full bg-prism-500/15 px-3 py-1 text-xs font-semibold text-prism-200 ring-1 ring-inset ring-prism-500/30">
+          {estado === 'eleccion'
+            ? 'Moneda'
+            : estado === 'en_curso'
+              ? `Pick ${Math.min(8, participantes.filter((p) => p.equipo !== null && !p.es_capitan).length + 1)}/8`
+              : 'Completado'}
+        </span>
+      </div>
+
+      {estado === 'eleccion' && (
+        <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+          <p className="text-sm text-amber-200">
+            🪙 La moneda eligió a <strong>{nombre(sala.pick_ganador_moneda)}</strong>. El ganador
+            decide si pickea primero o elige lado; el otro completa la decisión.
+          </p>
+
+          {deboDecidir && sala.pick_decision_tipo === 'moneda' && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                onClick={() => onElegirMoneda('pickear_primero')}
+                disabled={procesando}
+                className="rounded-lg bg-prism-500 px-4 py-2 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
+              >
+                Quiero pickear primero
+              </button>
+              <button
+                onClick={() => onElegirMoneda('lado')}
+                disabled={procesando}
+                className="rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+              >
+                Quiero elegir lado
+              </button>
+            </div>
+          )}
+
+          {deboDecidir && sala.pick_decision_tipo === 'lado' && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <p className="w-full text-sm text-amber-200">Elige tu lado:</p>
+              <button
+                onClick={() => onElegirLado(1)}
+                disabled={procesando}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                Radiant
+              </button>
+              <button
+                onClick={() => onElegirLado(2)}
+                disabled={procesando}
+                className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:opacity-50"
+              >
+                Dire
+              </button>
+            </div>
+          )}
+
+          {!deboDecidir && (
+            <p className="mt-3 text-sm text-amber-300">
+              Esperando la decisión de <strong>{nombre(sala.pick_decision_user_id)}</strong>…
+            </p>
+          )}
+        </div>
+      )}
+
+      {estado === 'en_curso' && (
+        <div className="mt-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#0a0e17] px-4 py-2 text-white">
+            <p className="text-sm">
+              Turno de <strong>{nombre(sala.pick_turno_user_id)}</strong>
+              {miTurno ? ' (tú)' : ''}
+            </p>
+            <p className="text-sm font-semibold">
+              ⏱ {segundosTurno !== null ? `${segundosTurno} s` : '—'}
+            </p>
+          </div>
+
+          <div className="mt-3 grid gap-3 lg:grid-cols-[1.4fr_1fr_1fr]">
+            <div className="rounded-xl border-2 border-white/10 bg-white/[0.03] p-3">
+              <p className="text-xs font-bold uppercase text-slate-400">
+                Disponibles ({pool.length})
+              </p>
+              <div className="mt-2 space-y-1.5">
+                {pool.length === 0 && (
+                  <p className="text-sm text-slate-500">No quedan jugadores por elegir.</p>
+                )}
+                {pool.map((p) => (
+                  <div key={p.user_id} className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1">
+                      <Ficha p={p} />
+                    </div>
+                    {miTurno && (
+                      <button
+                        onClick={() => onPickear(p.user_id)}
+                        disabled={procesando}
+                        className="shrink-0 rounded bg-prism-500 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-prism-400 disabled:opacity-50"
+                      >
+                        Pickear
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border-2 border-emerald-500/30 bg-emerald-500/10 p-3">
+              <p className="text-xs font-bold uppercase text-emerald-300">
+                Radiant ({radiant.length}/5)
+              </p>
+              <div className="mt-2 space-y-1.5">
+                {radiant.map((p) => (
+                  <Ficha key={p.user_id} p={p} />
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border-2 border-rose-500/30 bg-rose-500/10 p-3">
+              <p className="text-xs font-bold uppercase text-rose-300">Dire ({dire.length}/5)</p>
+              <div className="mt-2 space-y-1.5">
+                {dire.map((p) => (
+                  <Ficha key={p.user_id} p={p} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {estado === 'terminado' && (
+        <p className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+          Picks completados. Los equipos están 5/5; el admin definirá el lobby y pondrá la partida
+          en juego.
+        </p>
+      )}
+    </section>
+  );
+}
 
 function SalaContenido() {
+  useArenaBody();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
@@ -46,10 +434,23 @@ function SalaContenido() {
   const [success, setSuccess] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
   const [cambiandoEquipo, setCambiandoEquipo] = useState(false);
+  const [procesandoPicks, setProcesandoPicks] = useState(false);
+  const [segundosTurno, setSegundosTurno] = useState<number | null>(null);
+  const [rolesSala, setRolesSala] = useState<RolDota[]>([]);
+  const [guardandoRoles, setGuardandoRoles] = useState(false);
+  const [copiado, setCopiado] = useState<string | null>(null);
+  const eraParticipante = useRef(false);
+  const autoPickEnviado = useRef(false);
+  const guardadoRolesTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rolesSaveSeq = useRef(0);
+
+  const miPerfil = user
+    ? (participantes.find((p) => p.user_id === user.id)?.profiles ?? null)
+    : null;
+  const rolesGuardadosKey = (miPerfil?.roles_preferidos ?? []).join(',');
 
   const cargarSala = useCallback(async () => {
     if (!salaId || !user) return;
-    setLoading(true);
 
     const { data: salaData } = await supabase
       .from('salas')
@@ -57,35 +458,47 @@ function SalaContenido() {
       .eq('id', salaId)
       .single();
 
-    if (salaData) setSala(salaData);
+    if (salaData) setSala(salaData as unknown as Sala);
 
     const { data: partData } = await supabase
       .from('participantes_sala')
-      .select('user_id, equipo, profiles(nick)')
-      .eq('sala_id', salaId);
+      .select('user_id, equipo, es_capitan, pick_orden, profiles(nick, steam_avatar_url, mmr, roles_preferidos)')
+      .eq('sala_id', salaId)
+      .order('created_at', { ascending: true });
 
     if (partData) {
-      setParticipantes(partData as any);
-      const esPart = partData.some((p: any) => p.user_id === user.id);
+      const partsConDota = partData as unknown as Participante[];
+
+      setParticipantes(partsConDota);
+      const esPart = partsConDota.some((p) => p.user_id === user.id);
+
+      // Si estaba dentro y deja de estarlo (expulsión), sale de la sala al instante
+      if (eraParticipante.current && !esPart) {
+        eraParticipante.current = false;
+        window.dispatchEvent(new Event('saldo:refresh'));
+        router.push('/');
+        return;
+      }
+
+      eraParticipante.current = esPart;
       setEsParticipante(esPart);
       if (esPart) {
-        const yo = partData.find((p: any) => p.user_id === user.id);
+        const yo = partsConDota.find((p) => p.user_id === user.id);
         setMiEquipo(yo?.equipo ?? null);
+      } else {
+        setMiEquipo(null);
       }
     }
 
-    // Cargar lobby si la sala está en juego
-    if (salaData?.estado === 'en_juego' || salaData?.estado === 'terminada') {
-      const { data: lobbyData } = await supabase
-        .from('lobbies')
-        .select('*')
-        .eq('sala_id', salaId)
-        .single();
-      if (lobbyData) setLobby(lobbyData);
-    }
+    const { data: lobbyData } = await supabase
+      .from('lobbies')
+      .select('*')
+      .eq('sala_id', salaId)
+      .maybeSingle();
 
+    setLobby((lobbyData as unknown as Lobby) ?? null);
     setLoading(false);
-  }, [salaId, user]);
+  }, [salaId, user, router]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -94,6 +507,7 @@ function SalaContenido() {
   }, [user, authLoading, router]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial desde Supabase
     if (user && salaId) cargarSala();
     if (user) {
       supabase.rpc('es_admin').then(({ data }: { data: boolean | null }) => {
@@ -101,6 +515,126 @@ function SalaContenido() {
       });
     }
   }, [user, salaId, cargarSala]);
+
+  // Cambios en vivo: equipos, estado de la sala y lobby
+  useEffect(() => {
+    if (!salaId || !user) return;
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const refrescar = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => cargarSala(), 250);
+    };
+
+    const channel = supabase
+      .channel(`sala-jugador-${salaId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'participantes_sala',
+          filter: `sala_id=eq.${salaId}`,
+        },
+        refrescar
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'participantes_sala',
+          filter: `sala_id=eq.${salaId}`,
+        },
+        refrescar
+      )
+      .on(
+        // Sin filtro: los DELETE no siempre incluyen sala_id; solo recarga esta sala
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'participantes_sala' },
+        refrescar
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'salas', filter: `id=eq.${salaId}` },
+        refrescar
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'lobbies', filter: `sala_id=eq.${salaId}` },
+        refrescar
+      )
+      .on(
+        // Roles/MMR de los jugadores: las tarjetas se actualizan en vivo.
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'profiles' },
+        refrescar
+      )
+      .subscribe();
+
+    // Respaldo por si Realtime no está habilitado en Supabase
+    const interval = setInterval(() => cargarSala(), 5000);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, [salaId, user, cargarSala]);
+
+  // Cuenta regresiva del turno de picks y auto-pick a los 60 s
+  useEffect(() => {
+    const estado = sala?.picks_estado ?? 'inactivo';
+    const expira = sala?.pick_turno_expira_at;
+
+    if (!salaId || estado !== 'en_curso' || !expira) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- limpieza del contador
+      setSegundosTurno(null);
+      return;
+    }
+
+    autoPickEnviado.current = false;
+    const expiraMs = new Date(expira).getTime();
+
+    const actualizar = () => {
+      const restante = Math.max(0, Math.ceil((expiraMs - Date.now()) / 1000));
+      setSegundosTurno(restante);
+
+      if (restante === 0 && !autoPickEnviado.current) {
+        autoPickEnviado.current = true;
+        supabase
+          .rpc('auto_pickear_si_vencido', { p_sala: salaId, p_forzar: false })
+          .then(({ error: rpcError }) => {
+            if (rpcError) autoPickEnviado.current = false;
+            else cargarSala();
+          });
+      }
+    };
+
+    actualizar();
+    const interval = setInterval(actualizar, 1000);
+    return () => clearInterval(interval);
+  }, [
+    salaId,
+    sala?.picks_estado,
+    sala?.pick_turno_user_id,
+    sala?.pick_turno_expira_at,
+    cargarSala,
+  ]);
+
+  // Mantiene la selección local sincronizada con los roles guardados.
+  useEffect(() => {
+    const roles = rolesGuardadosKey ? (rolesGuardadosKey.split(',') as RolDota[]) : [];
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza roles guardados
+    setRolesSala(roles);
+  }, [rolesGuardadosKey]);
+
+  // Limpia el guardado pendiente si se sale de la sala.
+  useEffect(() => {
+    return () => {
+      if (guardadoRolesTimeout.current) clearTimeout(guardadoRolesTimeout.current);
+    };
+  }, []);
 
   async function unirseASala() {
     setError(null);
@@ -120,10 +654,16 @@ function SalaContenido() {
         'Ya estás en esta sala': 'Ya estás en esta sala',
         'La sala está llena': 'La sala está llena',
         'Saldo insuficiente': 'No tienes saldo suficiente',
+        'Debes vincular tu cuenta de Steam primero': 'Vincula tu cuenta de Steam en tu perfil para poder jugar',
+        'Completa tu MMR': 'Completa tu MMR en Mi perfil antes de unirte a una sala',
       };
-      setError(errores[rpcError.message] ?? rpcError.message);
+      const traducido = Object.entries(errores).find(([clave]) =>
+        rpcError.message.includes(clave)
+      )?.[1];
+      setError(traducido ?? rpcError.message);
     } else {
-      setSuccess('Te uniste a la sala correctamente');
+      setSuccess('Te uniste a la sala. Estás en la lista de espera.');
+      window.dispatchEvent(new Event('saldo:refresh'));
       cargarSala();
     }
     setJoining(false);
@@ -132,6 +672,7 @@ function SalaContenido() {
   async function salirDeSala() {
     setError(null);
     setSuccess(null);
+    eraParticipante.current = false;
 
     const { error: rpcError } = await supabase.rpc('salir_de_sala', {
       p_sala: salaId,
@@ -140,12 +681,12 @@ function SalaContenido() {
     if (rpcError) {
       setError(rpcError.message);
     } else {
-      setSuccess('Saliste de la sala. Se te reembolsó la cuota.');
+      window.dispatchEvent(new Event('saldo:refresh'));
       router.push('/');
     }
   }
 
-  async function cambiarEquipo(equipo: number) {
+  async function cambiarEquipo(equipo: number | null) {
     setError(null);
     setSuccess(null);
     setCambiandoEquipo(true);
@@ -158,16 +699,161 @@ function SalaContenido() {
     if (rpcError) {
       setError(rpcError.message);
     } else {
-      setSuccess(`Ahora estás en el Equipo ${equipo}`);
+      setSuccess(
+        equipo === null
+          ? 'Estás en la lista de espera'
+          : equipo === 1
+            ? 'Estás en Radiant'
+            : 'Estás en Dire'
+      );
       cargarSala();
     }
     setCambiandoEquipo(false);
   }
 
+  function alternarRolSala(rol: RolDota) {
+    const next = rolesSala.includes(rol)
+      ? rolesSala.filter((r) => r !== rol)
+      : rolesSala.length >= 3
+        ? rolesSala
+        : [...rolesSala, rol];
+
+    if (next === rolesSala) return;
+
+    const version = ++rolesSaveSeq.current;
+    setRolesSala(next);
+    setGuardandoRoles(true);
+
+    if (guardadoRolesTimeout.current) clearTimeout(guardadoRolesTimeout.current);
+    guardadoRolesTimeout.current = setTimeout(() => {
+      guardarRolesSala(next, version);
+    }, 300);
+  }
+
+  async function guardarRolesSala(next: RolDota[], version: number) {
+    if (!user || version !== rolesSaveSeq.current) return;
+
+    setGuardandoRoles(true);
+    setError(null);
+    setSuccess(null);
+
+    const { error: rpcError } = await supabase.rpc('guardar_roles_preferidos', {
+      p_roles: next,
+    });
+
+    if (version !== rolesSaveSeq.current) return;
+
+    if (rpcError) {
+      setError('No se pudieron guardar tus roles: ' + rpcError.message);
+      setRolesSala(rolesGuardadosKey ? (rolesGuardadosKey.split(',') as RolDota[]) : []);
+      cargarSala();
+    } else {
+      setParticipantes((prev) =>
+        prev.map((p) =>
+          p.user_id === user.id
+            ? {
+                ...p,
+                profiles: p.profiles
+                  ? { ...p.profiles, roles_preferidos: next }
+                  : p.profiles,
+              }
+            : p
+        )
+      );
+    }
+
+    setGuardandoRoles(false);
+  }
+
+  async function elegirMoneda(opcion: 'pickear_primero' | 'lado') {
+    setError(null);
+    setSuccess(null);
+    setProcesandoPicks(true);
+
+    const { error: rpcError } = await supabase.rpc('elegir_moneda', {
+      p_sala: salaId,
+      p_opcion: opcion,
+    });
+
+    if (rpcError) {
+      setError(rpcError.message);
+    } else {
+      cargarSala();
+    }
+    setProcesandoPicks(false);
+  }
+
+  async function elegirLado(equipo: number) {
+    setError(null);
+    setSuccess(null);
+    setProcesandoPicks(true);
+
+    const { error: rpcError } = await supabase.rpc('elegir_lado', {
+      p_sala: salaId,
+      p_equipo: equipo,
+    });
+
+    if (rpcError) {
+      setError(rpcError.message);
+    } else {
+      cargarSala();
+    }
+    setProcesandoPicks(false);
+  }
+
+  async function pickearJugador(userIdObjetivo: string) {
+    setError(null);
+    setSuccess(null);
+    setProcesandoPicks(true);
+
+    const { error: rpcError } = await supabase.rpc('pickear_jugador', {
+      p_sala: salaId,
+      p_user: userIdObjetivo,
+    });
+
+    if (rpcError) {
+      setError(rpcError.message);
+    } else {
+      cargarSala();
+    }
+    setProcesandoPicks(false);
+  }
+
+  async function copiar(texto: string, campo: string) {
+    try {
+      await navigator.clipboard.writeText(texto);
+      setCopiado(campo);
+      setTimeout(() => setCopiado(null), 2000);
+    } catch {
+      setError('No se pudo copiar. Cópialo manualmente.');
+    }
+  }
+
+  async function compartirSala() {
+    if (!sala) return;
+
+    const url = `${window.location.origin}/salas/${sala.id}`;
+    const texto = `Sala "${sala.nombre}" en Apuestas Dota`;
+
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({ title: sala.nombre, text: texto, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setCopiado('sala');
+        setTimeout(() => setCopiado(null), 2000);
+      }
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        setError('No se pudo compartir el enlace');
+      }
+    }
+  }
+
   if (authLoading || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-600">Cargando sala...</p>
+      <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
+        <p>Cargando sala...</p>
       </div>
     );
   }
@@ -178,10 +864,10 @@ function SalaContenido() {
 
   if (!sala) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
         <div className="text-center">
-          <p className="text-red-600">La sala no existe</p>
-          <Link href="/salas" className="mt-4 inline-block text-blue-600 hover:underline">
+          <p className="text-rose-300">La sala no existe</p>
+          <Link href="/salas" className="mt-4 inline-block text-prism-300 hover:underline">
             Volver a salas
           </Link>
         </div>
@@ -189,188 +875,340 @@ function SalaContenido() {
     );
   }
 
-  const equipo1 = participantes.filter((p) => p.equipo === 1);
-  const equipo2 = participantes.filter((p) => p.equipo === 2);
-  const sinEquipo = participantes.filter((p) => p.equipo === null);
+  const userId = user.id;
+  const limiteEquipo = Math.max(1, Math.floor(sala.cupo / 2));
+  const espera = participantes.filter((p) => p.equipo === null);
+  const radiant = participantes.filter((p) => p.equipo === 1);
+  const dire = participantes.filter((p) => p.equipo === 2);
+
+  const pozo = sala.cuota * sala.cupo;
+  const comision = Math.floor((pozo * sala.comision_bp) / 10000);
+  const premio = Math.floor((pozo - comision) / limiteEquipo);
+
+  const picksEstado = sala.picks_estado ?? 'inactivo';
+  const enFasePicks = picksEstado === 'eleccion' || picksEstado === 'en_curso';
+  const puedeMoverse =
+    esParticipante &&
+    picksEstado === 'inactivo' &&
+    (sala.estado === 'abierta' || sala.estado === 'llena');
+  const puedeUnirse = !esParticipante && sala.estado === 'abierta' && participantes.length < sala.cupo;
+  const puedeEditarRoles =
+    esParticipante &&
+    picksEstado === 'inactivo' &&
+    (sala.estado === 'abierta' || sala.estado === 'llena');
+
+  const estadoTexto: Record<string, string> = {
+    abierta: 'Abierta',
+    llena: 'Llena',
+    en_juego: 'En juego',
+    terminada: 'Terminada',
+    cancelada: 'Cancelada',
+  };
+
+  const columnaProps = {
+    esParticipante,
+    miEquipo,
+    userId,
+    puedeMoverse,
+    cambiandoEquipo,
+    onCambiarEquipo: cambiarEquipo,
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">{sala.nombre}</h1>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
-              Inicio
-            </Link>
-            <Link href="/salas" className="text-sm text-gray-600 hover:text-gray-900">
-              Salas
-            </Link>
-            {isAdmin && (
-              <Link href="/admin" className="text-sm text-gray-600 hover:text-gray-900">
-                Panel admin
-              </Link>
+    <div className="arena-shell min-h-screen bg-[#0a0e17] text-slate-100">
+      <Navbar titulo={sala.nombre} />
+
+      <main className="mx-auto max-w-[1800px] px-4 py-4">
+        {(error || success) && (
+          <div className="mb-3 space-y-2">
+            {error && (
+              <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+                {error}
+              </div>
             )}
-            <Link href="/perfil" className="text-sm text-gray-600 hover:text-gray-900">
-              Mi perfil
-            </Link>
+            {success && (
+              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+                {success}
+              </div>
+            )}
           </div>
-        </div>
-      </nav>
-
-      <main className="mx-auto max-w-5xl px-4 py-8">
-        {error && (
-          <div className="mb-4 rounded bg-red-50 p-3 text-sm text-red-600">{error}</div>
-        )}
-        {success && (
-          <div className="mb-4 rounded bg-green-50 p-3 text-sm text-green-600">{success}</div>
         )}
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="text-lg font-semibold text-gray-900">Información</h2>
-            <div className="mt-4 space-y-2 text-sm text-gray-600">
-              <p>
-                <span className="font-medium">Estado:</span> {sala.estado}
-              </p>
-              <p>
-                <span className="font-medium">Cuota:</span> S/ {(sala.cuota / 100).toFixed(2)}
-              </p>
-              <p>
-                <span className="font-medium">Cupo:</span> {participantes.length}/{sala.cupo}
-              </p>
-              <p>
-                <span className="font-medium">Comisión casa:</span> {sala.comision_bp / 100}%
-              </p>
+        <div
+          className={`grid gap-4 ${
+            esParticipante ? 'lg:grid-cols-[minmax(0,1fr)_300px]' : ''
+          }`}
+        >
+          <div className="space-y-3">
+        {/* Cabecera de la sala */}
+        <section className="overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 shadow-arena-soft">
+          <div className="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-widest text-slate-400">
+                <span>Sala {sala.modalidad ?? (sala.cupo === 2 ? '1v1' : '5v5')}</span>
+                <span>•</span>
+                <span>{estadoTexto[sala.estado] ?? sala.estado}</span>
+              </div>
+              <h1 className="mt-0.5 text-lg font-bold text-white">{sala.nombre}</h1>
+              <div className="mt-1.5 flex flex-wrap gap-2 text-xs">
+                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-white">
+                  Cuota S/ {(sala.cuota / 100).toFixed(2)}
+                </span>
+                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-white">
+                  {participantes.length}/{sala.cupo} jugadores
+                </span>
+                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-white">
+                  Comisión {sala.comision_bp / 100}%
+                </span>
+              </div>
             </div>
 
-            {(sala.estado === 'abierta' || sala.estado === 'llena' || sala.estado === 'en_juego') && (
-              <div className="mt-4 space-y-2">
-                {esParticipante ? (
-                  <>
-                    {miEquipo && sala.estado === 'llena' && (
-                      <p className="text-sm text-center text-blue-600 font-medium">
-                        Estás en {miEquipo === 1 ? 'Radiant' : 'Dire'} (Equipo {miEquipo})
-                      </p>
-                    )}
-                    {sala.estado === 'llena' && (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => cambiarEquipo(1)}
-                          disabled={cambiandoEquipo}
-                          className="flex-1 rounded bg-blue-600 py-2 text-white hover:bg-blue-700 disabled:opacity-50 text-sm"
-                        >
-                          {miEquipo === 1 ? '✓ Radiant' : '→ Radiant'}
-                        </button>
-                        <button
-                          onClick={() => cambiarEquipo(2)}
-                          disabled={cambiandoEquipo}
-                          className="flex-1 rounded bg-red-600 py-2 text-white hover:bg-red-700 disabled:opacity-50 text-sm"
-                        >
-                          {miEquipo === 2 ? '✓ Dire' : '→ Dire'}
-                        </button>
-                      </div>
-                    )}
-                    <button
-                      onClick={salirDeSala}
-                      className="w-full rounded bg-red-600 py-2 text-white hover:bg-red-700"
-                    >
-                      Salir de la sala
-                    </button>
-                  </>
-                ) : (
+            <div className="flex flex-col gap-1.5 sm:min-w-[190px]">
+              <div className="rounded-xl bg-white/10 px-3 py-1.5 text-right">
+                <p className="text-xs uppercase tracking-wide text-slate-300">Pozo total</p>
+                <p className="text-lg font-bold text-white">S/ {(pozo / 100).toFixed(2)}</p>
+                <p className="text-[11px] text-slate-300">
+                  S/ {(premio / 100).toFixed(2)} por ganador
+                </p>
+              </div>
+              <button
+                onClick={compartirSala}
+                className="rounded-lg border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-white/20"
+              >
+                {copiado === 'sala' ? 'Enlace copiado' : 'Compartir sala'}
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Acciones de entrada */}
+        {puedeUnirse && (
+          <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-emerald-200">
+                Hay espacio. Al unirte entras a la <strong>lista de espera</strong> y luego eliges
+                equipo.
+              </p>
+              <button
+                onClick={unirseASala}
+                disabled={joining}
+                className="rounded-lg bg-emerald-500 px-5 py-2 font-semibold text-emerald-950 transition hover:bg-emerald-400 disabled:opacity-50"
+              >
+                {joining ? 'Uniéndome...' : 'Unirme a la sala'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!esParticipante && sala.estado === 'llena' && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
+            La sala está llena. Espera a que el admin inicie la partida.
+          </div>
+        )}
+
+        {/* Mis roles (solo informativo, se guarda automáticamente) */}
+        {esParticipante && (
+          <section className="arena-card flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-white/10 bg-[#111827] px-3 py-2 shadow-arena-soft">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-white">Mis roles</span>
+              <span className="text-[11px] text-slate-500">hasta 3, en orden</span>
+              <span className="rounded-full bg-white/5 px-2 py-0.5 text-[11px] font-semibold text-slate-300">
+                {rolesSala.length}/3
+              </span>
+            </div>
+
+            <div className="flex flex-wrap gap-1.5">
+              {ROLES_DOTA.map((rol) => {
+                const activo = rolesSala.includes(rol.id);
+                const orden = rolesSala.indexOf(rol.id) + 1;
+                return (
                   <button
-                    onClick={unirseASala}
-                    disabled={joining}
-                    className="w-full rounded bg-green-600 py-2 text-white hover:bg-green-700 disabled:opacity-50"
+                    key={rol.id}
+                    type="button"
+                    onClick={() => alternarRolSala(rol.id)}
+                    disabled={!puedeEditarRoles}
+                    aria-pressed={activo}
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                      activo
+                        ? 'border-prism-400 bg-prism-500/15 text-prism-200'
+                        : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                    }`}
                   >
-                    {joining ? 'Uniéndose...' : 'Unirse a la sala'}
+                    <span aria-hidden="true">{ICONOS_ROL[rol.id]}</span>
+                    <span>{rol.nombre}</span>
+                    {activo && (
+                      <span className="rounded-full bg-prism-500 px-1.5 text-[9px] font-bold text-white">
+                        {orden}
+                      </span>
+                    )}
                   </button>
-                )}
-              </div>
-            )}
-          </div>
+                );
+              })}
+            </div>
 
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="text-lg font-semibold text-gray-900">Participantes</h2>
-            {participantes.length === 0 ? (
-              <p className="mt-4 text-sm text-gray-500">Aún no hay participantes</p>
-            ) : (
-              <div className="mt-4 space-y-3">
-                {sinEquipo.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase">Sin equipo</p>
-                    <div className="mt-1 space-y-1">
-                      {sinEquipo.map((p) => (
-                        <p key={p.user_id} className="text-sm text-gray-900">
-                          {p.profiles?.nick ?? 'Usuario'}
-                          {p.user_id === user.id && ' (tú)'}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {equipo1.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-blue-500 uppercase">Equipo 1</p>
-                    <div className="mt-1 space-y-1">
-                      {equipo1.map((p) => (
-                        <p key={p.user_id} className="text-sm text-gray-900">
-                          {p.profiles?.nick ?? 'Usuario'}
-                          {p.user_id === user.id && ' (tú)'}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {equipo2.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-red-500 uppercase">Equipo 2</p>
-                    <div className="mt-1 space-y-1">
-                      {equipo2.map((p) => (
-                        <p key={p.user_id} className="text-sm text-gray-900">
-                          {p.profiles?.nick ?? 'Usuario'}
-                          {p.user_id === user.id && ' (tú)'}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+            <span className="ml-auto text-[11px] text-slate-500">
+              {!puedeEditarRoles
+                ? 'Bloqueado durante picks/partida'
+                : guardandoRoles
+                  ? 'Guardando…'
+                  : 'Se guarda automáticamente'}
+            </span>
+          </section>
+        )}
 
-        {lobby && esParticipante && sala.estado === 'en_juego' && (
-          <div className="mt-6 rounded-lg bg-blue-50 p-6 shadow">
-            <h2 className="text-lg font-semibold text-blue-900">Lobby de Dota 2</h2>
-            <div className="mt-4 space-y-3">
-              <div>
-                <p className="text-sm font-medium text-blue-700">Nombre del lobby</p>
-                <p className="text-xl font-bold text-blue-900">{lobby.nombre}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-blue-700">Clave del lobby</p>
-                <p className="text-xl font-bold text-blue-900">{lobby.clave}</p>
-              </div>
-              {miEquipo && (
-                <div>
-                  <p className="text-sm font-medium text-blue-700">Tu equipo</p>
-                  <p className="text-xl font-bold text-blue-900">
-                    Equipo {miEquipo} {miEquipo === 1 ? '(Radiant)' : '(Dire)'}
-                  </p>
-                </div>
+        {/* Fase de picks o columnas */}
+        {enFasePicks ? (
+          <TableroPicks
+            sala={sala}
+            participantes={participantes}
+            userId={userId}
+            segundosTurno={segundosTurno}
+            procesando={procesandoPicks}
+            onElegirMoneda={elegirMoneda}
+            onElegirLado={elegirLado}
+            onPickear={pickearJugador}
+          />
+        ) : (
+          <section>
+            <div className="mb-1.5 flex items-center justify-between">
+              <h2 className="font-display text-base font-bold text-white">Jugadores en la sala</h2>
+              {puedeMoverse && (
+                <p className="text-xs text-slate-500">
+                  Elige una columna para moverte. Cada equipo admite {limiteEquipo}.
+                </p>
               )}
             </div>
+
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <Columna
+                {...columnaProps}
+                equipo={1}
+                titulo="Radiant"
+                descripcion="Equipo verde"
+                jugadores={radiant}
+                capacidad={limiteEquipo}
+                borde="border-emerald-500/30"
+                cabecera="bg-emerald-600"
+                boton="bg-emerald-600 hover:bg-emerald-500"
+                icono="🌿"
+              />
+              <Columna
+                {...columnaProps}
+                equipo={2}
+                titulo="Dire"
+                descripcion="Equipo rojo"
+                jugadores={dire}
+                capacidad={limiteEquipo}
+                borde="border-rose-500/30"
+                cabecera="bg-rose-600"
+                boton="bg-rose-600 hover:bg-rose-500"
+                icono="🔥"
+              />
+              <div className="md:col-span-2 xl:col-span-1">
+                <Columna
+                  {...columnaProps}
+                  equipo={null}
+                  titulo="Lista de espera"
+                  descripcion="Jugadores sin equipo asignado"
+                  jugadores={espera}
+                  capacidad={sala.cupo}
+                  horizontal
+                  compacta
+                  columnas="grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-2"
+                  borde="border-white/10"
+                  cabecera="bg-slate-600"
+                  boton="bg-slate-600 hover:bg-slate-500"
+                  icono="⏳"
+                />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Lobby */}
+        {lobby &&
+          (esParticipante || isAdmin) &&
+          (sala.estado === 'en_juego' || sala.estado === 'terminada') && (
+          <section className="mt-4 rounded-2xl border border-white/10 bg-gradient-to-r from-prism-700 to-prism-600 p-4 text-white shadow-arena-soft">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-prism-200">
+                  {sala.estado === 'terminada' ? 'Partida finalizada' : 'Partida en curso'}
+                </p>
+                <h2 className="font-display text-xl font-bold">Lobby de Dota 2</h2>
+              </div>
+              <a
+                href="steam://run/570"
+                className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-400"
+              >
+                Abrir Dota 2
+              </a>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="rounded-lg bg-white/10 p-4">
+                <p className="text-xs text-prism-200">Nombre del lobby</p>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <p className="break-all text-lg font-bold">{lobby.nombre}</p>
+                  <button
+                    onClick={() => copiar(lobby.nombre, 'nombre')}
+                    className="shrink-0 rounded bg-white/20 px-3 py-1 text-xs font-semibold hover:bg-white/30"
+                  >
+                    {copiado === 'nombre' ? 'Copiado' : 'Copiar'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-lg bg-white/10 p-4">
+                <p className="text-xs text-prism-200">Clave del lobby</p>
+                <div className="mt-1 flex items-center justify-between gap-2">
+                  <p className="break-all text-lg font-bold">{lobby.clave}</p>
+                  <button
+                    onClick={() => copiar(lobby.clave, 'clave')}
+                    className="shrink-0 rounded bg-white/20 px-3 py-1 text-xs font-semibold hover:bg-white/30"
+                  >
+                    {copiado === 'clave' ? 'Copiado' : 'Copiar'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <p className="mt-3 text-xs text-prism-100">
+              Entra a Dota 2, busca el lobby con estos datos y únete. El admin enviará la invitación
+              dentro del juego.
+            </p>
+          </section>
+        )}
+
+        {esParticipante && sala.estado === 'en_juego' && !lobby && (
+          <div className="mt-4 rounded-xl border border-prism-500/30 bg-prism-500/10 p-4 text-sm text-prism-200">
+            La partida está en juego. El admin publicará los datos del lobby en un momento.
           </div>
         )}
 
-        {lobby && !esParticipante && sala.estado === 'en_juego' && (
-          <div className="mt-6 rounded-lg bg-yellow-50 p-6 shadow">
-            <p className="text-sm text-yellow-700">
-              La sala está en juego. Solo los participantes pueden ver el lobby.
-            </p>
+        {esParticipante && picksEstado === 'inactivo' && (sala.estado === 'abierta' || sala.estado === 'llena') && (
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={salirDeSala}
+              className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-6 py-2 text-sm font-semibold text-rose-300 transition hover:bg-rose-500/15"
+            >
+              Salir de la sala y recuperar S/ {(sala.cuota / 100).toFixed(2)}
+            </button>
           </div>
         )}
+          </div>
+
+          {esParticipante && (
+            <aside className="h-fit lg:sticky lg:top-20">
+              <ChatPanel
+                salaId={sala.id}
+                titulo="Chat de la sala"
+                descripcion="Solo jugadores dentro de esta sala"
+                altura="h-[420px] lg:h-[calc(100vh-18rem)] min-h-[320px]"
+              />
+            </aside>
+          )}
+        </div>
       </main>
     </div>
   );
@@ -380,8 +1218,8 @@ export default function SalaDetallePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center">
-          <p className="text-gray-600">Cargando sala...</p>
+        <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
+          <p>Cargando sala...</p>
         </div>
       }
     >

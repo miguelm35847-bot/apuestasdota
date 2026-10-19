@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { obtenerResumenSteam, resolverSteamId } from '@/lib/steamServer';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Extraer el Steam ID de la URL
-    const steamIdMatch = steamUrl.match(/steamcommunity\.com\/(id\/[^\/]+|profiles\/\d+)/);
+    const steamIdMatch = steamUrl.match(/steamcommunity\.com\/(id\/[^\/?#]+|profiles\/\d+)/);
 
     if (!steamIdMatch) {
       return NextResponse.json(
@@ -56,11 +57,21 @@ export async function POST(request: NextRequest) {
     const steamId = steamIdMatch[1];
     console.log('[STEAM LINK] Steam ID extraído:', steamId);
 
+    // Normalizar a ID numérico (resuelve /id/nombre mediante la API de Steam)
+    const steamIdNumerico = await resolverSteamId(steamId);
+
+    if (!steamIdNumerico) {
+      return NextResponse.json(
+        { error: 'No se pudo encontrar esa cuenta de Steam' },
+        { status: 400 }
+      );
+    }
+
     // Verificar que este Steam ID no esté vinculado a otra cuenta
     const { data: existing, error: existingError } = await supabaseAdmin
       .from('profiles')
       .select('id')
-      .eq('steam_id', steamId)
+      .eq('steam_id', steamIdNumerico)
       .maybeSingle();
 
     if (existingError) {
@@ -74,11 +85,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Vincular Steam ID al perfil del usuario
+    // Vincular Steam ID al perfil y guardar avatar/nombre si la API responde
     console.log('[STEAM LINK] Actualizando perfil...');
+    const resumen = await obtenerResumenSteam(steamIdNumerico);
+    const datosPerfil = resumen
+      ? {
+          steam_id: resumen.steamId,
+          steam_avatar_url: resumen.avatarUrl,
+          steam_nombre: resumen.nombre,
+        }
+      : { steam_id: steamIdNumerico };
+
     const { error: updateError } = await supabaseAdmin
       .from('profiles')
-      .update({ steam_id: steamId })
+      .update(datosPerfil)
       .eq('id', user.id);
 
     if (updateError) {
@@ -90,7 +110,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[STEAM LINK] Perfil actualizado correctamente');
-    return NextResponse.json({ success: true, steamId });
+    return NextResponse.json({ success: true, steamId: steamIdNumerico });
   } catch (error) {
     console.error('[STEAM LINK] Error catch:', error);
     return NextResponse.json(

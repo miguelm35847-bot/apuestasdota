@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifySteamOpenId } from '@/lib/steam';
+import { obtenerResumenSteam } from '@/lib/steamServer';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -43,10 +44,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/perfil?error=steam_already_linked', request.url));
     }
 
-    // Vincular Steam ID al perfil del usuario
+    // Vincular Steam ID al perfil del usuario (y guardar avatar/nombre si la API responde)
+    const resumen = await obtenerResumenSteam(steamId);
+    const datosPerfil = resumen
+      ? {
+          steam_id: resumen.steamId,
+          steam_avatar_url: resumen.avatarUrl,
+          steam_nombre: resumen.nombre,
+        }
+      : { steam_id: steamId };
+
     const { error: updateError } = await supabaseAdmin
       .from('profiles')
-      .update({ steam_id: steamId })
+      .update(datosPerfil)
       .eq('id', user.id);
 
     if (updateError) {

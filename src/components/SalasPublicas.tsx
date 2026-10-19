@@ -2,8 +2,11 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/AuthProvider';
+import Toast from '@/components/Toast';
+import Avatar from '@/components/Avatar';
 
 type Sala = {
   id: string;
@@ -11,28 +14,57 @@ type Sala = {
   cuota: number;
   cupo: number;
   estado: string;
+  modalidad?: string;
   participantes_sala: {
     count: number;
   }[];
 };
 
 type Participante = {
+  sala_id: string;
   user_id: string;
   equipo: number | null;
   profiles: {
     nick: string;
-  };
+    steam_avatar_url?: string | null;
+    mmr?: number | null;
+    roles_preferidos?: string[] | null;
+  } | null;
 };
+
+function ringEquipo(equipo: number | null) {
+  return equipo === 1
+    ? 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-[#111827]'
+    : equipo === 2
+      ? 'ring-2 ring-rose-400 ring-offset-2 ring-offset-[#111827]'
+      : 'ring-2 ring-slate-500 ring-offset-2 ring-offset-[#111827]';
+}
+
+function estadoBadge(estado: string) {
+  const clases: Record<string, string> = {
+    abierta: 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/30',
+    llena: 'bg-amber-500/10 text-amber-300 ring-amber-500/30',
+    en_juego: 'bg-prism-500/10 text-prism-300 ring-prism-500/30',
+  };
+  return clases[estado] ?? 'bg-white/5 text-slate-300 ring-white/10';
+}
+
+function estadoTexto(estado: string) {
+  if (estado === 'abierta') return 'Abierta';
+  if (estado === 'llena') return 'Llena';
+  return 'En juego';
+}
 
 export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: boolean }) {
   const { user } = useAuth();
+  const router = useRouter();
   const [salas, setSalas] = useState<Sala[]>([]);
   const [participantes, setParticipantes] = useState<Record<string, Participante[]>>({});
   const [loading, setLoading] = useState(true);
   const [procesando, setProcesando] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<{ mensaje: string; tipo: 'success' | 'error' } | null>(null);
 
   const cargarSalas = useCallback(async () => {
-    setLoading(true);
     const { data } = await supabase
       .from('salas')
       .select('*, participantes_sala(count)')
@@ -41,18 +73,26 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
       .limit(10);
 
     if (data) {
-      setSalas(data as any);
+      const filas = data as unknown as Sala[];
+      setSalas(filas);
 
-      // Cargar participantes de cada sala
-      const salaIds = data.map((s) => s.id);
+      // Cargar participantes de cada sala (para los avatares y saber si ya estoy dentro)
+      const salaIds = filas.map((s) => s.id);
+      if (salaIds.length === 0) {
+        setParticipantes({});
+        setLoading(false);
+        return;
+      }
+
       const { data: parts } = await supabase
         .from('participantes_sala')
-        .select('sala_id, user_id, equipo, profiles(nick)')
-        .in('sala_id', salaIds);
+        .select('sala_id, user_id, equipo, profiles(nick, steam_avatar_url, mmr, roles_preferidos)')
+        .in('sala_id', salaIds)
+        .order('created_at', { ascending: true });
 
       if (parts) {
         const map: Record<string, Participante[]> = {};
-        parts.forEach((p: any) => {
+        (parts as unknown as Participante[]).forEach((p) => {
           if (!map[p.sala_id]) map[p.sala_id] = [];
           map[p.sala_id].push(p);
         });
@@ -63,7 +103,35 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial desde Supabase
     cargarSalas();
+  }, [cargarSalas]);
+
+  // Entradas, salidas y movimientos en vivo
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const refrescar = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => cargarSalas(), 300);
+    };
+
+    const channel = supabase
+      .channel('salas-publicas')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'salas' }, refrescar)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'participantes_sala' },
+        refrescar
+      )
+      .subscribe();
+
+    const interval = setInterval(() => cargarSalas(), 5000);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, [cargarSalas]);
 
   async function unirseASala(salaId: string) {
@@ -75,99 +143,173 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
     });
 
     if (error) {
-      alert(error.message);
+      const errores: Record<string, string> = {
+        'Completa tu MMR': 'Completa tu MMR en Mi perfil antes de unirte a una sala',
+        'Debes vincular tu cuenta de Steam primero':
+          'Vincula tu cuenta de Steam en tu perfil para poder jugar',
+        'Saldo insuficiente': 'No tienes saldo suficiente',
+      };
+      const traducido = Object.entries(errores).find(([clave]) =>
+        error.message.includes(clave)
+      )?.[1];
+      setAviso({ mensaje: traducido ?? error.message, tipo: 'error' });
+      setProcesando(null);
     } else {
-      await cargarSalas();
+      // Avisa al Navbar para que refresque el saldo al instante
+      window.dispatchEvent(new Event('saldo:refresh'));
+      router.push(`/salas/${salaId}`);
     }
-    setProcesando(null);
-  }
-
-  function Avatar({ nick }: { nick: string }) {
-    const inicial = nick?.charAt(0)?.toUpperCase() || '?';
-    const colores = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500'];
-    const color = colores[nick?.charCodeAt(0) % colores.length] || 'bg-gray-500';
-
-    return (
-      <div
-        className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white ${color}`}
-        title={nick}
-      >
-        {inicial}
-      </div>
-    );
-  }
-
-  function estadoBadge(estado: string) {
-    const clases: Record<string, string> = {
-      abierta: 'bg-green-100 text-green-800',
-      llena: 'bg-yellow-100 text-yellow-800',
-      en_juego: 'bg-blue-100 text-blue-800',
-    };
-    return clases[estado] ?? 'bg-gray-100 text-gray-800';
   }
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-4">Salas activas</h2>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-display text-lg font-bold tracking-tight text-white sm:text-xl">
+          Salas activas
+        </h2>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-500/30">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          En vivo
+        </span>
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-medium text-slate-500">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+          Radiant
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
+          Dire
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full bg-slate-500" />
+          Lista de espera
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full border-2 border-dashed border-white/20" />
+          Libre
+        </span>
+      </div>
+
       {loading ? (
-        <p className="text-gray-500">Cargando salas...</p>
+        <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 text-sm text-slate-400 shadow-arena-soft">
+          Cargando salas...
+        </div>
       ) : salas.length === 0 ? (
-        <p className="text-gray-500">No hay salas activas en este momento</p>
+        <div className="arena-card rounded-2xl border border-dashed border-white/10 bg-[#111827] p-8 text-center">
+          <p className="text-sm font-semibold text-slate-200">No hay salas activas por ahora</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Vuelve en unos minutos o pide a un admin que abra una sala.
+          </p>
+        </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {salas.map((sala) => {
             const count = sala.participantes_sala?.[0]?.count ?? 0;
             const parts = participantes[sala.id] ?? [];
-            const puedeUnirse = sala.estado === 'abierta' && count < sala.cupo;
+            const estoyDentro = !!user && parts.some((p) => p.user_id === user.id);
+            const puedeUnirse = sala.estado === 'abierta' && count < sala.cupo && !estoyDentro;
 
             return (
-              <div key={sala.id} className="rounded-lg bg-white p-6 shadow">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">{sala.nombre}</h3>
-                    <div className="mt-2 space-y-1 text-sm text-gray-600">
-                      <p>
-                        <span className="font-medium">Cuota:</span> S/ {(sala.cuota / 100).toFixed(2)}
+              <div
+                key={sala.id}
+                className="arena-card group flex flex-col rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-arena-soft transition hover:-translate-y-0.5 hover:border-prism-500/40 hover:shadow-arena-glow"
+              >
+                <div className="flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-display text-base font-bold tracking-tight text-white">
+                        {sala.nombre}
+                      </h3>
+                      <span className="rounded-full bg-prism-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-prism-300 ring-1 ring-inset ring-prism-500/30">
+                        {sala.modalidad ?? (sala.cupo === 2 ? '1v1' : '5v5')}
+                      </span>
+                    </div>
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${estadoBadge(sala.estado)}`}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+                      {estadoTexto(sala.estado)}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div className="rounded-xl bg-white/[0.03] px-3 py-2 ring-1 ring-inset ring-white/5">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                        Cuota
                       </p>
-                      <div className="flex items-center gap-2">
-                        <div className="flex -space-x-2">
-                          {parts.slice(0, 5).map((p) => (
-                            <Avatar key={p.user_id} nick={p.profiles?.nick ?? '?'} />
-                          ))}
-                        </div>
-                        <span className="text-gray-600">
-                          {count}/{sala.cupo}
-                        </span>
-                      </div>
+                      <p className="mt-0.5 text-sm font-bold text-white">
+                        S/ {(sala.cuota / 100).toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-white/[0.03] px-3 py-2 ring-1 ring-inset ring-white/5">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                        Jugadores
+                      </p>
+                      <p className="mt-0.5 text-sm font-bold text-white">
+                        {count}/{sala.cupo}
+                      </p>
                     </div>
                   </div>
-                  <span
-                    className={`inline-block rounded px-2 py-1 text-xs font-medium ${estadoBadge(sala.estado)}`}
-                  >
-                    {sala.estado === 'abierta' ? 'Abierta' : sala.estado === 'llena' ? 'Llena' : 'En juego'}
-                  </span>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                    {Array.from({ length: sala.cupo }).map((_, i) => {
+                      const p = parts[i];
+
+                      return p ? (
+                        <Avatar
+                          key={p.user_id}
+                          nick={p.profiles?.nick ?? '?'}
+                          src={p.profiles?.steam_avatar_url}
+                          ringClass={ringEquipo(p.equipo)}
+                          title={`${p.profiles?.nick ?? 'Usuario'}${
+                            p.profiles?.mmr != null ? ` · MMR ${p.profiles.mmr}` : ''
+                          }${
+                            p.equipo === 1 ? ' · Radiant' : p.equipo === 2 ? ' · Dire' : ' · Espera'
+                          }`}
+                        />
+                      ) : (
+                        <div
+                          key={`libre-${i}`}
+                          className="h-8 w-8 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]"
+                          title="Slot libre"
+                        />
+                      );
+                    })}
+                    <span className="ml-1 rounded-full bg-white/5 px-2 py-0.5 text-[11px] font-semibold text-slate-300">
+                      {count}/{sala.cupo}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="mt-4">
+                <div className="mt-5">
                   {!isAuthenticated ? (
                     <Link
                       href="/login"
-                      className="block w-full rounded bg-blue-600 py-2 text-center text-white hover:bg-blue-700"
+                      className="block w-full rounded-xl bg-prism-500 py-2.5 text-center text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400"
                     >
                       Inicia sesión para unirte
+                    </Link>
+                  ) : estoyDentro ? (
+                    <Link
+                      href={`/salas/${sala.id}`}
+                      className="block w-full rounded-xl bg-emerald-500/15 py-2.5 text-center text-sm font-semibold text-emerald-200 ring-1 ring-inset ring-emerald-500/30 transition hover:bg-emerald-500/20"
+                    >
+                      Ir a mi sala
                     </Link>
                   ) : puedeUnirse ? (
                     <button
                       onClick={() => unirseASala(sala.id)}
                       disabled={procesando === sala.id}
-                      className="w-full rounded bg-green-600 py-2 text-white hover:bg-green-700 disabled:opacity-50"
+                      className="w-full rounded-xl bg-prism-500 py-2.5 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {procesando === sala.id ? 'Uniéndose...' : 'Unirse'}
                     </button>
                   ) : (
                     <Link
                       href={`/salas/${sala.id}`}
-                      className="block w-full rounded bg-blue-600 py-2 text-center text-white hover:bg-blue-700"
+                      className="block w-full rounded-xl border border-white/10 bg-white/5 py-2.5 text-center text-sm font-semibold text-slate-200 transition hover:bg-white/10"
                     >
                       Ver sala
                     </Link>
@@ -178,6 +320,12 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
           })}
         </div>
       )}
+
+      <Toast
+        mensaje={aviso?.mensaje ?? null}
+        tipo={aviso?.tipo}
+        onClose={() => setAviso(null)}
+      />
     </div>
   );
 }

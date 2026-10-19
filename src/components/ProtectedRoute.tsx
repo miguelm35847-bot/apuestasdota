@@ -32,8 +32,8 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
 
   if (loading || checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-600">Verificando permisos...</p>
+      <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
+        <p>Verificando permisos...</p>
       </div>
     );
   }

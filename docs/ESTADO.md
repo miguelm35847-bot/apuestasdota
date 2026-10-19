@@ -8,6 +8,35 @@
 - Verificación de admin en cliente (supabase.rpc('es_admin')) - mejora pendiente para producción
 - Vinculación Steam funcionando (método OpenID)
 - Landing pública (/) unificada: hero, salas activas e historial (navbar dinámica según auth)
+- Landing con unirse directo, avatares de participantes y "Ir a mi sala"
+- Menú superior único (Navbar) en todas las páginas: sticky, saldo + recargar, campana y menú desplegable de perfil con las acciones secundarias
+- Saldo se refresca al unirse a una sala, cada 15 s y al volver a la pestaña
+- Admin ve en columnas los equipos elegidos por los jugadores (Radiant/Dire) y puede reasignarlos
+- Salas solo en modalidad 1v1 (cupo 2) o 5v5 (cupo 10)
+- Al unirse se entra a la lista de espera; jugador y admin mueven entre espera/Radiant/Dire
+- "Guardar cambios" valida equipos y pone la partida en juego con nombre y clave del lobby
+- Notificación "partida_iniciada" con los datos del lobby a todos los participantes
+- El lobby (nombre y clave) se muestra en la sala del jugador y en la gestión del admin
+- Slots fijos por modalidad: 1v1 = 2 espera + 1/1 equipos; 5v5 = 10 espera + 5/5 equipos
+- Movimientos del admin se aplican al instante (sin botón guardar); el botón solo pone en juego
+- Cambios en tiempo real con Supabase Realtime (filtrado por sala; respaldo cada 5 s)
+- Admin puede sacar jugadores de la sala con reembolso (expulsar_de_sala); el jugador sale de la sala al instante
+- Confirmación modal antes de sacar un jugador, cancelar la sala o cerrar la partida
+- Lista de espera ubicada debajo de Radiant/Dire (slots en grilla, ordenados por ingreso)
+- Landing público: salas e historial visibles sin iniciar sesión (RLS de lectura pública)
+- Landing con slots visuales (2 en 1v1, 10 en 5v5) que se llenan y actualizan en vivo
+- Compartir enlace de sala y avisos tipo toast al unirse desde el landing
+- Unirse desde el landing entra directo a la sala; se quitó la pestaña "Salas" del menú superior (el admin sigue entrando desde su panel)
+- Chat general en el landing (columna derecha): lectura para todos, escritura solo con sesión
+- Chat privado dentro de cada sala: solo participantes; el admin también puede leer/escribir para moderar
+- Historial global accesible desde un botón en la columna izquierda del landing, sin recargar la vista
+- Landing y sala compactados: hero más bajo, tarjetas y slots más pequeños; el chat queda fijo a la derecha (300 px) y las salas ganan ancho
+- Chat con Realtime y respaldo cada 5 segundos
+- Avatar y nombre de Steam sincronizados al vincular; se muestran en navbar, perfil, salas, chat, historial y paneles admin
+- Endpoint `/api/steam/sync` para actualizar cuentas ya vinculadas; la API key permanece en el servidor
+- El SQL del chat está en docs/TRASPASO.md y debe ejecutarse en Supabase
+- /salas carga los conteos de jugadores en una sola consulta
+- Sala: salir redirige al landing; equipos solo cuando está llena
 - Página /jugador eliminada (todo se centraliza en /)
 - Pantalla de recarga de saldo con subida de captura
 - Trigger de saldo no negativo seguro contra carreras
@@ -20,13 +49,39 @@
 - Notificaciones de aprobación/rechazo de recargas y retiros
 - Nomenclatura Radiant/Dire en toda la interfaz
 - Retiros (jugador + admin) con notificaciones
+- Limpieza técnica: tipos de dominio centralizados en src/lib/types.ts; se eliminaron `any`, imports/variables sin uso y componentes definidos dentro del render
+- Hooks de carga ordenados, con dependencias estables (`useCallback`) en perfil, recargas y retiros
+- Perfil simplificado: un solo **MMR público** y hasta 3 roles opcionales en orden (Carry/Mid/Offlane/Roamer/Support), guardados en `profiles`
+- Para unirse a una sala se exige `profiles.mmr` (trigger `validar_perfil_dota`); los roles son opcionales
+- Se eliminó el balanceo automático y la tabla `perfiles_dota`; el MMR y los roles se muestran en sala, landing y panel admin
+- Fase de picks 5v5: el admin elige dos capitanes y la moneda se lanza en el servidor
+- El ganador de la moneda elige pickear primero o elegir lado; el otro completa la decisión
+- Picks en orden serpiente A-B-B-A, con validación en RPC y actualización en vivo
+- Auto-pick a los 60 s: prioriza roles faltantes y luego MMR; el admin puede forzarlo o cancelar la fase
+- Durante los picks se bloquean movimientos/expulsiones (trigger `bloquear_cambios_en_picks`)
+- El MMR se muestra como número completo y destacado (p. ej. `MMR 4500`) en sala, tablero de picks y panel admin
+- Desde la sala, cada jugador elige hasta 3 roles (con ícono y nombre, en orden) que se guardan en su perfil; son solo informativos para los capitanes y se bloquean cuando empieza la fase de picks o la partida. El guardado es automático (sin botón) y se actualiza en vivo para todos los de la sala vía Realtime de `profiles`
+- Sala 5v5 compactada: en pantallas grandes Radiant, Dire y la lista de espera van en tres columnas, con slots más bajos y una tarjeta de roles resumida para que la lista de espera quede a la vista sin scroll; en la espera los roles se muestran solo con íconos (con el nombre en tooltip)
+- MMR de un solo uso: cada jugador lo registra una vez y ya no puede cambiarlo; `guardar_roles_preferidos` permite editar solo los roles sin tocar el MMR y el trigger `proteger_mmr` bloquea cambios directos
+- Admin puede corregir el MMR de cualquier jugador desde `/admin/jugadores` (buscador + edición inline) mediante `admin_editar_mmr`; pensado para antifraude/boosters
+- Tema visual **Arena Dark** a medida: base grafito, indigo para dinero/acciones, verde Radiant, rosa Dire y dorado para premios; títulos en Sora y cuerpo en Manrope. Landing, Navbar y todas las pantallas principales usan el mismo estilo
+- El hero ya no usa la imagen de fondo de Valve: ahora tiene una textura propia con glows Radiant/Dire, para evitar dependencias de marca en producción
+- Arena Dark fuerza sus fondos en CSS nativo (`.arena-shell`, `.arena-card`, `.arena-hero`, `.arena-nav`) y con colores hex explícitos; así no depende de que Tailwind genere las utilidades `bg-arena-*`. El body se oscurece mientras haya una pantalla Arena montada (`arena-body` + `body:has(.arena-shell)`)
+- Migración completa a Arena Dark: sala 5v5 del jugador, sala de administración, perfil, login, registro, recargar, retirar, historial, listado de salas, panel admin, recargas, retiros y jugadores/MMR
+- Componentes compartidos adaptados: `ConfirmDialog`, `SaldoDisplay`, `MisPartidas`, `MisRecargas`, chat, campana, historial y toast
+- Los formularios usan controles nativos con `color-scheme: dark` y opciones de `select` oscuras para evitar menús blancos del navegador
+- Verificado con capturas headless autenticadas: perfil, listado de salas, sala 5v5 y panel admin de sala se ven oscuros, con contraste legible y el composer del chat visible
+- Chat del landing compactado: 320 px de alto en móvil y `calc(100vh - 36rem)` en desktop; con el hero más bajo, el composer queda visible sin scroll en 1366×768 (verificado con captura headless)
+- `npm run lint` sin errores ni advertencias
 - Build de producción verificado sin errores
 
 ## Siguiente
-- Ejecutar SQL: unirse_a_sala modificado (no unirse a dos salas simultáneamente)
-- Ejecutar SQL: asignar_equipo modificado (admin gestiona cualquier sala abierta)
+- Revisión visual final del usuario en 1366×768 y 1440×1000; ajustar detalles de contraste si hace falta
+- Probar el flujo completo de MMR único + fase de picks en Supabase y en la interfaz
+- Endurecimiento de seguridad/dinero antes del lanzamiento público
+- Cierre automático de la sala al terminar la partida (API de Steam)
+- Historial automático con datos de la partida (duración, marcador, ganador)
 - Sistema de apuestas en partida
-- Cierre automático de salas
 
 ## Decisiones
 - Usar App Router (no Pages Router)
@@ -51,10 +106,17 @@
 - src/app/login/page.tsx - Página de inicio de sesión
 - src/app/register/page.tsx - Página de registro
 - src/app/admin/page.tsx - Panel de administrador
-- src/app/jugador/page.tsx - Panel de jugador
-- src/app/perfil/page.tsx - Perfil con vinculación Steam
+- src/components/SalasPublicas.tsx - Salas en landing (unirse, avatares, ir a mi sala)
+- src/components/Navbar.tsx - Menú superior sticky con saldo, campana y desplegable de perfil
+- src/components/Avatar.tsx - Avatar reutilizable con imagen de Steam y fallback a inicial
+- src/app/perfil/page.tsx - Perfil con vinculación Steam y actualización de avatar
+- src/app/api/steam/sync/route.ts - Sincronización de avatar/nombre de Steam
+- src/lib/steamServer.ts - Consulta de Steam desde el servidor
+- src/lib/steamClient.ts - Sincronización de Steam desde el cliente
 - src/app/recargar/page.tsx - Recarga de saldo con captura
-- src/app/page.tsx - Redirige a login o admin según sesión
+- src/app/page.tsx - Landing pública con salas, saldo y navegación
 - src/app/layout.tsx - Layout principal con AuthProvider
 - src/lib/supabase.ts - Cliente de Supabase
+- src/lib/types.ts - Tipos de dominio compartidos (salas, participantes, recargas, retiros, movimientos, notificaciones)
 - src/lib/steam.ts - Verificación OpenID de Steam
+- src/lib/balance.ts - Roles Dota, formato/promedio de MMR y orden serpiente de picks

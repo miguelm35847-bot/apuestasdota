@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
+import { useArenaBody } from '@/lib/useArenaBody';
+import Navbar from '@/components/Navbar';
 
 function AdminDashboard() {
-  const { user, signOut } = useAuth();
-  const router = useRouter();
+  useArenaBody();
   const [ganancias, setGanancias] = useState<number | null>(null);
 
   useEffect(() => {
@@ -18,55 +19,50 @@ function AdminDashboard() {
     });
   }, []);
 
-  async function handleSignOut() {
-    await signOut();
-    router.push('/login');
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">Panel de Administrador</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">{user?.email}</span>
-            <button
-              onClick={handleSignOut}
-              className="rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
-            >
-              Cerrar sesión
-            </button>
-          </div>
-        </div>
-      </nav>
+    <div className="arena-shell min-h-screen bg-[#0a0e17] text-slate-100">
+      <Navbar titulo="Panel de Administrador" />
 
       <main className="mx-auto max-w-7xl px-4 py-8">
+        <div className="mb-6">
+          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-prism-300">
+            Arena Dark · Administración
+          </p>
+          <h1 className="mt-1 font-display text-2xl font-bold text-white">Panel de control</h1>
+        </div>
+
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="text-lg font-semibold text-gray-900">Ganancias de la casa</h2>
-            <p className="mt-2 text-3xl font-bold text-green-600">
+          <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
+            <h2 className="font-display text-lg font-bold text-white">Ganancias de la casa</h2>
+            <p className="mt-2 text-3xl font-bold text-emerald-300">
               {ganancias !== null ? `S/ ${(ganancias / 100).toFixed(2)}` : '...'}
             </p>
           </div>
 
-          <div className="rounded-lg bg-white p-6 shadow">
-            <h2 className="text-lg font-semibold text-gray-900">Acciones rápidas</h2>
+          <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
+            <h2 className="font-display text-lg font-bold text-white">Acciones rápidas</h2>
             <div className="mt-4 flex flex-col gap-3">
               <Link
                 href="/admin/recargas"
-                className="rounded bg-blue-600 px-4 py-2 text-center text-white hover:bg-blue-700"
+                className="rounded-lg bg-prism-500 px-4 py-2.5 text-center font-semibold text-white shadow-arena-glow transition hover:bg-prism-400"
               >
                 Ver recargas pendientes
               </Link>
               <Link
                 href="/admin/retiros"
-                className="rounded bg-purple-600 px-4 py-2 text-center text-white hover:bg-purple-700"
+                className="rounded-lg border border-prism-500/30 bg-prism-500/10 px-4 py-2.5 text-center font-semibold text-prism-200 transition hover:bg-prism-500/20"
               >
                 Ver retiros pendientes
               </Link>
               <Link
+                href="/admin/jugadores"
+                className="rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-center font-semibold text-slate-200 transition hover:bg-white/10"
+              >
+                Jugadores y MMR
+              </Link>
+              <Link
                 href="/salas"
-                className="rounded bg-green-600 px-4 py-2 text-center text-white hover:bg-green-700"
+                className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-center font-semibold text-emerald-300 transition hover:bg-emerald-500/20"
               >
                 Gestionar salas
               </Link>
@@ -92,7 +88,7 @@ export default function AdminPage() {
     if (!loading && user) {
       supabase.rpc('es_admin').then(({ data }: { data: boolean | null }) => {
         if (data !== true) {
-          router.push('/jugador');
+          router.push('/');
         }
       });
     }
@@ -100,8 +96,8 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-600">Verificando permisos...</p>
+      <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
+        <p>Verificando permisos...</p>
       </div>
     );
   }

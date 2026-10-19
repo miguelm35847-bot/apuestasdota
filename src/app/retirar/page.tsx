@@ -1,13 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import SaldoDisplay from '@/components/SaldoDisplay';
+import Navbar from '@/components/Navbar';
+import { useArenaBody } from '@/lib/useArenaBody';
+import type { Retiro } from '@/lib/types';
 
 export default function RetirarPage() {
+  useArenaBody();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -16,7 +19,7 @@ export default function RetirarPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [retiros, setRetiros] = useState<any[]>([]);
+  const [retiros, setRetiros] = useState<Retiro[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -24,11 +27,7 @@ export default function RetirarPage() {
     }
   }, [user, authLoading, router]);
 
-  useEffect(() => {
-    if (user) cargarRetiros();
-  }, [user]);
-
-  async function cargarRetiros() {
+  const cargarRetiros = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from('retiros')
@@ -36,8 +35,13 @@ export default function RetirarPage() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(10);
-    if (data) setRetiros(data);
-  }
+    if (data) setRetiros(data as unknown as Retiro[]);
+  }, [user]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de la sesión
+    if (user) void cargarRetiros();
+  }, [user, cargarRetiros]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -82,17 +86,17 @@ export default function RetirarPage() {
 
   function estadoBadge(estado: string) {
     const clases: Record<string, string> = {
-      solicitado: 'bg-yellow-100 text-yellow-800',
-      pagado: 'bg-green-100 text-green-800',
-      rechazado: 'bg-red-100 text-red-800',
+      solicitado: 'bg-amber-500/15 text-amber-300',
+      pagado: 'bg-emerald-500/15 text-emerald-300',
+      rechazado: 'bg-rose-500/15 text-rose-300',
     };
-    return clases[estado] ?? 'bg-gray-100 text-gray-800';
+    return clases[estado] ?? 'bg-white/5 text-slate-300';
   }
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-600">Cargando...</p>
+      <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
+        <p>Cargando...</p>
       </div>
     );
   }
@@ -102,26 +106,8 @@ export default function RetirarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">Retirar saldo</h1>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
-              Inicio
-            </Link>
-            <Link href="/salas" className="text-sm text-gray-600 hover:text-gray-900">
-              Salas
-            </Link>
-            <Link href="/recargar" className="text-sm text-gray-600 hover:text-gray-900">
-              Recargar
-            </Link>
-            <Link href="/perfil" className="text-sm text-gray-600 hover:text-gray-900">
-              Mi perfil
-            </Link>
-          </div>
-        </div>
-      </nav>
+    <div className="arena-shell min-h-screen bg-[#0a0e17] text-slate-100">
+      <Navbar titulo="Retirar saldo" />
 
       <main className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6">
@@ -129,17 +115,21 @@ export default function RetirarPage() {
         </div>
 
         {error && (
-          <div className="mb-4 rounded bg-red-50 p-3 text-sm text-red-600">{error}</div>
+          <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+            {error}
+          </div>
         )}
         {success && (
-          <div className="mb-4 rounded bg-green-50 p-3 text-sm text-green-600">{success}</div>
+          <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+            {success}
+          </div>
         )}
 
-        <div className="rounded-lg bg-white p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Solicitar retiro</h2>
+        <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
+          <h2 className="font-display text-lg font-bold text-white mb-4">Solicitar retiro</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="monto" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="monto" className="block text-sm font-medium text-slate-300">
                 Monto en soles (S/)
               </label>
               <input
@@ -149,14 +139,14 @@ export default function RetirarPage() {
                 min="5"
                 value={monto}
                 onChange={(e) => setMonto(e.target.value)}
-                className="mt-1 block w-full rounded border-2 border-gray-400 bg-white px-4 py-3 text-lg text-black focus:border-blue-500 focus:outline-none"
+                className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
                 placeholder="Ej: 50.00"
               />
-              <p className="mt-1 text-xs text-gray-500">Mínimo S/ 5.00</p>
+              <p className="mt-1 text-xs text-slate-500">Mínimo S/ 5.00</p>
             </div>
 
             <div>
-              <label htmlFor="destino" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="destino" className="block text-sm font-medium text-slate-300">
                 Número de Yape/Plin
               </label>
               <input
@@ -164,10 +154,10 @@ export default function RetirarPage() {
                 type="text"
                 value={destino}
                 onChange={(e) => setDestino(e.target.value)}
-                className="mt-1 block w-full rounded border-2 border-gray-400 bg-white px-4 py-3 text-lg text-black focus:border-blue-500 focus:outline-none"
+                className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
                 placeholder="Ej: 999999999"
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-slate-500">
                 Ingresa el número celular donde quieres recibir el dinero
               </p>
             </div>
@@ -175,36 +165,36 @@ export default function RetirarPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded bg-blue-600 py-3 text-white hover:bg-blue-700 disabled:opacity-50"
+              className="w-full rounded-lg bg-prism-500 py-3 font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
             >
               {loading ? 'Enviando...' : 'Solicitar retiro'}
             </button>
           </form>
         </div>
 
-        <div className="mt-6 rounded-lg bg-white p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Mis retiros</h2>
+        <div className="mt-6 arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
+          <h2 className="font-display text-lg font-bold text-white mb-4">Mis retiros</h2>
           {retiros.length === 0 ? (
-            <p className="text-sm text-gray-500">No tienes retiros registrados.</p>
+            <p className="text-sm text-slate-500">No tienes retiros registrados.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="pb-2 text-left font-medium text-gray-600">Fecha</th>
-                    <th className="pb-2 text-left font-medium text-gray-600">Monto</th>
-                    <th className="pb-2 text-left font-medium text-gray-600">Destino</th>
-                    <th className="pb-2 text-left font-medium text-gray-600">Estado</th>
+                  <tr className="border-b border-white/10">
+                    <th className="pb-2 text-left font-medium text-slate-400">Fecha</th>
+                    <th className="pb-2 text-left font-medium text-slate-400">Monto</th>
+                    <th className="pb-2 text-left font-medium text-slate-400">Destino</th>
+                    <th className="pb-2 text-left font-medium text-slate-400">Estado</th>
                   </tr>
                 </thead>
                 <tbody>
                   {retiros.map((r) => (
-                    <tr key={r.id} className="border-b border-gray-100">
-                      <td className="py-2 text-gray-900">
+                    <tr key={r.id} className="border-b border-white/5">
+                      <td className="py-2 text-slate-200">
                         {new Date(r.created_at).toLocaleDateString('es-PE')}
                       </td>
-                      <td className="py-2 text-gray-900">S/ {(r.monto / 100).toFixed(2)}</td>
-                      <td className="py-2 text-gray-900">{r.destino}</td>
+                      <td className="py-2 text-slate-200">S/ {(r.monto / 100).toFixed(2)}</td>
+                      <td className="py-2 text-slate-200">{r.destino}</td>
                       <td className="py-2">
                         <span
                           className={`inline-block rounded px-2 py-1 text-xs font-medium ${estadoBadge(r.estado)}`}

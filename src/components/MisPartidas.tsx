@@ -23,10 +23,6 @@ export default function MisPartidas() {
   const [partidas, setPartidas] = useState<Partida[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    cargarPartidas();
-  }, []);
-
   async function cargarPartidas() {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
@@ -42,28 +38,33 @@ export default function MisPartidas() {
       .order('created_at', { ascending: false })
       .limit(20);
 
-    if (data) setPartidas(data as any);
+    if (data) setPartidas(data as unknown as Partida[]);
     setLoading(false);
   }
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial desde Supabase
+    void cargarPartidas();
+  }, []);
+
   if (loading) {
-    return <p className="text-sm text-gray-500">Cargando tus partidas...</p>;
+    return <p className="text-sm text-slate-500">Cargando tus partidas...</p>;
   }
 
   if (partidas.length === 0) {
-    return <p className="text-sm text-gray-500">Aún no has jugado ninguna partida.</p>;
+    return <p className="text-sm text-slate-500">Aún no has jugado ninguna partida.</p>;
   }
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gray-200">
-            <th className="pb-2 text-left font-medium text-gray-600">Sala</th>
-            <th className="pb-2 text-left font-medium text-gray-600">Fecha</th>
-            <th className="pb-2 text-left font-medium text-gray-600">Tu equipo</th>
-            <th className="pb-2 text-left font-medium text-gray-600">Resultado</th>
-            <th className="pb-2 text-left font-medium text-gray-600">Monto</th>
+          <tr className="border-b border-white/10">
+            <th className="pb-2 text-left font-medium text-slate-400">Sala</th>
+            <th className="pb-2 text-left font-medium text-slate-400">Fecha</th>
+            <th className="pb-2 text-left font-medium text-slate-400">Tu equipo</th>
+            <th className="pb-2 text-left font-medium text-slate-400">Resultado</th>
+            <th className="pb-2 text-left font-medium text-slate-400">Monto</th>
           </tr>
         </thead>
         <tbody>
@@ -76,28 +77,28 @@ export default function MisPartidas() {
               : -(p.salas?.cuota ?? 0);
 
             return (
-              <tr key={p.sala_id} className="border-b border-gray-100">
-                <td className="py-2 text-gray-900">{p.salas?.nombre ?? 'Sala'}</td>
-                <td className="py-2 text-gray-900">
+              <tr key={p.sala_id} className="border-b border-white/5">
+                <td className="py-2 text-slate-200">{p.salas?.nombre ?? 'Sala'}</td>
+                <td className="py-2 text-slate-200">
                   {new Date(p.salas?.created_at ?? '').toLocaleDateString('es-PE')}
                 </td>
-                <td className="py-2 text-gray-900">
+                <td className="py-2 text-slate-200">
                   {miEquipo === 1 ? 'Equipo 1' : miEquipo === 2 ? 'Equipo 2' : 'Sin asignar'}
                 </td>
                 <td className="py-2">
                   {ganador ? (
                     <span
                       className={`inline-block rounded px-2 py-1 text-xs font-medium ${
-                        gano ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        gano ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300'
                       }`}
                     >
                       {gano ? 'Ganaste' : 'Perdiste'}
                     </span>
                   ) : (
-                    <span className="text-gray-500">En curso</span>
+                    <span className="text-slate-500">En curso</span>
                   )}
                 </td>
-                <td className={`py-2 font-medium ${gano ? 'text-green-600' : 'text-red-600'}`}>
+                <td className={`py-2 font-medium ${gano ? 'text-emerald-300' : 'text-rose-300'}`}>
                   {gano ? '+' : ''}S/ {(monto / 100).toFixed(2)}
                 </td>
               </tr>

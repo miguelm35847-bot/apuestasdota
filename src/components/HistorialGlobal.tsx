@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import Avatar from '@/components/Avatar';
 
 type Participante = {
   user_id: string;
   equipo: number | null;
   profiles: {
     nick: string;
+    steam_avatar_url?: string | null;
   };
 };
 
@@ -25,80 +27,100 @@ type PartidaGlobal = {
   participantes_sala: Participante[];
 };
 
+function EquipoBadge({ equipo }: { equipo: number }) {
+  const color =
+    equipo === 1
+      ? 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/30'
+      : 'bg-rose-500/10 text-rose-300 ring-rose-500/30';
+  const nombre = equipo === 1 ? 'Radiant' : 'Dire';
+  return (
+    <span
+      className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${color}`}
+    >
+      {nombre}
+    </span>
+  );
+}
+
 export default function HistorialGlobal() {
   const [partidas, setPartidas] = useState<PartidaGlobal[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    cargarHistorial();
-  }, []);
 
   async function cargarHistorial() {
     setLoading(true);
     const { data } = await supabase
       .from('salas')
-      .select('*, partidas(*), participantes_sala(user_id, equipo, profiles(nick))')
+      .select('*, partidas(*), participantes_sala(user_id, equipo, profiles(nick, steam_avatar_url))')
       .eq('estado', 'terminada')
       .order('created_at', { ascending: false })
       .limit(10);
 
-    if (data) setPartidas(data as any);
+    if (data) setPartidas(data as unknown as PartidaGlobal[]);
     setLoading(false);
   }
 
-  function EquipoBadge({ equipo }: { equipo: number }) {
-    const color = equipo === 1 ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800';
-    const nombre = equipo === 1 ? 'Radiant' : 'Dire';
-    return <span className={`rounded px-2 py-1 text-xs font-medium ${color}`}>{nombre}</span>;
-  }
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial desde Supabase
+    void cargarHistorial();
+  }, []);
 
   return (
-    <div className="mt-6 rounded-lg bg-white p-6 shadow">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Últimas partidas</h2>
+    <div className="arena-card mt-6 rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="font-display text-lg font-bold tracking-tight text-white">
+          Últimas partidas
+        </h2>
         <Link
           href="/salas/historial"
-          className="text-sm text-blue-600 hover:underline"
+          className="text-sm font-semibold text-prism-300 transition hover:text-prism-200"
         >
           Ver todo
         </Link>
       </div>
 
       {loading ? (
-        <p className="text-sm text-gray-500">Cargando...</p>
+        <p className="text-sm text-slate-400">Cargando...</p>
       ) : partidas.length === 0 ? (
-        <p className="text-sm text-gray-500">No hay partidas terminadas aún.</p>
+        <p className="text-sm text-slate-400">No hay partidas terminadas aún.</p>
       ) : (
         <div className="space-y-4">
           {partidas.map((sala) => (
-            <div key={sala.id} className="border-b border-gray-100 pb-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900">{sala.nombre}</h3>
-                <span className="text-sm text-gray-500">
+            <div key={sala.id} className="border-b border-white/5 pb-4 last:border-b-0 last:pb-0">
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-bold tracking-tight text-white">{sala.nombre}</h3>
+                <span className="text-xs text-slate-500">
                   {new Date(sala.created_at).toLocaleDateString('es-PE')}
                 </span>
               </div>
 
               {sala.partidas && (
-                <div className="mt-1 text-sm text-gray-600">
-                  <span className="font-medium">Ganador:</span>{' '}
-                  {sala.partidas.equipo_ganador === 1
-                    ? 'Radiant'
-                    : 'Dire'}
-                  <span className="mx-2">|</span>
-                  <span className="font-medium">Pozo:</span> S/{' '}
+                <div className="mt-1 text-sm text-slate-400">
+                  <span className="font-semibold text-slate-300">Ganador:</span>{' '}
+                  {sala.partidas.equipo_ganador === 1 ? 'Radiant' : 'Dire'}
+                  <span className="mx-2 text-slate-600">|</span>
+                  <span className="font-semibold text-slate-300">Pozo:</span> S/{' '}
                   {(sala.partidas.pozo / 100).toFixed(2)}
                 </div>
               )}
 
               {sala.participantes_sala && sala.participantes_sala.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {sala.participantes_sala
+                  {[...sala.participantes_sala]
                     .sort((a, b) => (a.equipo ?? 0) - (b.equipo ?? 0))
                     .map((p) => (
-                      <div key={p.user_id} className="flex items-center gap-1">
+                      <div
+                        key={p.user_id}
+                        className="flex items-center gap-1.5 rounded-full bg-white/5 py-1 pl-1 pr-2.5 ring-1 ring-inset ring-white/10"
+                      >
                         <EquipoBadge equipo={p.equipo ?? 0} />
-                        <span className="text-sm text-gray-900">{p.profiles?.nick ?? 'Usuario'}</span>
+                        <Avatar
+                          nick={p.profiles?.nick}
+                          src={p.profiles?.steam_avatar_url}
+                          size="xs"
+                        />
+                        <span className="text-sm font-medium text-slate-200">
+                          {p.profiles?.nick ?? 'Usuario'}
+                        </span>
                       </div>
                     ))}
                 </div>

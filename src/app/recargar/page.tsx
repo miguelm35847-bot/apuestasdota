@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
+import Navbar from '@/components/Navbar';
 import SaldoDisplay from '@/components/SaldoDisplay';
+import { useArenaBody } from '@/lib/useArenaBody';
 
 type Recarga = {
   id: string;
@@ -16,7 +17,14 @@ type Recarga = {
   created_at: string;
 };
 
+function crearRutaCaptura(userId: string, extension: string) {
+  const fecha = new Date().toISOString().split('T')[0];
+  const unico = Date.now().toString(36);
+  return `${userId}/${fecha}-${unico}.${extension}`;
+}
+
 export default function RecargarPage() {
+  useArenaBody();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -34,13 +42,7 @@ export default function RecargarPage() {
     }
   }, [user, authLoading, router]);
 
-  useEffect(() => {
-    if (user) {
-      cargarRecargas();
-    }
-  }, [user]);
-
-  async function cargarRecargas() {
+  const cargarRecargas = useCallback(async () => {
     if (!user) return;
     const { data } = await supabase
       .from('recargas')
@@ -48,7 +50,14 @@ export default function RecargarPage() {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
     if (data) setRecargas(data);
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de la sesión
+      void cargarRecargas();
+    }
+  }, [user, cargarRecargas]);
 
   function validarArchivo(file: File): string | null {
     const tiposPermitidos = ['image/jpeg', 'image/png'];
@@ -100,10 +109,8 @@ export default function RecargarPage() {
 
     try {
       const montoCentimos = Math.round(montoNum * 100);
-      const fecha = new Date().toISOString().split('T')[0];
       const extension = captura.type === 'image/png' ? 'png' : 'jpg';
-      const unico = Date.now().toString(36);
-      const rutaCaptura = `${user.id}/${fecha}-${unico}.${extension}`;
+      const rutaCaptura = crearRutaCaptura(user.id, extension);
 
       const { error: uploadError } = await supabase.storage
         .from('capturas')
@@ -153,17 +160,17 @@ export default function RecargarPage() {
 
   function estadoBadge(estado: string) {
     const clases: Record<string, string> = {
-      pendiente: 'bg-yellow-100 text-yellow-800',
-      aprobada: 'bg-green-100 text-green-800',
-      rechazada: 'bg-red-100 text-red-800',
+      pendiente: 'bg-amber-500/15 text-amber-300',
+      aprobada: 'bg-emerald-500/15 text-emerald-300',
+      rechazada: 'bg-rose-500/15 text-rose-300',
     };
-    return clases[estado] ?? 'bg-gray-100 text-gray-800';
+    return clases[estado] ?? 'bg-white/5 text-slate-300';
   }
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-600">Cargando...</p>
+      <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
+        <p>Cargando...</p>
       </div>
     );
   }
@@ -173,23 +180,8 @@ export default function RecargarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">Recargar saldo</h1>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">Inicio</Link>
-            <Link href="/retirar" className="text-sm text-gray-600 hover:text-gray-900">Retirar</Link>
-            <Link href="/perfil" className="text-sm text-gray-600 hover:text-gray-900">Mi perfil</Link>
-            <button
-              onClick={() => router.push('/login')}
-              className="text-sm text-red-600 hover:underline"
-            >
-              Cerrar sesión
-            </button>
-          </div>
-        </div>
-      </nav>
+    <div className="arena-shell min-h-screen bg-[#0a0e17] text-slate-100">
+      <Navbar titulo="Recargar saldo" />
 
       <main className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6">
@@ -197,17 +189,21 @@ export default function RecargarPage() {
         </div>
 
         {error && (
-          <div className="mb-4 rounded bg-red-50 p-3 text-sm text-red-600">{error}</div>
+          <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+            {error}
+          </div>
         )}
         {success && (
-          <div className="mb-4 rounded bg-green-50 p-3 text-sm text-green-600">{success}</div>
+          <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+            {success}
+          </div>
         )}
 
-        <div className="rounded-lg bg-white p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Nueva recarga</h2>
+        <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
+          <h2 className="font-display text-lg font-bold text-white mb-4">Nueva recarga</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="monto" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="monto" className="block text-sm font-medium text-slate-300">
                 Monto en soles (S/)
               </label>
               <input
@@ -218,14 +214,14 @@ export default function RecargarPage() {
                 max="500"
                 value={monto}
                 onChange={(e) => setMonto(e.target.value)}
-                className="mt-1 block w-full rounded border-2 border-gray-400 bg-white px-4 py-3 text-lg text-black placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
                 placeholder="Ej: 50.00"
               />
-              <p className="mt-1 text-xs text-gray-500">Mínimo S/ 1.00, máximo S/ 500.00</p>
+              <p className="mt-1 text-xs text-slate-500">Mínimo S/ 1.00, máximo S/ 500.00</p>
             </div>
 
             <div>
-              <label htmlFor="operacion" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="operacion" className="block text-sm font-medium text-slate-300">
                 Número de operación (Yape/Plin)
               </label>
               <input
@@ -233,13 +229,13 @@ export default function RecargarPage() {
                 type="text"
                 value={numeroOperacion}
                 onChange={(e) => setNumeroOperacion(e.target.value)}
-                className="mt-1 block w-full rounded border-2 border-gray-400 bg-white px-4 py-3 text-lg text-black placeholder-gray-500 focus:border-blue-500 focus:outline-none"
+                className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
                 placeholder="Ej: 123456789"
               />
             </div>
 
             <div>
-              <label htmlFor="captura" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="captura" className="block text-sm font-medium text-slate-300">
                 Captura del pago (JPG/PNG, máx 3 MB)
               </label>
               <input
@@ -247,10 +243,10 @@ export default function RecargarPage() {
                 type="file"
                 accept="image/jpeg,image/png"
                 onChange={(e) => setCaptura(e.target.files?.[0] ?? null)}
-                className="mt-1 block w-full rounded border-2 border-gray-400 bg-white px-4 py-3 text-lg text-black file:mr-4 file:rounded file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
+                className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 file:mr-4 file:rounded file:border-0 file:bg-prism-500/15 file:px-4 file:py-2 file:text-sm file:font-medium file:text-prism-200 hover:file:bg-prism-500/25"
               />
               {captura && (
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-slate-500">
                   Archivo: {captura.name} ({(captura.size / 1024 / 1024).toFixed(2)} MB)
                 </p>
               )}
@@ -259,36 +255,36 @@ export default function RecargarPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+              className="w-full rounded-lg bg-prism-500 py-2.5 font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
             >
               {submitting ? 'Enviando...' : 'Enviar recarga'}
             </button>
           </form>
         </div>
 
-        <div className="mt-6 rounded-lg bg-white p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Mis recargas</h2>
+        <div className="mt-6 arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
+          <h2 className="font-display text-lg font-bold text-white mb-4">Mis recargas</h2>
           {recargas.length === 0 ? (
-            <p className="text-sm text-gray-500">No tienes recargas registradas.</p>
+            <p className="text-sm text-slate-500">No tienes recargas registradas.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="pb-2 text-left font-medium text-gray-600">Fecha</th>
-                    <th className="pb-2 text-left font-medium text-gray-600">Monto</th>
-                    <th className="pb-2 text-left font-medium text-gray-600">Nº Operación</th>
-                    <th className="pb-2 text-left font-medium text-gray-600">Estado</th>
+                  <tr className="border-b border-white/10">
+                    <th className="pb-2 text-left font-medium text-slate-400">Fecha</th>
+                    <th className="pb-2 text-left font-medium text-slate-400">Monto</th>
+                    <th className="pb-2 text-left font-medium text-slate-400">Nº Operación</th>
+                    <th className="pb-2 text-left font-medium text-slate-400">Estado</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recargas.map((r) => (
-                    <tr key={r.id} className="border-b border-gray-100">
-                      <td className="py-2 text-gray-900">
+                    <tr key={r.id} className="border-b border-white/5">
+                      <td className="py-2 text-slate-200">
                         {new Date(r.created_at).toLocaleDateString('es-PE')}
                       </td>
-                      <td className="py-2 text-gray-900">S/ {(r.monto / 100).toFixed(2)}</td>
-                      <td className="py-2 text-gray-900">{r.numero_operacion}</td>
+                      <td className="py-2 text-slate-200">S/ {(r.monto / 100).toFixed(2)}</td>
+                      <td className="py-2 text-slate-200">{r.numero_operacion}</td>
                       <td className="py-2">
                         <span
                           className={`inline-block rounded px-2 py-1 text-xs font-medium ${estadoBadge(r.estado)}`}

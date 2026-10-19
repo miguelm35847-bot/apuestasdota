@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import type { Notificacion } from '@/lib/types';
 
 export default function NotificationBell() {
   const [noLeidas, setNoLeidas] = useState(0);
   const [show, setShow] = useState(false);
-  const [notificaciones, setNotificaciones] = useState<any[]>([]);
+  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
 
   useEffect(() => {
     cargarNotificaciones();
@@ -35,8 +36,9 @@ export default function NotificationBell() {
       .limit(20);
 
     if (data) {
-      setNotificaciones(data);
-      setNoLeidas(data.filter((n: any) => !n.leida).length);
+      const filas = data as unknown as Notificacion[];
+      setNotificaciones(filas);
+      setNoLeidas(filas.filter((n) => !n.leida).length);
     }
   }
 
@@ -51,7 +53,7 @@ export default function NotificationBell() {
       .eq('leida', false);
 
     setNoLeidas(0);
-    setNotificaciones((prev) => prev.map((n: any) => ({ ...n, leida: true })));
+    setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
   }
 
   function tipoIcono(tipo: string) {
@@ -60,6 +62,8 @@ export default function NotificationBell() {
       recarga_rechazada: '❌',
       retiro_pagado: '💰',
       retiro_rechazado: '❌',
+      partida_iniciada: '🎮',
+      expulsado_sala: '🚪',
     };
     return iconos[tipo] ?? '📋';
   }
@@ -74,37 +78,56 @@ export default function NotificationBell() {
             marcarLeidas();
           }
         }}
-        className="relative rounded p-2 hover:bg-gray-100"
+        aria-label="Ver notificaciones"
+        className="relative rounded-full p-2 text-slate-300 transition hover:bg-white/5 hover:text-white"
       >
-        <span className="text-xl">🔔</span>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          className="h-5 w-5"
+          aria-hidden="true"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
+          />
+        </svg>
         {noLeidas > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white">
+          <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white ring-2 ring-[#0a0e17]">
             {noLeidas > 9 ? '9+' : noLeidas}
           </span>
         )}
       </button>
 
       {show && (
-        <div className="absolute right-0 top-full mt-2 w-80 rounded-lg bg-white shadow-lg border border-gray-200 z-50">
-          <div className="p-3 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-900">Notificaciones</h3>
+        <div className="arena-card absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-white/10 bg-[#111827] shadow-arena">
+          <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+            <h3 className="text-sm font-bold text-white">Notificaciones</h3>
+            <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-semibold text-slate-300">
+              {notificaciones.length}
+            </span>
           </div>
           <div className="max-h-96 overflow-y-auto">
             {notificaciones.length === 0 ? (
-              <p className="p-4 text-sm text-gray-500 text-center">No tienes notificaciones</p>
+              <p className="p-6 text-center text-sm text-slate-400">No tienes notificaciones</p>
             ) : (
-              notificaciones.map((n: any) => (
+              notificaciones.map((n) => (
                 <div
                   key={n.id}
-                  className={`p-3 border-b border-gray-100 ${
-                    !n.leida ? 'bg-blue-50' : ''
+                  className={`border-b border-white/5 p-3 transition hover:bg-white/5 ${
+                    !n.leida ? 'bg-prism-500/10' : ''
                   }`}
                 >
-                  <div className="flex items-start gap-2">
-                    <span className="text-lg">{tipoIcono(n.tipo)}</span>
-                    <div>
-                      <p className="text-sm text-gray-900">{n.mensaje}</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                  <div className="flex items-start gap-2.5">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/5 text-lg ring-1 ring-white/10">
+                      {tipoIcono(n.tipo)}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm text-slate-200">{n.mensaje}</p>
+                      <p className="mt-1 text-[11px] text-slate-500">
                         {new Date(n.created_at).toLocaleDateString('es-PE')}
                       </p>
                     </div>

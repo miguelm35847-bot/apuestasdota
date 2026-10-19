@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
+import { useArenaBody } from '@/lib/useArenaBody';
 
 export default function LoginPage() {
+  useArenaBody();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -37,26 +39,29 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow">
+    <div className="arena-shell arena-hero flex min-h-screen items-center justify-center px-4 py-10">
+      <div className="arena-card w-full max-w-md space-y-8 rounded-2xl border border-white/10 bg-[#111827] p-8 shadow-arena">
         <div>
-          <h1 className="text-center text-3xl font-bold text-gray-900">
+          <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em] text-prism-300">
+            Arena Dark
+          </p>
+          <h1 className="mt-2 text-center font-display text-3xl font-bold text-white">
             Apuestas Dota
           </h1>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Inicia sesión
+          <p className="mt-2 text-center text-sm text-slate-400">
+            Inicia sesión para entrar a la arena
           </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded bg-red-50 p-3 text-sm text-red-600">
+            <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
               {error}
             </div>
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-slate-300">
               Email
             </label>
             <input
@@ -65,13 +70,13 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none"
+              className="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-prism-400 focus:outline-none focus:ring-2 focus:ring-prism-500/20"
               placeholder="tu@email.com"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-slate-300">
               Contraseña
             </label>
             <input
@@ -80,7 +85,7 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-gray-900 focus:border-blue-500 focus:outline-none"
+              className="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-prism-400 focus:outline-none focus:ring-2 focus:ring-prism-500/20"
               placeholder="••••••••"
             />
           </div>
@@ -88,15 +93,15 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+            className="w-full rounded-lg bg-prism-500 py-2.5 font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
           >
             {loading ? 'Ingresando...' : 'Iniciar sesión'}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-600">
+        <p className="text-center text-sm text-slate-400">
           ¿No tienes cuenta?{' '}
-          <a href="/register" className="text-blue-600 hover:underline">
+          <a href="/register" className="font-semibold text-prism-300 hover:text-prism-200 hover:underline">
             Regístrate
           </a>
         </p>

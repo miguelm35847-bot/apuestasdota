@@ -2,26 +2,17 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
+import { useArenaBody } from '@/lib/useArenaBody';
+import Navbar from '@/components/Navbar';
+import Avatar from '@/components/Avatar';
+import type { Retiro } from '@/lib/types';
 
 
-
-type Retiro = {
-  id: string;
-  user_id: string;
-  monto: number;
-  destino: string;
-  estado: string;
-  created_at: string;
-  nota_admin: string | null;
-  profiles: {
-    nick: string;
-  };
-};
 
 export default function AdminRetirosPage() {
+  useArenaBody();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [retiros, setRetiros] = useState<Retiro[]>([]);
@@ -41,14 +32,14 @@ export default function AdminRetirosPage() {
     setLoading(true);
     const { data, error: err } = await supabase
       .from('retiros')
-      .select('*, profiles!user_id(nick)')
+      .select('*, profiles!user_id(nick, steam_avatar_url)')
       .eq('estado', 'solicitado')
       .order('created_at', { ascending: true });
 
     if (err) {
       setError('Error cargando retiros: ' + err.message);
     } else {
-      setRetiros((data as any) ?? []);
+      setRetiros((data as unknown as Retiro[]) ?? []);
     }
     setLoading(false);
   }, []);
@@ -122,8 +113,8 @@ export default function AdminRetirosPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-600">Cargando...</p>
+      <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
+        <p>Cargando...</p>
       </div>
     );
   }
@@ -133,48 +124,47 @@ export default function AdminRetirosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">Admin - Retiros pendientes</h1>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
-              Inicio
-            </Link>
-            <Link href="/salas" className="text-sm text-gray-600 hover:text-gray-900">
-              Salas
-            </Link>
-            <Link href="/admin" className="text-sm text-gray-600 hover:text-gray-900">
-              Panel admin
-            </Link>
-          </div>
-        </div>
-      </nav>
+    <div className="arena-shell min-h-screen bg-[#0a0e17] text-slate-100">
+      <Navbar titulo="Admin - Retiros pendientes" />
 
       <main className="mx-auto max-w-5xl px-4 py-8">
         {error && (
-          <div className="mb-4 rounded bg-red-50 p-3 text-sm text-red-600">{error}</div>
+          <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+            {error}
+          </div>
         )}
         {success && (
-          <div className="mb-4 rounded bg-green-50 p-3 text-sm text-green-600">{success}</div>
+          <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+            {success}
+          </div>
         )}
 
         {loading ? (
-          <p className="text-gray-500">Cargando retiros...</p>
+          <p className="text-slate-500">Cargando retiros...</p>
         ) : retiros.length === 0 ? (
-          <div className="rounded-lg bg-white p-6 shadow text-center">
-            <p className="text-gray-500">No hay retiros pendientes</p>
+          <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 text-center shadow-arena-soft">
+            <p className="text-slate-500">No hay retiros pendientes</p>
           </div>
         ) : (
           <div className="space-y-4">
             {retiros.map((r) => (
-              <div key={r.id} className="rounded-lg bg-white p-6 shadow">
+              <div
+                key={r.id}
+                className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft"
+              >
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {r.profiles?.nick ?? 'Usuario'}
-                    </h3>
-                    <div className="mt-2 space-y-1 text-sm text-gray-600">
+                    <div className="flex items-center gap-3">
+                      <Avatar
+                        nick={r.profiles?.nick}
+                        src={r.profiles?.steam_avatar_url}
+                        size="lg"
+                      />
+                      <h3 className="font-semibold text-white">
+                        {r.profiles?.nick ?? 'Usuario'}
+                      </h3>
+                    </div>
+                    <div className="mt-2 space-y-1 text-sm text-slate-400">
                       <p>
                         <span className="font-medium">Monto:</span> S/ {(r.monto / 100).toFixed(2)}
                       </p>
@@ -190,18 +180,8 @@ export default function AdminRetirosPage() {
 
                   <div className="flex flex-col sm:flex-row gap-2">
                     <button
-                      onClick={async () => {
-                        const { error } = await supabase.rpc('marcar_retiro_pagado', { p_retiro: r.id });
-                        if (!error) {
-                          await supabase.from('notificaciones').insert({
-                            user_id: r.user_id,
-                            tipo: 'retiro_pagado',
-                            mensaje: `Tu retiro de S/ ${(r.monto / 100).toFixed(2)} fue pagado.`,
-                          });
-                          cargarRetiros();
-                        }
-                      }}
-                      className="rounded bg-green-600 px-4 py-2 text-sm text-white hover:bg-green-700"
+                      onClick={() => marcarPagado(r.id)}
+                      className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-400"
                     >
                       Marcar pagado
                     </button>
@@ -210,7 +190,7 @@ export default function AdminRetirosPage() {
                         setRetiroRechazando(r.id);
                         setNotaRechazo('');
                       }}
-                      className="rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+                      className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-500"
                     >
                       Rechazar
                     </button>
@@ -218,21 +198,21 @@ export default function AdminRetirosPage() {
                 </div>
 
                 {retiroRechazando === r.id && (
-                  <div className="mt-3 rounded bg-gray-50 p-3">
-                    <label className="block text-sm font-medium text-gray-700">
+                  <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                    <label className="block text-sm font-medium text-slate-300">
                       Motivo del rechazo
                     </label>
                     <textarea
                       value={notaRechazo}
                       onChange={(e) => setNotaRechazo(e.target.value)}
-                      className="mt-1 block w-full rounded border-2 border-gray-400 bg-white px-4 py-3 text-lg text-black focus:border-red-500 focus:outline-none"
+                      className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-base text-slate-100 placeholder:text-slate-600 focus:border-rose-400 focus:outline-none"
                       rows={2}
                       placeholder="Ej: Número de Yape inválido"
                     />
                     <div className="mt-2 flex gap-2">
                       <button
                         onClick={rechazarRetiro}
-                        className="rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+                        className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-500"
                       >
                         Confirmar rechazo
                       </button>
@@ -241,7 +221,7 @@ export default function AdminRetirosPage() {
                           setRetiroRechazando(null);
                           setNotaRechazo('');
                         }}
-                        className="rounded bg-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-300"
+                        className="rounded-lg bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/10"
                       >
                         Cancelar
                       </button>
