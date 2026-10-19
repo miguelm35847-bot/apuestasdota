@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, Suspense } from 'react';
+import { useCallback, useEffect, useState, Suspense, type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
@@ -60,6 +60,142 @@ type PerdidaPerfil = {
   sala_nombre: string;
 };
 
+const PESTAÑAS: { id: Pestaña; nombre: string }[] = [
+  { id: 'historial', nombre: 'Mis partidas' },
+  { id: 'movimientos', nombre: 'Recargas y retiros' },
+  { id: 'billetera', nombre: 'Billetera' },
+];
+
+function IconoPestana({ id, className = 'h-4 w-4' }: { id: Pestaña; className?: string }) {
+  if (id === 'historial') {
+    return (
+      <svg
+        className={className}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </svg>
+    );
+  }
+
+  if (id === 'movimientos') {
+    return (
+      <svg
+        className={className}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M7 7h11" />
+        <path d="M14 4l3 3-3 3" />
+        <path d="M17 17H6" />
+        <path d="M10 20l-3-3 3-3" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="6" width="18" height="13" rx="2" />
+      <path d="M3 10h18" />
+      <path d="M16 14h2" />
+    </svg>
+  );
+}
+
+function EstadoPill({ estado }: { estado: string }) {
+  const estilos: Record<string, string> = {
+    aprobada: 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30',
+    pagado: 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30',
+    pendiente: 'bg-amber-500/15 text-amber-300 ring-amber-500/30',
+    solicitado: 'bg-amber-500/15 text-amber-300 ring-amber-500/30',
+    rechazada: 'bg-rose-500/15 text-rose-300 ring-rose-500/30',
+    rechazado: 'bg-rose-500/15 text-rose-300 ring-rose-500/30',
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold capitalize ring-1 ring-inset ${
+        estilos[estado] ?? 'bg-white/5 text-slate-300 ring-white/10'
+      }`}
+    >
+      {estado}
+    </span>
+  );
+}
+
+function PanelTab({
+  titulo,
+  descripcion,
+  cargando,
+  vacio,
+  vacioTexto,
+  vacioAccion,
+  children,
+}: {
+  titulo: string;
+  descripcion?: string;
+  cargando: boolean;
+  vacio: boolean;
+  vacioTexto: string;
+  vacioAccion?: { href: string; label: string };
+  children: ReactNode;
+}) {
+  return (
+    <section className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
+      <div className="mb-4">
+        <h3 className="font-display text-lg font-bold text-white">{titulo}</h3>
+        {descripcion && <p className="mt-0.5 text-sm text-slate-400">{descripcion}</p>}
+      </div>
+
+      {cargando ? (
+        <div className="space-y-3">
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              className="h-16 animate-pulse rounded-xl border border-white/5 bg-white/[0.03]"
+            />
+          ))}
+        </div>
+      ) : vacio ? (
+        <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] px-6 py-10 text-center">
+          <p className="text-sm text-slate-400">{vacioTexto}</p>
+          {vacioAccion && (
+            <Link
+              href={vacioAccion.href}
+              className="mt-3 inline-flex rounded-lg border border-prism-500/30 bg-prism-500/10 px-4 py-2 text-sm font-semibold text-prism-200 transition hover:bg-prism-500/20"
+            >
+              {vacioAccion.label}
+            </Link>
+          )}
+        </div>
+      ) : (
+        children
+      )}
+    </section>
+  );
+}
+
 function PerfilContenido() {
   useArenaBody();
   const { user } = useAuth();
@@ -77,6 +213,8 @@ function PerfilContenido() {
   const [saldo, setSaldo] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [conteos, setConteos] = useState({ partidas: 0, movimientos: 0, billetera: 0 });
+  const [cargandoTab, setCargandoTab] = useState(false);
 
   // Estado para historial
   const [misPartidas, setMisPartidas] = useState<PartidaPerfil[]>([]);
@@ -112,6 +250,7 @@ function PerfilContenido() {
 
   const cargarHistorial = useCallback(async () => {
     if (!user) return;
+    setCargandoTab(true);
     const { data } = await supabase
       .from('participantes_sala')
       .select('sala_id, equipo, salas(*, partidas(*))')
@@ -119,10 +258,12 @@ function PerfilContenido() {
       .order('created_at', { ascending: false })
       .limit(20);
     if (data) setMisPartidas(data as unknown as PartidaPerfil[]);
+    setCargandoTab(false);
   }, [user]);
 
   const cargarMovimientos = useCallback(async () => {
     if (!user) return;
+    setCargandoTab(true);
     const { data: recargasData } = await supabase
       .from('recargas')
       .select('*')
@@ -138,10 +279,12 @@ function PerfilContenido() {
       .order('created_at', { ascending: false })
       .limit(20);
     if (retirosData) setRetiros(retirosData as unknown as RetiroPerfil[]);
+    setCargandoTab(false);
   }, [user]);
 
   const cargarBilletera = useCallback(async () => {
     if (!user) return;
+    setCargandoTab(true);
 
     // Movimientos normales (sin entrada_sala ni reembolso)
     const { data } = await supabase
@@ -180,6 +323,7 @@ function PerfilContenido() {
       }));
 
     setPerdidas(perdidasCalculadas);
+    setCargandoTab(false);
   }, [user, misPartidas]);
 
   useEffect(() => {
@@ -203,6 +347,45 @@ function PerfilContenido() {
     if (pestaña === 'movimientos') void cargarMovimientos();
     if (pestaña === 'billetera') void cargarBilletera();
   }, [pestaña, user, cargarHistorial, cargarMovimientos, cargarBilletera]);
+
+  useEffect(() => {
+    if (!user) return;
+    let activo = true;
+
+    void (async () => {
+      const [partidas, recargas, retiros, movimientos] = await Promise.all([
+        supabase
+          .from('participantes_sala')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id),
+        supabase
+          .from('recargas')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id),
+        supabase
+          .from('retiros')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id),
+        supabase
+          .from('movimientos_billetera')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .not('tipo', 'in', '("entrada_sala","reembolso")'),
+      ]);
+
+      if (!activo) return;
+
+      setConteos({
+        partidas: partidas.count ?? 0,
+        movimientos: (recargas.count ?? 0) + (retiros.count ?? 0),
+        billetera: movimientos.count ?? 0,
+      });
+    })();
+
+    return () => {
+      activo = false;
+    };
+  }, [user]);
 
   useEffect(() => {
     const errorParam = searchParams.get('error');
@@ -333,12 +516,43 @@ function PerfilContenido() {
     setGuardandoDota(false);
   }
 
-  const pestañas: { id: Pestaña; nombre: string }[] = [
-    { id: 'historial', nombre: 'Mis partidas' },
-    { id: 'movimientos', nombre: 'Recargas y retiros' },
-    { id: 'billetera', nombre: 'Billetera' },
-  ];
   const perfilCompleto = mmrGuardado;
+
+  const movimientosSolicitudes = [
+    ...recargas.map((r) => ({
+      id: `recarga-${r.id}`,
+      tipo: 'Recarga' as const,
+      monto: r.monto,
+      estado: r.estado,
+      detalle: `Nº ${r.numero_operacion}`,
+      fecha: r.created_at,
+    })),
+    ...retiros.map((r) => ({
+      id: `retiro-${r.id}`,
+      tipo: 'Retiro' as const,
+      monto: -r.monto,
+      estado: r.estado,
+      detalle: r.destino,
+      fecha: r.created_at,
+    })),
+  ].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+  const movimientosBilletera = [
+    ...movimientos.map((m) => ({
+      id: m.id,
+      tipo: m.tipo,
+      monto: m.monto,
+      detalle: m.descripcion ?? '-',
+      fecha: m.created_at,
+    })),
+    ...perdidas.map((p) => ({
+      id: `perdida-${p.id}`,
+      tipo: 'pérdida_partida',
+      monto: p.monto,
+      detalle: `Perdiste en ${p.sala_nombre}`,
+      fecha: p.created_at,
+    })),
+  ].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
   return (
     <div className="arena-shell min-h-screen bg-[#0a0e17] text-slate-100">
@@ -356,382 +570,430 @@ function PerfilContenido() {
           </div>
         )}
 
-        {/* Datos del perfil */}
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
-            <div className="flex items-center gap-4">
+        {/* Cabecera: perfil + saldo */}
+        <section className="arena-card overflow-hidden rounded-2xl border border-white/10 bg-[#111827] shadow-arena-soft">
+          <div className="grid gap-6 p-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+            <div className="flex items-start gap-4">
               <Avatar nick={nick} src={steamAvatar} size="xl" ringClass="ring-2 ring-white/20" />
               <div className="min-w-0">
-                <h2 className="font-display text-lg font-bold text-white">Datos del perfil</h2>
-                <p className="mt-0.5 truncate text-sm text-slate-500">{nick || '...'}</p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="font-display text-2xl font-bold text-white">{nick || 'Jugador'}</h1>
+                  <span
+                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
+                      perfilCompleto
+                        ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30'
+                        : 'bg-amber-500/15 text-amber-300 ring-amber-500/30'
+                    }`}
+                  >
+                    {perfilCompleto ? 'MMR listo' : 'Falta tu MMR'}
+                  </span>
+                </div>
+                <p className="mt-1 truncate text-sm text-slate-400">{user?.email}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-400">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className={`h-2 w-2 rounded-full ${steamId ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+                    {steamId
+                      ? steamNombre
+                        ? steamNombre
+                        : 'Steam vinculado'
+                      : 'Steam sin vincular'}
+                  </span>
+                  {steamId ? (
+                    <button
+                      onClick={handleActualizarSteam}
+                      disabled={actualizandoSteam}
+                      className="font-medium text-prism-300 transition hover:text-prism-200 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {actualizandoSteam ? 'Actualizando...' : 'Actualizar datos'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleVincularSteam}
+                      className="inline-flex items-center gap-1.5 font-medium text-prism-300 transition hover:text-prism-200 hover:underline"
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                      </svg>
+                      Vincular cuenta de Steam
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-            <div className="mt-4 space-y-2">
-              <p className="text-sm text-slate-400">
-                <span className="font-medium">Nick:</span> {nick || '...'}
-              </p>
-              <p className="text-sm text-slate-400">
-                <span className="font-medium">Email:</span> {user?.email}
-              </p>
-              <p className="text-sm text-slate-400">
-                <span className="font-medium">Steam:</span>{' '}
-                {steamId
-                  ? steamNombre
-                    ? `${steamNombre} (${steamId})`
-                    : `Vinculado (${steamId})`
-                  : 'No vinculado'}
-              </p>
-              {steamId && (
-                <button
-                  onClick={handleActualizarSteam}
-                  disabled={actualizandoSteam}
-                  className="text-sm font-medium text-prism-300 hover:text-prism-200 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {actualizandoSteam ? 'Actualizando...' : 'Actualizar datos de Steam'}
-                </button>
-              )}
-            </div>
-            {!steamId && (
-              <button
-                onClick={handleVincularSteam}
-                className="mt-4 w-full rounded bg-[#171a21] py-3 text-white hover:bg-[#2a475e] flex items-center justify-center gap-3"
-              >
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
-                Vincular cuenta de Steam
-              </button>
-            )}
-            {steamId && (
-              <div className="mt-4">
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end md:flex-col md:items-end">
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] px-5 py-3">
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-300/80">
+                  Saldo disponible
+                </p>
+                <p className="mt-1 font-display text-3xl font-bold tabular-nums text-emerald-300">
+                  {saldo !== null ? `S/ ${(saldo / 100).toFixed(2)}` : '...'}
+                </p>
+              </div>
+              <div className="flex gap-2">
                 <Link
                   href="/recargar"
-                  className="block w-full rounded-lg bg-emerald-500 py-2 text-center font-semibold text-emerald-950 transition hover:bg-emerald-400"
+                  className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-400"
                 >
-                  Recargar saldo
+                  Recargar
+                </Link>
+                <Link
+                  href="/retirar"
+                  className="rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10"
+                >
+                  Retirar
                 </Link>
               </div>
-            )}
+            </div>
+          </div>
+        </section>
+
+        {/* Perfil competitivo */}
+        <section className="mt-6 arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
+          <div>
+            <h2 className="font-display text-lg font-bold text-white">Perfil competitivo</h2>
+            <p className="mt-1 text-sm text-slate-400">
+              Tu MMR es público y lo ven los capitanes al elegir. Solo se puede registrar una
+              vez; si necesitas corregirlo, contacta a un administrador. Los roles son opcionales.
+            </p>
           </div>
 
-          <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
-            <h2 className="font-display text-lg font-bold text-white">Tu saldo</h2>
-            <p className="mt-2 text-3xl font-bold text-emerald-300">
-              {saldo !== null ? `S/ ${(saldo / 100).toFixed(2)}` : '...'}
-            </p>
+          <form onSubmit={guardarPerfilDota} className="mt-5">
+            <div className="grid gap-5 md:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
+              <div>
+                <span className="text-sm font-medium text-slate-300">MMR</span>
+                {mmrGuardado ? (
+                  <div className="mt-1 flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                    <span className="font-display text-2xl font-bold tabular-nums text-white">
+                      {mmr || '—'}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300 ring-1 ring-inset ring-emerald-500/30">
+                      <svg
+                        className="h-3 w-3"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <rect x="5" y="11" width="14" height="9" rx="2" />
+                        <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                      </svg>
+                      Bloqueado
+                    </span>
+                  </div>
+                ) : (
+                  <input
+                    type="number"
+                    min={0}
+                    max={20000}
+                    step={1}
+                    value={mmr}
+                    onChange={(e) => setMmr(e.target.value)}
+                    placeholder="Ej: 4500"
+                    className="mt-1 block w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-slate-100 placeholder:text-slate-500 focus:border-prism-400 focus:outline-none focus:ring-2 focus:ring-prism-500/20"
+                  />
+                )}
+                <p className="mt-2 text-xs text-slate-400">
+                  {mmrGuardado
+                    ? 'El MMR solo se registra una vez. Si necesitas corregirlo, contacta a un administrador.'
+                    : 'Ingresa tu MMR actual (0 a 20000).'}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-slate-300">
+                  Preferencias de rol{' '}
+                  <span className="font-normal text-slate-500">(opcional, hasta 3 en orden)</span>
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {ROLES_DOTA.map((rol) => {
+                    const posicion = rolesPreferidos.indexOf(rol.id);
+                    const seleccionado = posicion >= 0;
+                    return (
+                      <button
+                        key={rol.id}
+                        type="button"
+                        onClick={() => alternarRol(rol.id)}
+                        aria-pressed={seleccionado}
+                        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-500/40 ${
+                          seleccionado
+                            ? 'border-prism-400 bg-prism-500/20 text-prism-100'
+                            : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                        }`}
+                      >
+                        <span aria-hidden="true">{ICONOS_ROL[rol.id]}</span>
+                        <span>
+                          {seleccionado ? `${posicion + 1}. ` : ''}
+                          {rol.nombre}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="mt-2 text-xs text-slate-400">
+                  Orden actual:{' '}
+                  {rolesPreferidos.length > 0
+                    ? rolesPreferidos.map((rol, i) => `${i + 1}. ${etiquetaRol(rol)}`).join(' → ')
+                    : 'ninguno'}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <button
+                type="submit"
+                disabled={guardandoDota}
+                className="w-full rounded-lg bg-prism-500 px-6 py-2.5 font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50 sm:w-auto"
+              >
+                {guardandoDota ? 'Guardando...' : mmrGuardado ? 'Guardar roles' : 'Guardar perfil'}
+              </button>
+              {!mmrGuardado && (
+                <p className="text-xs text-slate-400">
+                  El MMR quedará bloqueado después de guardarlo.
+                </p>
+              )}
+            </div>
+          </form>
+        </section>
+
+        {/* Pestañas */}
+        <div className="sticky top-16 z-20 -mx-4 mt-6 border-b border-white/10 bg-[#0a0e17]/85 px-4 py-3 backdrop-blur">
+          <div
+            role="tablist"
+            aria-label="Secciones del perfil"
+            className="flex gap-1 overflow-x-auto rounded-xl border border-white/10 bg-white/5 p-1"
+          >
+            {PESTAÑAS.map((p) => {
+              const activo = pestaña === p.id;
+              const cantidad =
+                p.id === 'historial'
+                  ? conteos.partidas
+                  : p.id === 'movimientos'
+                  ? conteos.movimientos
+                  : conteos.billetera;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activo}
+                  onClick={() => setPestaña(p.id)}
+                  className={`flex flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-500/40 ${
+                    activo
+                      ? 'bg-prism-500 text-white shadow-arena-glow'
+                      : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                  }`}
+                >
+                  <IconoPestana id={p.id} />
+                  <span>{p.nombre}</span>
+                  {cantidad > 0 && (
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums ${
+                        activo ? 'bg-white/20 text-white' : 'bg-white/10 text-slate-300'
+                      }`}
+                    >
+                      {cantidad}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Perfil competitivo */}
-        <div className="mt-6 arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h2 className="font-display text-lg font-bold text-white">Perfil competitivo</h2>
-              <p className="mt-1 text-sm text-slate-400">
-                Tu MMR es público y lo ven los capitanes al elegir. Solo se puede registrar una
-                vez; si necesitas corregirlo, contacta a un administrador. Los roles son opcionales.
-              </p>
-            </div>
-            <span
-              className={`inline-block shrink-0 self-start rounded-full px-3 py-1 text-xs font-semibold ${
-                perfilCompleto
-                  ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-500/30'
-                  : 'bg-amber-500/15 text-amber-300 ring-1 ring-inset ring-amber-500/30'
-              }`}
+        <div className="mt-4">
+          {pestaña === 'historial' && (
+            <PanelTab
+              titulo="Mis partidas"
+              descripcion="Tus últimas 20 partidas."
+              cargando={cargandoTab && misPartidas.length === 0}
+              vacio={misPartidas.length === 0}
+              vacioTexto="Aún no has jugado ninguna partida."
+              vacioAccion={{ href: '/salas', label: 'Ver salas disponibles' }}
             >
-              {perfilCompleto ? 'MMR listo' : 'Falta tu MMR'}
-            </span>
-          </div>
-
-          <form onSubmit={guardarPerfilDota} className="mt-4">
-            <label className="block max-w-xs">
-              <span className="text-sm font-medium text-slate-300">MMR</span>
-              <input
-                type="number"
-                min={0}
-                max={20000}
-                step={1}
-                value={mmr}
-                onChange={(e) => setMmr(e.target.value)}
-                placeholder="Ej: 4500"
-                disabled={mmrGuardado}
-                readOnly={mmrGuardado}
-                className="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-prism-400 focus:outline-none focus:ring-2 focus:ring-prism-500/20 disabled:cursor-not-allowed disabled:bg-white/5 disabled:text-slate-500"
-              />
-              {mmrGuardado && (
-                <span className="mt-1 block text-xs text-slate-500">
-                  El MMR solo se registra una vez. Si necesitas corregirlo, contacta a un
-                  administrador.
-                </span>
-              )}
-            </label>
-
-            <div className="mt-4">
-              <p className="text-sm font-medium text-slate-300">
-                Preferencias de rol{' '}
-                <span className="font-normal text-slate-500">(opcional, hasta 3 en orden)</span>
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {ROLES_DOTA.map((rol) => {
-                  const posicion = rolesPreferidos.indexOf(rol.id);
-                  const seleccionado = posicion >= 0;
+              <div className="space-y-3">
+                {misPartidas.map((p) => {
+                  const ganador = p.salas?.partidas?.equipo_ganador;
+                  const miEquipo = p.equipo;
+                  const gano =
+                    ganador !== null && ganador !== undefined && miEquipo === ganador;
+                  const enCurso = !ganador;
+                  const monto = gano
+                    ? p.salas?.partidas?.premio_por_ganador ?? 0
+                    : -(p.salas?.cuota ?? 0);
                   return (
-                    <button
-                      key={rol.id}
-                      type="button"
-                      onClick={() => alternarRol(rol.id)}
-                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
-                        seleccionado
-                          ? 'border-prism-400 bg-prism-500/20 text-prism-100'
-                          : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
-                      }`}
+                    <article
+                      key={p.sala_id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3"
                     >
-                      <span aria-hidden="true">{ICONOS_ROL[rol.id]}</span>
-                      <span>
-                        {seleccionado ? `${posicion + 1}. ` : ''}
-                        {rol.nombre}
-                      </span>
-                    </button>
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-white">
+                          {p.salas?.nombre ?? 'Sala'}
+                        </p>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                          <span>
+                            {new Date(p.salas?.created_at ?? '').toLocaleDateString('es-PE')}
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <span
+                              className={`h-2 w-2 rounded-full ${
+                                miEquipo === 1
+                                  ? 'bg-emerald-400'
+                                  : miEquipo === 2
+                                  ? 'bg-rose-400'
+                                  : 'bg-slate-500'
+                              }`}
+                            />
+                            {miEquipo === 1
+                              ? 'Radiant'
+                              : miEquipo === 2
+                              ? 'Dire'
+                              : 'Sin asignar'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {enCurso ? (
+                          <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs font-semibold text-slate-400 ring-1 ring-inset ring-white/10">
+                            En curso
+                          </span>
+                        ) : (
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
+                              gano
+                                ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30'
+                                : 'bg-rose-500/15 text-rose-300 ring-rose-500/30'
+                            }`}
+                          >
+                            {gano ? 'Ganaste' : 'Perdiste'}
+                          </span>
+                        )}
+                        <span
+                          className={`font-display text-lg font-bold tabular-nums ${
+                            enCurso ? 'text-slate-400' : gano ? 'text-emerald-300' : 'text-rose-300'
+                          }`}
+                        >
+                          {enCurso
+                            ? '—'
+                            : `${gano ? '+' : '-'}S/ ${(Math.abs(monto) / 100).toFixed(2)}`}
+                        </span>
+                      </div>
+                    </article>
                   );
                 })}
               </div>
-              <p className="mt-2 text-xs text-slate-500">
-                Orden actual:{' '}
-                {rolesPreferidos.length > 0
-                  ? rolesPreferidos.map((rol, i) => `${i + 1}. ${etiquetaRol(rol)}`).join(' → ')
-                  : 'ninguno'}
-              </p>
-            </div>
+            </PanelTab>
+          )}
 
-            <button
-              type="submit"
-              disabled={guardandoDota}
-              className="mt-4 w-full rounded-lg bg-prism-500 py-2.5 font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
+          {pestaña === 'movimientos' && (
+            <PanelTab
+              titulo="Recargas y retiros"
+              descripcion="Solicitudes enviadas desde tu cuenta."
+              cargando={cargandoTab && movimientosSolicitudes.length === 0}
+              vacio={movimientosSolicitudes.length === 0}
+              vacioTexto="No tienes recargas ni retiros todavía."
+              vacioAccion={{ href: '/recargar', label: 'Recargar saldo' }}
             >
-              {guardandoDota ? 'Guardando...' : mmrGuardado ? 'Guardar roles' : 'Guardar perfil'}
-            </button>
-          </form>
-        </div>
-
-        {/* Pestañas */}
-        <div className="mt-6">
-          <div className="flex gap-2 border-b border-white/10">
-            {pestañas.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => setPestaña(p.id)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 -mb-0.5 ${
-                  pestaña === p.id
-                    ? 'border-prism-400 text-prism-300'
-                    : 'border-transparent text-slate-500 hover:text-slate-300'
-                }`}
-              >
-                {p.nombre}
-              </button>
-            ))}
-          </div>
-
-          <div className="mt-4 arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
-            {pestaña === 'historial' && (
-              <div>
-                <h3 className="font-display text-lg font-bold text-white mb-4">Mis partidas</h3>
-                {misPartidas.length === 0 ? (
-                  <p className="text-sm text-slate-500">Aún no has jugado ninguna partida.</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-white/10">
-                          <th className="pb-2 text-left font-medium text-slate-400">Sala</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Fecha</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Equipo</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Resultado</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Monto</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {misPartidas.map((p) => {
-                          const ganador = p.salas?.partidas?.equipo_ganador;
-                          const miEquipo = p.equipo;
-                          const gano = ganador !== null && ganador !== undefined && miEquipo === ganador;
-                          const monto = gano
-                            ? (p.salas?.partidas?.premio_por_ganador ?? 0)
-                            : -(p.salas?.cuota ?? 0);
-                          return (
-                            <tr key={p.sala_id} className="border-b border-white/5">
-                              <td className="py-2 text-slate-100">{p.salas?.nombre ?? 'Sala'}</td>
-                              <td className="py-2 text-slate-100">
-                                {new Date(p.salas?.created_at ?? '').toLocaleDateString('es-PE')}
-                              </td>
-                              <td className="py-2 text-slate-100">
-                                {miEquipo === 1 ? 'Radiant' : miEquipo === 2 ? 'Dire' : 'Sin asignar'}
-                              </td>
-                              <td className="py-2">
-                                {ganador ? (
-                                  <span
-                                    className={`inline-block rounded px-2 py-1 text-xs font-medium ${
-                                      gano ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300'
-                                    }`}
-                                  >
-                                    {gano ? 'Ganaste' : 'Perdiste'}
-                                  </span>
-                                ) : (
-                                  <span className="text-slate-500">En curso</span>
-                                )}
-                              </td>
-                              <td className={`py-2 font-medium ${gano ? 'text-emerald-300' : 'text-rose-300'}`}>
-                                {gano ? '+' : ''}S/ {(monto / 100).toFixed(2)}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+              <div className="space-y-3">
+                {movimientosSolicitudes.map((m) => (
+                  <article
+                    key={m.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                          m.tipo === 'Recarga'
+                            ? 'bg-emerald-500/15 text-emerald-300'
+                            : 'bg-rose-500/15 text-rose-300'
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {m.tipo === 'Recarga' ? '↓' : '↑'}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-white">{m.tipo}</p>
+                        <p className="truncate text-xs text-slate-400">
+                          {m.detalle} · {new Date(m.fecha).toLocaleDateString('es-PE')}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <EstadoPill estado={m.estado} />
+                      <span
+                        className={`font-display text-lg font-bold tabular-nums ${
+                          m.monto >= 0 ? 'text-emerald-300' : 'text-rose-300'
+                        }`}
+                      >
+                        {m.monto >= 0 ? '+' : '-'}S/ {(Math.abs(m.monto) / 100).toFixed(2)}
+                      </span>
+                    </div>
+                  </article>
+                ))}
               </div>
-            )}
+            </PanelTab>
+          )}
 
-            {pestaña === 'movimientos' && (
-              <div>
-                <h3 className="font-display text-lg font-bold text-white mb-4">Recargas y retiros</h3>
-
-                <h4 className="text-sm font-semibold text-slate-300 mb-2">Recargas</h4>
-                {recargas.length === 0 ? (
-                  <p className="text-sm text-slate-500 mb-4">No tienes recargas.</p>
-                ) : (
-                  <div className="overflow-x-auto mb-6">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-white/10">
-                          <th className="pb-2 text-left font-medium text-slate-400">Fecha</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Monto</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Nº Operación</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {recargas.map((r) => (
-                          <tr key={r.id} className="border-b border-white/5">
-                            <td className="py-2 text-slate-100">
-                              {new Date(r.created_at).toLocaleDateString('es-PE')}
-                            </td>
-                            <td className="py-2 text-slate-100">S/ {(r.monto / 100).toFixed(2)}</td>
-                            <td className="py-2 text-slate-100">{r.numero_operacion}</td>
-                            <td className="py-2">
-                              <span
-                                className={`inline-block rounded px-2 py-1 text-xs font-medium ${
-                                  r.estado === 'aprobada'
-                                    ? 'bg-emerald-500/15 text-emerald-300'
-                                    : r.estado === 'pendiente'
-                                    ? 'bg-amber-500/15 text-amber-300'
-                                    : 'bg-rose-500/15 text-rose-300'
-                                }`}
-                              >
-                                {r.estado}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                <h4 className="text-sm font-semibold text-slate-300 mb-2">Retiros</h4>
-                {retiros.length === 0 ? (
-                  <p className="text-sm text-slate-500">No tienes retiros.</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-white/10">
-                          <th className="pb-2 text-left font-medium text-slate-400">Fecha</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Monto</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Destino</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Estado</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {retiros.map((r) => (
-                          <tr key={r.id} className="border-b border-white/5">
-                            <td className="py-2 text-slate-100">
-                              {new Date(r.created_at).toLocaleDateString('es-PE')}
-                            </td>
-                            <td className="py-2 text-slate-100">S/ {(r.monto / 100).toFixed(2)}</td>
-                            <td className="py-2 text-slate-100">{r.destino}</td>
-                            <td className="py-2">
-                              <span
-                                className={`inline-block rounded px-2 py-1 text-xs font-medium ${
-                                  r.estado === 'pagado'
-                                    ? 'bg-emerald-500/15 text-emerald-300'
-                                    : r.estado === 'solicitado'
-                                    ? 'bg-amber-500/15 text-amber-300'
-                                    : 'bg-rose-500/15 text-rose-300'
-                                }`}
-                              >
-                                {r.estado}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+          {pestaña === 'billetera' && (
+            <PanelTab
+              titulo="Movimientos de billetera"
+              descripcion="Ajustes, premios y pérdidas de tus partidas."
+              cargando={cargandoTab && movimientosBilletera.length === 0}
+              vacio={movimientosBilletera.length === 0}
+              vacioTexto="No tienes movimientos de billetera."
+              vacioAccion={{ href: '/salas', label: 'Entrar a una sala' }}
+            >
+              <div className="space-y-3">
+                {movimientosBilletera.map((m) => (
+                  <article
+                    key={m.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                          m.monto >= 0
+                            ? 'bg-emerald-500/15 text-emerald-300'
+                            : 'bg-rose-500/15 text-rose-300'
+                        }`}
+                        aria-hidden="true"
+                      >
+                        {m.monto >= 0 ? '↓' : '↑'}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-semibold capitalize text-white">
+                          {m.tipo.replace(/_/g, ' ')}
+                        </p>
+                        <p className="truncate text-xs text-slate-400">
+                          {m.detalle} · {new Date(m.fecha).toLocaleDateString('es-PE')}
+                        </p>
+                      </div>
+                    </div>
+                    <span
+                      className={`font-display text-lg font-bold tabular-nums ${
+                        m.monto >= 0 ? 'text-emerald-300' : 'text-rose-300'
+                      }`}
+                    >
+                      {m.monto >= 0 ? '+' : '-'}S/ {(Math.abs(m.monto) / 100).toFixed(2)}
+                    </span>
+                  </article>
+                ))}
               </div>
-            )}
-
-            {pestaña === 'billetera' && (
-              <div>
-                <h3 className="font-display text-lg font-bold text-white mb-4">Movimientos de billetera</h3>
-                {movimientos.length === 0 && perdidas.length === 0 ? (
-                  <p className="text-sm text-slate-500">No tienes movimientos.</p>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-white/10">
-                          <th className="pb-2 text-left font-medium text-slate-400">Fecha</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Tipo</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Monto</th>
-                          <th className="pb-2 text-left font-medium text-slate-400">Descripción</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {movimientos.map((m) => (
-                          <tr key={m.id} className="border-b border-white/5">
-                            <td className="py-2 text-slate-100">
-                              {new Date(m.created_at).toLocaleDateString('es-PE')}
-                            </td>
-                            <td className="py-2 text-slate-100">{m.tipo}</td>
-                            <td className={`py-2 font-medium ${m.monto > 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
-                              {m.monto > 0 ? '+' : ''}S/ {(m.monto / 100).toFixed(2)}
-                            </td>
-                            <td className="py-2 text-slate-100">{m.descripcion ?? '-'}</td>
-                          </tr>
-                        ))}
-                        {perdidas.map((p) => (
-                          <tr key={`perdida-${p.id}`} className="border-b border-white/5">
-                            <td className="py-2 text-slate-100">
-                              {new Date(p.created_at).toLocaleDateString('es-PE')}
-                            </td>
-                            <td className="py-2 text-slate-100">pérdida_partida</td>
-                            <td className="py-2 font-medium text-rose-300">
-                              -S/ {(Math.abs(p.monto) / 100).toFixed(2)}
-                            </td>
-                            <td className="py-2 text-slate-100">
-                              Perdiste en {p.sala_nombre}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+            </PanelTab>
+          )}
         </div>
       </main>
     </div>

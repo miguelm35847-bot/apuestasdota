@@ -74,9 +74,13 @@
 - Chat del landing compactado: 320 px de alto en móvil y `calc(100vh - 36rem)` en desktop; con el hero más bajo, el composer queda visible sin scroll en 1366×768 (verificado con captura headless)
 - `npm run lint` sin errores ni advertencias
 - Build de producción verificado sin errores
+- Pulido de diseño (tanda 1, perfil): cabecera unificada de perfil + saldo (avatar, nick, estado de MMR, Steam y acciones Recargar/Retirar); el MMR registrado se muestra como stat bloqueado en lugar de un input deshabilitado; botón de vincular Steam con ícono de enlace; pestañas segmentadas sticky con íconos y contadores; las tablas de historial, recargas/retiros y billetera se reemplazaron por tarjetas/listas unificadas responsivas; estados vacíos con CTA y skeletons de carga
+- Pulido de diseño (tanda 2, admin): sub-navegación compartida `AdminNav` (`Panel · Recargas · Retiros · Jugadores · Salas`) en todas las pantallas admin; el panel muestra tarjeta destacada de ganancias de la casa, 4 KPI con enlaces (recargas y retiros pendientes, salas activas, jugadores) y una grilla 2×2 de acciones rápidas con íconos y conteos; recargas y retiros muestran el monto destacado y una cabecera con el total pendiente
+- Verificado con captura headless del perfil (1440×1000 y 390×844): la nueva cabecera, perfil competitivo, pestañas y estado vacío se ven correctos y sin errores de consola (la verificación autenticada quedó limitada porque la cuenta QA ya no existe en Supabase)
 
 ## Siguiente
 - Revisión visual final del usuario en 1366×768 y 1440×1000; ajustar detalles de contraste si hace falta
+- Revisar el pulido de diseño de perfil y admin (cabecera, KPI, acciones rápidas, sub-navegación) y confirmar que la sala y el landing quedan intactos
 - Probar el flujo completo de MMR único + fase de picks en Supabase y en la interfaz
 - Endurecimiento de seguridad/dinero antes del lanzamiento público
 - Cierre automático de la sala al terminar la partida (API de Steam)
@@ -108,6 +112,7 @@
 - src/app/admin/page.tsx - Panel de administrador
 - src/components/SalasPublicas.tsx - Salas en landing (unirse, avatares, ir a mi sala)
 - src/components/Navbar.tsx - Menú superior sticky con saldo, campana y desplegable de perfil
+- src/components/AdminNav.tsx - Sub-navegación compartida de las pantallas de administración
 - src/components/Avatar.tsx - Avatar reutilizable con imagen de Steam y fallback a inicial
 - src/app/perfil/page.tsx - Perfil con vinculación Steam y actualización de avatar
 - src/app/api/steam/sync/route.ts - Sincronización de avatar/nombre de Steam

@@ -7,6 +7,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
+import AdminNav from '@/components/AdminNav';
 import Avatar from '@/components/Avatar';
 import { formatearMmr, resumenRolesConIconos } from '@/lib/balance';
 import type { RolDota } from '@/lib/types';
@@ -148,16 +149,15 @@ export default function AdminJugadoresPage() {
       <Navbar titulo="Admin - Jugadores" />
 
       <main className="mx-auto max-w-5xl px-4 py-8">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <AdminNav />
+
+        <div className="mb-4 mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="font-display text-2xl font-bold text-white">Jugadores</h1>
             <p className="text-sm text-slate-400">
               El MMR de cada jugador solo se registra una vez; como admin puedes corregirlo aquí.
             </p>
           </div>
-          <Link href="/admin" className="text-sm text-prism-300 hover:text-prism-200 hover:underline">
-            Volver al panel
-          </Link>
         </div>
 
         {error && (

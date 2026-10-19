@@ -1042,8 +1042,9 @@ end $$;
 - `src/app/admin/jugadores/page.tsx` — admin: buscador de jugadores, MMR/roles y edición del MMR (antifraude) mediante `admin_editar_mmr`.
 - `src/components/ConfirmDialog.tsx` — modal reutilizable de confirmación para acciones destructivas.
 - `src/components/Toast.tsx` — aviso flotante con cierre automático y estilo Arena Dark.
-- `src/app/admin/page.tsx` — panel de ganancias y accesos.
-- `src/app/perfil/page.tsx` — perfil, Steam, historial, movimientos, billetera. El MMR solo se registra una vez; después el campo queda bloqueado y solo se editan roles.
+- `src/components/AdminNav.tsx` — sub-navegación segmentada compartida por las pantallas admin (`Panel · Recargas · Retiros · Jugadores · Salas`), con estado activo e íconos.
+- `src/app/admin/page.tsx` — panel: tarjeta de ganancias de la casa, 4 KPI con enlaces (recargas/retiros pendientes, salas activas, jugadores) y grilla 2×2 de acciones rápidas.
+- `src/app/perfil/page.tsx` — perfil, Steam, historial, movimientos, billetera. Cabecera unificada (perfil + saldo), MMR como stat bloqueado, pestañas sticky con íconos y contadores, listas en tarjetas responsivas, estados vacíos con CTA y skeletons. El MMR solo se registra una vez; después solo se editan roles.
 - `src/app/recargar/page.tsx`, `src/app/retirar/page.tsx` — recargas y retiros.
 - `src/app/admin/recargas/page.tsx`, `src/app/admin/retiros/page.tsx` — aprobaciones.
 - `src/components/Navbar.tsx` — menú único sticky con estilo **Arena Dark** (logo, saldo, campana y desplegable de perfil con perfil, recargar, retirar, historial, admin y cerrar sesión).

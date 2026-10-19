@@ -6,6 +6,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
+import AdminNav from '@/components/AdminNav';
 import Avatar from '@/components/Avatar';
 import type { Retiro } from '@/lib/types';
 
@@ -128,6 +129,20 @@ export default function AdminRetirosPage() {
       <Navbar titulo="Admin - Retiros pendientes" />
 
       <main className="mx-auto max-w-5xl px-4 py-8">
+        <AdminNav />
+
+        <div className="mb-4 mt-6 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-white">Retiros pendientes</h1>
+            <p className="text-sm text-slate-400">
+              Marca como pagado o rechaza las solicitudes de retiro.
+            </p>
+          </div>
+          <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
+            {retiros.length} {retiros.length === 1 ? 'pendiente' : 'pendientes'}
+          </span>
+        </div>
+
         {error && (
           <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
             {error}
@@ -152,30 +167,31 @@ export default function AdminRetirosPage() {
                 key={r.id}
                 className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft"
               >
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <Avatar
-                        nick={r.profiles?.nick}
-                        src={r.profiles?.steam_avatar_url}
-                        size="lg"
-                      />
-                      <h3 className="font-semibold text-white">
-                        {r.profiles?.nick ?? 'Usuario'}
-                      </h3>
+                <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-6">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Avatar
+                          nick={r.profiles?.nick}
+                          src={r.profiles?.steam_avatar_url}
+                          size="lg"
+                        />
+                        <div className="min-w-0">
+                          <h3 className="truncate font-semibold text-white">
+                            {r.profiles?.nick ?? 'Usuario'}
+                          </h3>
+                          <p className="text-xs text-slate-400">
+                            {new Date(r.created_at).toLocaleString('es-PE')}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="shrink-0 font-display text-2xl font-bold tabular-nums text-rose-300">
+                        S/ {(r.monto / 100).toFixed(2)}
+                      </span>
                     </div>
-                    <div className="mt-2 space-y-1 text-sm text-slate-400">
-                      <p>
-                        <span className="font-medium">Monto:</span> S/ {(r.monto / 100).toFixed(2)}
-                      </p>
-                      <p>
-                        <span className="font-medium">Destino:</span> {r.destino}
-                      </p>
-                      <p>
-                        <span className="font-medium">Fecha:</span>{' '}
-                        {new Date(r.created_at).toLocaleString('es-PE')}
-                      </p>
-                    </div>
+                    <p className="mt-3 text-sm text-slate-400">
+                      <span className="font-medium text-slate-300">Destino:</span> {r.destino}
+                    </p>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-2">
