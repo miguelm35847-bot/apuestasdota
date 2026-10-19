@@ -155,10 +155,10 @@ export default function AdminRetirosPage() {
         )}
 
         {loading ? (
-          <p className="text-slate-500">Cargando retiros...</p>
+          <p className="text-slate-400">Cargando retiros...</p>
         ) : retiros.length === 0 ? (
           <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 text-center shadow-arena-soft">
-            <p className="text-slate-500">No hay retiros pendientes</p>
+            <p className="text-slate-400">No hay retiros pendientes</p>
           </div>
         ) : (
           <div className="space-y-4">

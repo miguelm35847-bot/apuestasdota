@@ -181,11 +181,11 @@ export default function AdminJugadoresPage() {
 
         {cargando ? (
           <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 text-center shadow-arena-soft">
-            <p className="text-slate-500">Cargando jugadores...</p>
+            <p className="text-slate-400">Cargando jugadores...</p>
           </div>
         ) : visibles.length === 0 ? (
           <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 text-center shadow-arena-soft">
-            <p className="text-slate-500">No se encontraron jugadores</p>
+            <p className="text-slate-400">No se encontraron jugadores</p>
           </div>
         ) : (
           <div className="space-y-2">

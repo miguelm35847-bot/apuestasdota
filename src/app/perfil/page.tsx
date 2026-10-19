@@ -716,7 +716,7 @@ function PerfilContenido() {
               <div>
                 <p className="text-sm font-medium text-slate-300">
                   Preferencias de rol{' '}
-                  <span className="font-normal text-slate-500">(opcional, hasta 3 en orden)</span>
+                  <span className="font-normal text-slate-400">(opcional, hasta 3 en orden)</span>
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {ROLES_DOTA.map((rol) => {
