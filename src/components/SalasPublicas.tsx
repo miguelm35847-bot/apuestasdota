@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -222,6 +223,14 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                 <div className="flex-1">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-2">
+                      <Image
+                        src="/dota2.svg"
+                        alt=""
+                        width={16}
+                        height={16}
+                        aria-hidden="true"
+                        className="h-4 w-4 shrink-0"
+                      />
                       <h3 className="font-display text-base font-bold tracking-tight text-white">
                         {sala.nombre}
                       </h3>

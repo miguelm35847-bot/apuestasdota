@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Avatar from '@/components/Avatar';
@@ -207,7 +208,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
       </div>
       <div className="arena-hero-line absolute inset-x-0 bottom-0 h-px" />
 
-      <div className="relative mx-auto grid max-w-7xl items-center gap-6 px-4 py-8 sm:gap-8 sm:py-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
+      <div className="relative mx-auto grid max-w-7xl items-center gap-5 px-4 py-6 sm:gap-8 sm:py-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
         <div className="text-center lg:text-left">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-300 backdrop-blur">
             <span className="relative flex h-1.5 w-1.5">
@@ -217,17 +218,17 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
             Salas 1v1 y 5v5 · Pagos con Yape o Plin
           </span>
 
-          <h1 className="font-display mt-5 text-4xl font-extrabold tracking-tight sm:text-6xl">
+          <h1 className="font-display mt-4 text-4xl font-extrabold tracking-tight sm:mt-5 sm:text-6xl">
             Apuestas{' '}
             <span className="bg-gradient-to-r from-emerald-300 via-white to-rose-300 bg-clip-text text-transparent">
               Dota 2
             </span>
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm text-slate-400 sm:text-base lg:mx-0">
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400 sm:mt-4 sm:text-base lg:mx-0">
             Salas de juego con premios en efectivo. Elige tu modalidad, arma tu equipo y juega.
           </p>
 
-          <div className="mt-6 flex flex-wrap justify-center gap-3 lg:justify-start">
+          <div className="mt-5 flex flex-wrap justify-center gap-3 sm:mt-6 lg:justify-start">
             {isAuthenticated ? (
               <Link
                 href="/salas"
@@ -253,7 +254,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
             )}
           </div>
 
-          <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[11px] font-medium text-slate-500 lg:justify-start">
+          <div className="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[11px] font-medium text-slate-500 sm:mt-5 lg:justify-start">
             <span className="inline-flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               Radiant
@@ -305,9 +306,19 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
               </div>
             ) : destacada ? (
               <>
-                <p className="mt-2.5 truncate font-display text-xl font-bold text-white">
-                  {destacada.nombre}
-                </p>
+                <div className="mt-2.5 flex min-w-0 items-center gap-2">
+                  <Image
+                    src="/dota2.svg"
+                    alt=""
+                    width={20}
+                    height={20}
+                    aria-hidden="true"
+                    className="h-5 w-5 shrink-0"
+                  />
+                  <p className="min-w-0 truncate font-display text-xl font-bold text-white">
+                    {destacada.nombre}
+                  </p>
+                </div>
                 <p className="mt-1 text-[11px] font-medium text-slate-400">
                   {destacada.modalidad === '1v1' ? '1 vs 1' : '5 vs 5'} ·{' '}
                   {jugadoresDestacada}/{cupoDestacada} jugadores
@@ -339,8 +350,21 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                       {jugadoresDestacada}/{cupoDestacada}
                     </span>
                   </div>
-                  <div className="mt-2 flex min-h-9 flex-wrap items-center gap-1.5">
-                    {roster.slice(0, 5).map((p) => {
+                  <div className="mt-2 grid grid-cols-5 gap-1.5 sm:grid-cols-10">
+                    {Array.from({ length: cupoDestacada }).map((_, i) => {
+                      const p = roster[i];
+
+                      if (!p) {
+                        return (
+                          <span
+                            key={`libre-${i}`}
+                            className="mx-auto h-6 w-6 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]"
+                            title="Slot libre"
+                            aria-hidden="true"
+                          />
+                        );
+                      }
+
                       const nick = p.profiles?.nick ?? 'Usuario';
                       return (
                         <PerfilHover
@@ -354,7 +378,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                             roles_preferidos: p.profiles?.roles_preferidos,
                             equipo: p.equipo,
                           }}
-                          className="inline-block shrink-0"
+                          className="flex justify-center"
                         >
                           <Link
                             href={`/jugadores/${p.user_id}`}
@@ -364,24 +388,17 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                             <Avatar
                               nick={p.profiles?.nick}
                               src={p.profiles?.steam_avatar_url}
-                              size="sm"
+                              size="xs"
                               ringClass={ringEquipo(p.equipo)}
                             />
                           </Link>
                         </PerfilHover>
                       );
                     })}
-                    {jugadoresDestacada > 5 && (
-                      <span className="rounded-full bg-white/5 px-2 py-1 text-[10px] font-semibold text-slate-300 ring-1 ring-inset ring-white/10">
-                        +{jugadoresDestacada - 5}
-                      </span>
-                    )}
-                    {jugadoresDestacada === 0 && (
-                      <span className="text-[11px] text-slate-500">
-                        Sé el primero en unirte
-                      </span>
-                    )}
                   </div>
+                  {jugadoresDestacada === 0 && (
+                    <p className="mt-2 text-[11px] text-slate-500">Sé el primero en unirte</p>
+                  )}
                 </div>
 
                 <Link
@@ -391,7 +408,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                   {isAuthenticated ? 'Entrar a la sala' : 'Inicia sesión para entrar'}
                   <span aria-hidden="true">→</span>
                 </Link>
-                <p className="mt-2 text-center text-[10px] text-slate-500">
+                <p className="mt-2 hidden text-center text-[10px] text-slate-500 sm:block">
                   Pago por Yape o Plin · Retiros con aprobación
                 </p>
               </>

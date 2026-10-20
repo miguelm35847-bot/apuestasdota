@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
@@ -171,6 +172,9 @@ function AdminSalaContenido() {
   const [autoCierre, setAutoCierre] = useState(true);
   const [detectando, setDetectando] = useState(false);
   const [estadoDeteccion, setEstadoDeteccion] = useState<string | null>(null);
+  const [editandoNombre, setEditandoNombre] = useState(false);
+  const [nombreSala, setNombreSala] = useState('');
+  const [guardandoNombre, setGuardandoNombre] = useState(false);
   const cierreAutoEnviado = useRef(false);
 
   const cargarSala = useCallback(async () => {
@@ -372,6 +376,46 @@ function AdminSalaContenido() {
       setError('No se pudo mover: ' + rpcError.message);
     }
     cargarSala();
+  }
+
+  async function guardarNombreSala() {
+    if (!sala) return;
+
+    const nuevo = nombreSala.trim();
+    if (nuevo.length < 3) {
+      setError('El nombre debe tener al menos 3 caracteres');
+      return;
+    }
+    if (nuevo.length > 60) {
+      setError('El nombre no puede superar los 60 caracteres');
+      return;
+    }
+    if (nuevo === sala.nombre) {
+      setEditandoNombre(false);
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+    setGuardandoNombre(true);
+
+    const { error: rpcError } = await supabase.rpc('admin_renombrar_sala', {
+      p_sala: salaId,
+      p_nombre: nuevo,
+    });
+
+    if (rpcError) {
+      const detalle = rpcError.message.includes('Could not find the function')
+        ? 'falta ejecutar el SQL de admin_renombrar_sala en Supabase'
+        : rpcError.message;
+      setError('No se pudo cambiar el nombre: ' + detalle);
+    } else {
+      setSuccess('Nombre de la sala actualizado.');
+      setEditandoNombre(false);
+      await cargarSala();
+    }
+
+    setGuardandoNombre(false);
   }
 
   async function iniciarPicks() {
@@ -803,7 +847,85 @@ function AdminSalaContenido() {
           </div>
         )}
 
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="mb-3 space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            {editandoNombre ? (
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void guardarNombreSala();
+                }}
+                className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5"
+              >
+                <Image
+                  src="/dota2.svg"
+                  alt=""
+                  width={20}
+                  height={20}
+                  aria-hidden="true"
+                  className="h-5 w-5 shrink-0"
+                />
+                <input
+                  value={nombreSala}
+                  onChange={(event) => setNombreSala(event.target.value)}
+                  maxLength={60}
+                  autoFocus
+                  aria-label="Nombre de la sala"
+                  placeholder="Nombre de la sala"
+                  className="min-w-0 flex-1 rounded-lg border border-prism-500/40 bg-white/5 px-2.5 py-1.5 text-sm font-semibold text-white placeholder:text-slate-500 focus:border-prism-400 focus:outline-none sm:max-w-sm"
+                />
+                <button
+                  type="submit"
+                  disabled={guardandoNombre}
+                  className="rounded-lg bg-prism-500 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-prism-400 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {guardandoNombre ? 'Guardando…' : 'Guardar'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditandoNombre(false)}
+                  disabled={guardandoNombre}
+                  className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-semibold text-slate-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Cancelar edición
+                </button>
+              </form>
+            ) : (
+              <div className="flex min-w-0 items-center gap-2">
+                <Image
+                  src="/dota2.svg"
+                  alt=""
+                  width={20}
+                  height={20}
+                  aria-hidden="true"
+                  className="h-5 w-5 shrink-0"
+                />
+                <h1 className="min-w-0 truncate font-display text-lg font-bold text-white">
+                  {sala.nombre}
+                </h1>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNombreSala(sala.nombre);
+                    setError(null);
+                    setSuccess(null);
+                    setEditandoNombre(true);
+                  }}
+                  className="shrink-0 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10"
+                  title="Cambiar el nombre de la sala"
+                >
+                  <span aria-hidden="true">✎</span> Cambiar nombre
+                </button>
+              </div>
+            )}
+            <button
+              onClick={() => setConfirmacion({ tipo: 'cancelar' })}
+              className="rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/15"
+            >
+              Cancelar sala
+            </button>
+          </div>
+
           <div className="flex flex-wrap items-center gap-2 text-xs">
             <span className="rounded-full bg-prism-500/15 px-2.5 py-1 font-bold text-prism-200 ring-1 ring-inset ring-prism-500/30">
               {sala.modalidad ?? (sala.cupo === 2 ? '1v1' : '5v5')}
@@ -838,12 +960,6 @@ function AdminSalaContenido() {
               </span>
             )}
           </div>
-          <button
-            onClick={() => setConfirmacion({ tipo: 'cancelar' })}
-            className="rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/15"
-          >
-            Cancelar sala
-          </button>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
