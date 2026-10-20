@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Apuestas Dota",
+  title: "Kódigodota",
   description: "Plataforma de salas de Dota 2",
 };
 

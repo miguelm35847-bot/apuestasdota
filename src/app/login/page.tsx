@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
@@ -45,9 +46,19 @@ export default function LoginPage() {
           <p className="text-center text-[11px] font-bold uppercase tracking-[0.28em] text-prism-300">
             Arena Dark
           </p>
-          <h1 className="mt-2 text-center font-display text-3xl font-bold text-white">
-            Apuestas Dota
-          </h1>
+          <div className="mt-2 flex items-center justify-center gap-2.5">
+            <Image
+              src="/kodigodota-mark.svg"
+              alt=""
+              width={36}
+              height={34}
+              aria-hidden="true"
+              className="h-8 w-auto"
+            />
+            <h1 className="text-center font-display text-3xl font-bold text-white">
+              Kódigodota
+            </h1>
+          </div>
           <p className="mt-2 text-center text-sm text-slate-400">
             Inicia sesión para entrar a la arena
           </p>

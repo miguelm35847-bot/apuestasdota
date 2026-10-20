@@ -132,15 +132,15 @@ export default function Navbar({ titulo }: { titulo?: string }) {
         <div className="flex min-w-0 items-center">
           <Link href="/" className="flex max-w-[46vw] min-w-0 items-center gap-2.5 sm:max-w-none">
             <Image
-              src="/dota2.svg"
+              src="/kodigodota-mark.svg"
               alt=""
-              width={32}
-              height={32}
+              width={36}
+              height={34}
               aria-hidden="true"
-              className="h-7 w-7 shrink-0 brightness-0 invert sm:h-8 sm:w-8"
+              className="h-7 w-auto shrink-0 drop-shadow-[0_0_10px_rgba(255,255,255,0.12)] sm:h-8"
             />
             <span className="font-display truncate text-[15px] font-extrabold tracking-[-0.03em] text-white sm:text-lg md:max-w-[280px] xl:max-w-[420px]">
-              {titulo ?? 'Apuestas Dota 2'}
+              {titulo ?? 'Kódigodota'}
             </span>
           </Link>
         </div>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 46.4 44" role="img" aria-label="Kódigodota">
+  <defs>
+    <linearGradient id="kodigodota-mark" x1="3" y1="2" x2="44" y2="42" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff" />
+      <stop offset="0.6" stop-color="#f8fafc" />
+      <stop offset="1" stop-color="#cbd5e1" />
+    </linearGradient>
+  </defs>
+  <title>Kódigodota</title>
+  <path
+    d="M4.87 1.2 L14.64 1.2 L18.31 6.09 L20.76 6.09 L20.76 9.76 L21.98 9.76 L23.2 7.31 L25.64 7.31 L30.53 1.2 L42.76 1.2 L42.76 2.42 L45.2 3.64 L43.98 10.98 L31.76 21.98 L31.76 24.42 L32.98 24.42 L35.42 28.09 L37.87 28.09 L37.87 29.31 L45.2 35.42 L45.2 41.53 L43.98 41.53 L43.98 42.76 L31.76 42.76 L24.42 34.2 L20.76 34.2 L19.53 37.87 L18.31 37.87 L14.64 42.76 L3.64 42.76 L3.64 41.53 L1.2 40.31 L1.2 34.2 L2.42 34.2 L9.76 25.64 L12.2 26.87 L12.2 29.31 L15.87 29.31 L15.87 28.09 L29.31 15.87 L29.31 14.64 L15.87 14.64 L15.87 15.87 L10.98 19.53 L10.98 21.98 L6.09 25.64 L6.09 28.09 L4.87 28.09 L3.64 30.53 L1.2 30.53 L1.2 4.87 L2.42 4.87 Z"
+    fill="url(#kodigodota-mark)"
+    stroke="url(#kodigodota-mark)"
+    stroke-width="1.5"
+    stroke-linejoin="round"
+    stroke-linecap="round"
+  />
+</svg>

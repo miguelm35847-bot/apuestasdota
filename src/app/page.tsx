@@ -61,7 +61,7 @@ export default function Home() {
       <footer className="arena-footer mt-8">
         <div className="mx-auto max-w-[1500px] px-4 py-5 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
           <p className="font-semibold text-slate-400">
-            Apuestas Dota 2 · Plataforma de salas de juego
+            Kódigodota · Plataforma de salas de juego
           </p>
           <p className="mt-1 text-xs text-slate-600">Pagos con Yape o Plin</p>
         </div>

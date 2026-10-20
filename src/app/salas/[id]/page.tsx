@@ -1088,7 +1088,7 @@ function SalaContenido() {
     if (!sala) return;
 
     const url = `${window.location.origin}/salas/${sala.id}`;
-    const texto = `Sala "${sala.nombre}" en Apuestas Dota`;
+    const texto = `Sala "${sala.nombre}" en Kódigodota`;
 
     try {
       if (typeof navigator.share === 'function') {

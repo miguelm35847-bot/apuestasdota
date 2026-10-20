@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Avatar from '@/components/Avatar';
+import DotaTile from '@/components/DotaTile';
 import PerfilHover from '@/components/PerfilHover';
 import type { RolDota } from '@/lib/types';
 
@@ -253,7 +254,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
   return (
     <section
       onPointerMove={alMoverCursor}
-      className="arena-hero relative isolate overflow-hidden border-b border-white/10 bg-[#05070c]"
+      className="arena-hero relative isolate overflow-hidden border-b border-white/[0.04] bg-[#05070c]"
     >
       <Image
         src="/arena-rift.svg"
@@ -307,7 +308,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
             <div className="mt-5 flex items-center justify-center gap-3 lg:justify-start lg:gap-4">
               <IconDota className="h-10 w-10 shrink-0 drop-shadow-[0_0_22px_rgba(255,255,255,0.28)] sm:h-12 sm:w-12 lg:h-14 lg:w-14" />
               <h1 className="font-display bg-gradient-to-b from-white via-white to-slate-300 bg-clip-text text-[1.95rem] font-extrabold leading-[0.95] tracking-[-0.055em] text-transparent drop-shadow-[0_3px_22px_rgba(0,0,0,0.72)] min-[380px]:text-[2.2rem] sm:text-6xl lg:text-7xl">
-                Apuestas Dota 2
+                Kódigodota 2
               </h1>
             </div>
 
@@ -405,7 +406,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                 ) : destacada ? (
                   <>
                     <div className="mt-3 flex min-w-0 items-center gap-2.5">
-                      <IconDota className="h-6 w-6 shrink-0" />
+                      <DotaTile className="h-6 w-6 sm:h-7 sm:w-7" />
                       <p className="min-w-0 font-display text-xl font-bold leading-tight text-white sm:text-2xl">
                         {destacada.nombre}
                       </p>
@@ -525,10 +526,18 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
         </div>
       </div>
 
-      <div className="relative border-t border-white/10 bg-[#05070c]/70 backdrop-blur-md">
-        <div className="mx-auto grid max-w-[1500px] grid-cols-2 gap-px bg-white/[0.06] px-0 sm:grid-cols-4">
-          <div className="flex items-center gap-3 bg-[#060a11]/80 px-4 py-3 sm:px-6 sm:py-4">
-            <IconDota className="h-5 w-5 shrink-0 text-slate-300 opacity-70" />
+      <div className="relative">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[#05070c]/45 backdrop-blur-md [mask-image:radial-gradient(ellipse_120%_145%_at_50%_50%,black_42%,transparent_100%)]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
+        />
+        <div className="relative mx-auto grid max-w-[1500px] grid-cols-2 px-2 sm:grid-cols-4 sm:px-6">
+          <div className="flex items-center gap-3 px-4 py-4 sm:px-5 sm:py-5">
+            <IconDota className="h-5 w-5 shrink-0 opacity-65" />
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
                 Salas activas
@@ -538,7 +547,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 bg-[#060a11]/80 px-4 py-3 sm:px-6 sm:py-4">
+          <div className="flex items-center gap-3 px-4 py-4 sm:px-5 sm:py-5">
             <IconUsers className="h-5 w-5 shrink-0 text-slate-400" />
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
@@ -549,7 +558,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 bg-[#060a11]/80 px-4 py-3 sm:px-6 sm:py-4">
+          <div className="flex items-center gap-3 px-4 py-4 sm:px-5 sm:py-5">
             <IconCoin className="h-5 w-5 shrink-0 text-amber-300" />
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
@@ -560,7 +569,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 bg-[#060a11]/80 px-4 py-3 sm:px-6 sm:py-4">
+          <div className="flex items-center gap-3 px-4 py-4 sm:px-5 sm:py-5">
             <IconWallet className="h-5 w-5 shrink-0 text-slate-400" />
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
