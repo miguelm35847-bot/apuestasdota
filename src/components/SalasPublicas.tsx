@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/AuthProvider';
 import Toast from '@/components/Toast';
 import Avatar from '@/components/Avatar';
+import PerfilHover from '@/components/PerfilHover';
+import type { RolDota } from '@/lib/types';
 
 type Sala = {
   id: string;
@@ -27,8 +29,9 @@ type Participante = {
   profiles: {
     nick: string;
     steam_avatar_url?: string | null;
+    steam_nombre?: string | null;
     mmr?: number | null;
-    roles_preferidos?: string[] | null;
+    roles_preferidos?: RolDota[] | null;
   } | null;
 };
 
@@ -86,7 +89,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
 
       const { data: parts } = await supabase
         .from('participantes_sala')
-        .select('sala_id, user_id, equipo, profiles(nick, steam_avatar_url, mmr, roles_preferidos)')
+        .select('sala_id, user_id, equipo, profiles(nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos)')
         .in('sala_id', salaIds)
         .order('created_at', { ascending: true });
 
@@ -258,23 +261,36 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                       const p = parts[i];
 
                       return p ? (
-                        <Link
+                        <PerfilHover
                           key={p.user_id}
-                          href={`/jugadores/${p.user_id}`}
-                          aria-label={`Ver perfil de ${p.profiles?.nick ?? 'jugador'}`}
-                          className="rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                          usuario={{
+                            id: p.user_id,
+                            nick: p.profiles?.nick,
+                            steam_avatar_url: p.profiles?.steam_avatar_url,
+                            steam_nombre: p.profiles?.steam_nombre,
+                            mmr: p.profiles?.mmr,
+                            roles_preferidos: p.profiles?.roles_preferidos,
+                            equipo: p.equipo,
+                          }}
+                          className="inline-block shrink-0"
                         >
-                          <Avatar
-                            nick={p.profiles?.nick ?? '?'}
-                            src={p.profiles?.steam_avatar_url}
-                            ringClass={ringEquipo(p.equipo)}
-                            title={`${p.profiles?.nick ?? 'Usuario'}${
-                              p.profiles?.mmr != null ? ` · MMR ${p.profiles.mmr}` : ''
-                            }${
-                              p.equipo === 1 ? ' · Radiant' : p.equipo === 2 ? ' · Dire' : ' · Espera'
-                            }`}
-                          />
-                        </Link>
+                          <Link
+                            href={`/jugadores/${p.user_id}`}
+                            aria-label={`Ver perfil de ${p.profiles?.nick ?? 'jugador'}`}
+                            className="block rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                          >
+                            <Avatar
+                              nick={p.profiles?.nick ?? '?'}
+                              src={p.profiles?.steam_avatar_url}
+                              ringClass={ringEquipo(p.equipo)}
+                              title={`${p.profiles?.nick ?? 'Usuario'}${
+                                p.profiles?.mmr != null ? ` · MMR ${p.profiles.mmr}` : ''
+                              }${
+                                p.equipo === 1 ? ' · Radiant' : p.equipo === 2 ? ' · Dire' : ' · Espera'
+                              }`}
+                            />
+                          </Link>
+                        </PerfilHover>
                       ) : (
                         <div
                           key={`libre-${i}`}
