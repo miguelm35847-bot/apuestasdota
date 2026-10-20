@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
+import { useEffect, useState, useCallback, useRef, Suspense, type ReactNode } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
@@ -18,6 +18,125 @@ import {
 } from '@/lib/balance';
 import type { Lobby, Participante, RolDota, Sala } from '@/lib/types';
 
+type TonoEquipo = 'radiant' | 'dire' | 'neutral';
+
+/**
+ * Paleta de equipos para Arena Dark.
+ * Evita rellenos saturados: usa superficies tenues, un acento lateral y chips con ring.
+ */
+const TONOS_EQUIPO: Record<
+  TonoEquipo,
+  {
+    contenedor: string;
+    cabecera: string;
+    acento: string;
+    icono: string;
+    titulo: string;
+    descripcion: string;
+    contador: string;
+    boton: string;
+    panel: string;
+    panelTitulo: string;
+    panelContador: string;
+  }
+> = {
+  radiant: {
+    contenedor: 'border-emerald-400/15',
+    cabecera: 'border-b border-emerald-400/10 bg-emerald-500/[0.05]',
+    acento: 'bg-emerald-400/60',
+    icono: 'bg-emerald-500/10 text-emerald-200 ring-emerald-400/15',
+    titulo: 'text-emerald-100',
+    descripcion: 'text-emerald-200/50',
+    contador: 'bg-emerald-500/10 text-emerald-100 ring-emerald-400/20',
+    boton:
+      'bg-emerald-500/10 text-emerald-100 ring-1 ring-inset ring-emerald-400/20 hover:bg-emerald-500/20',
+    panel: 'border-emerald-400/15 bg-emerald-500/[0.04]',
+    panelTitulo: 'text-emerald-200',
+    panelContador: 'bg-emerald-500/10 text-emerald-100 ring-1 ring-inset ring-emerald-400/20',
+  },
+  dire: {
+    contenedor: 'border-rose-400/15',
+    cabecera: 'border-b border-rose-400/10 bg-rose-500/[0.05]',
+    acento: 'bg-rose-400/60',
+    icono: 'bg-rose-500/10 text-rose-200 ring-rose-400/15',
+    titulo: 'text-rose-100',
+    descripcion: 'text-rose-200/50',
+    contador: 'bg-rose-500/10 text-rose-100 ring-rose-400/20',
+    boton: 'bg-rose-500/10 text-rose-100 ring-1 ring-inset ring-rose-400/20 hover:bg-rose-500/20',
+    panel: 'border-rose-400/15 bg-rose-500/[0.04]',
+    panelTitulo: 'text-rose-200',
+    panelContador: 'bg-rose-500/10 text-rose-100 ring-1 ring-inset ring-rose-400/20',
+  },
+  neutral: {
+    contenedor: 'border-white/10',
+    cabecera: 'border-b border-white/5 bg-white/[0.02]',
+    acento: 'bg-slate-400/40',
+    icono: 'bg-white/5 text-slate-300 ring-white/10',
+    titulo: 'text-slate-100',
+    descripcion: 'text-slate-400',
+    contador: 'bg-white/5 text-slate-300 ring-white/10',
+    boton: 'bg-white/5 text-slate-200 ring-1 ring-inset ring-white/10 hover:bg-white/10',
+    panel: 'border-white/10 bg-white/[0.02]',
+    panelTitulo: 'text-slate-300',
+    panelContador: 'bg-white/5 text-slate-300 ring-white/10',
+  },
+};
+
+function IconoRadiant() {
+  return (
+    <svg
+      className="h-3.5 w-3.5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-10 10Z" />
+      <path d="M2 21c0-3 1.9-5.4 5.1-6C9.5 14.5 12 13 13 12" />
+    </svg>
+  );
+}
+
+function IconoDire() {
+  return (
+    <svg
+      className="h-3.5 w-3.5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5Z" />
+    </svg>
+  );
+}
+
+function IconoEspera() {
+  return (
+    <svg
+      className="h-3.5 w-3.5"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M5 22h14" />
+      <path d="M5 2h14" />
+      <path d="M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4a2 2 0 0 0-.6 1.4V22" />
+      <path d="M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4a2 2 0 0 0 .6-1.4V2" />
+    </svg>
+  );
+}
+
 function Columna({
   equipo,
   titulo,
@@ -27,9 +146,7 @@ function Columna({
   horizontal = false,
   columnas,
   compacta = false,
-  borde,
-  cabecera,
-  boton,
+  tono,
   icono,
   esParticipante,
   miEquipo,
@@ -46,10 +163,8 @@ function Columna({
   horizontal?: boolean;
   columnas?: string;
   compacta?: boolean;
-  borde: string;
-  cabecera: string;
-  boton: string;
-  icono: string;
+  tono: TonoEquipo;
+  icono: ReactNode;
   esParticipante: boolean;
   miEquipo: number | null;
   userId: string;
@@ -59,20 +174,33 @@ function Columna({
 }) {
   const esMiEquipo = esParticipante && miEquipo === equipo;
   const lleno = equipo !== null && jugadores.length >= capacidad;
+  const t = TONOS_EQUIPO[tono];
 
   return (
-    <div className={`arena-card flex flex-col overflow-hidden rounded-xl border-2 bg-[#111827] shadow-arena-soft ${borde}`}>
-      <div className={`px-3 py-1.5 ${cabecera}`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-base">{icono}</span>
-            <span className="font-bold text-white">{titulo}</span>
+    <div
+      className={`arena-card flex flex-col overflow-hidden rounded-xl border bg-[#111827] shadow-arena-soft ${t.contenedor}`}
+    >
+      <div className={`relative px-3 py-2 ${t.cabecera}`}>
+        <span
+          aria-hidden="true"
+          className={`absolute inset-y-0 left-0 w-0.5 ${t.acento}`}
+        />
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <span
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md ring-1 ring-inset ${t.icono}`}
+            >
+              {icono}
+            </span>
+            <span className={`truncate font-display font-bold ${t.titulo}`}>{titulo}</span>
           </div>
-          <span className="rounded-full bg-white/25 px-2 py-0.5 text-xs font-semibold text-white">
+          <span
+            className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums ring-1 ring-inset ${t.contador}`}
+          >
             {jugadores.length}/{capacidad}
           </span>
         </div>
-        <p className="mt-0.5 text-[11px] text-white/80">{descripcion}</p>
+        <p className={`mt-0.5 truncate pl-8 text-[11px] ${t.descripcion}`}>{descripcion}</p>
       </div>
 
       <div
@@ -205,7 +333,7 @@ function Columna({
             <button
               onClick={() => onCambiarEquipo(equipo)}
               disabled={cambiandoEquipo || lleno}
-              className={`w-full rounded py-1 text-xs font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-50 ${boton}`}
+              className={`w-full rounded-md py-1 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${t.boton}`}
             >
               {lleno
                 ? 'Equipo lleno'
@@ -383,10 +511,19 @@ function TableroPicks({
               </div>
             </div>
 
-            <div className="rounded-xl border-2 border-emerald-500/30 bg-emerald-500/10 p-3">
-              <p className="text-xs font-bold uppercase text-emerald-300">
-                Radiant ({radiant.length}/5)
-              </p>
+            <div className={`rounded-xl border p-3 ${TONOS_EQUIPO.radiant.panel}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p
+                  className={`text-xs font-bold uppercase tracking-wide ${TONOS_EQUIPO.radiant.panelTitulo}`}
+                >
+                  Radiant
+                </p>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums ${TONOS_EQUIPO.radiant.panelContador}`}
+                >
+                  {radiant.length}/5
+                </span>
+              </div>
               <div className="mt-2 space-y-1.5">
                 {radiant.map((p) => (
                   <Ficha key={p.user_id} p={p} />
@@ -394,8 +531,19 @@ function TableroPicks({
               </div>
             </div>
 
-            <div className="rounded-xl border-2 border-rose-500/30 bg-rose-500/10 p-3">
-              <p className="text-xs font-bold uppercase text-rose-300">Dire ({dire.length}/5)</p>
+            <div className={`rounded-xl border p-3 ${TONOS_EQUIPO.dire.panel}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p
+                  className={`text-xs font-bold uppercase tracking-wide ${TONOS_EQUIPO.dire.panelTitulo}`}
+                >
+                  Dire
+                </p>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums ${TONOS_EQUIPO.dire.panelContador}`}
+                >
+                  {dire.length}/5
+                </span>
+              </div>
               <div className="mt-2 space-y-1.5">
                 {dire.map((p) => (
                   <Ficha key={p.user_id} p={p} />
@@ -1087,10 +1235,8 @@ function SalaContenido() {
                 descripcion="Equipo verde"
                 jugadores={radiant}
                 capacidad={limiteEquipo}
-                borde="border-emerald-500/30"
-                cabecera="bg-emerald-600"
-                boton="bg-emerald-600 hover:bg-emerald-500"
-                icono="🌿"
+                tono="radiant"
+                icono={<IconoRadiant />}
               />
               <Columna
                 {...columnaProps}
@@ -1099,10 +1245,8 @@ function SalaContenido() {
                 descripcion="Equipo rojo"
                 jugadores={dire}
                 capacidad={limiteEquipo}
-                borde="border-rose-500/30"
-                cabecera="bg-rose-600"
-                boton="bg-rose-600 hover:bg-rose-500"
-                icono="🔥"
+                tono="dire"
+                icono={<IconoDire />}
               />
               <div className="md:col-span-2 xl:col-span-1">
                 <Columna
@@ -1115,10 +1259,8 @@ function SalaContenido() {
                   horizontal
                   compacta
                   columnas="grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-2"
-                  borde="border-white/10"
-                  cabecera="bg-slate-600"
-                  boton="bg-slate-600 hover:bg-slate-500"
-                  icono="⏳"
+                  tono="neutral"
+                  icono={<IconoEspera />}
                 />
               </div>
             </div>

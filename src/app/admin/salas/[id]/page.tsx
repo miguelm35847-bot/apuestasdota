@@ -842,15 +842,17 @@ function AdminSalaContenido() {
             )}
 
             <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <div className="rounded-xl border-2 border-emerald-500/30 bg-emerald-500/10 p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-bold uppercase text-emerald-300">Radiant</p>
-                    <p className="text-[11px] font-medium text-emerald-300">
+              <div className="rounded-xl border border-emerald-400/15 bg-emerald-500/[0.04] p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-wide text-emerald-200">
+                      Radiant
+                    </p>
+                    <p className="truncate text-[11px] font-medium text-emerald-200/60">
                       MMR prom: {formatearMmr(mmrRadiant)}
                     </p>
                   </div>
-                  <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-xs font-semibold text-white">
+                  <span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-bold tabular-nums text-emerald-100 ring-1 ring-inset ring-emerald-400/20">
                     {enRadiant.length}/{Math.floor(sala.cupo / 2)}
                   </span>
                 </div>
@@ -863,15 +865,15 @@ function AdminSalaContenido() {
                 </div>
               </div>
 
-              <div className="rounded-xl border-2 border-rose-500/30 bg-rose-500/10 p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-bold uppercase text-rose-300">Dire</p>
-                    <p className="text-[11px] font-medium text-rose-300">
+              <div className="rounded-xl border border-rose-400/15 bg-rose-500/[0.04] p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-wide text-rose-200">Dire</p>
+                    <p className="truncate text-[11px] font-medium text-rose-200/60">
                       MMR prom: {formatearMmr(mmrDire)}
                     </p>
                   </div>
-                  <span className="rounded-full bg-rose-600 px-2 py-0.5 text-xs font-semibold text-white">
+                  <span className="shrink-0 rounded-full bg-rose-500/10 px-2 py-0.5 text-[11px] font-bold tabular-nums text-rose-100 ring-1 ring-inset ring-rose-400/20">
                     {enDire.length}/{Math.floor(sala.cupo / 2)}
                   </span>
                 </div>
@@ -885,10 +887,12 @@ function AdminSalaContenido() {
               </div>
             </div>
 
-            <div className="mt-3 rounded-xl border-2 border-white/10 bg-white/[0.03] p-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-bold uppercase text-slate-400">Lista de espera</p>
-                <span className="rounded-full bg-slate-600 px-2 py-0.5 text-xs font-semibold text-white">
+            <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.02] p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                  Lista de espera
+                </p>
+                <span className="shrink-0 rounded-full bg-white/5 px-2 py-0.5 text-[11px] font-bold tabular-nums text-slate-300 ring-1 ring-inset ring-white/10">
                   {sinEquipo.length}/{sala.cupo}
                 </span>
               </div>
@@ -1055,17 +1059,21 @@ function AdminSalaContenido() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setEquipoGanador('1')}
-                      className={`flex-1 rounded py-2 text-white transition ${
-                        equipoGanador === '1' ? 'bg-emerald-600' : 'bg-emerald-900'
-                      } hover:bg-emerald-500`}
+                      className={`flex-1 rounded-md border py-2 text-sm font-semibold transition ${
+                        equipoGanador === '1'
+                          ? 'border-emerald-400/30 bg-emerald-500/15 text-emerald-100'
+                          : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                      }`}
                     >
                       Radiant
                     </button>
                     <button
                       onClick={() => setEquipoGanador('2')}
-                      className={`flex-1 rounded py-2 text-white transition ${
-                        equipoGanador === '2' ? 'bg-rose-600' : 'bg-rose-900'
-                      } hover:bg-rose-500`}
+                      className={`flex-1 rounded-md border py-2 text-sm font-semibold transition ${
+                        equipoGanador === '2'
+                          ? 'border-rose-400/30 bg-rose-500/15 text-rose-100'
+                          : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                      }`}
                     >
                       Dire
                     </button>
