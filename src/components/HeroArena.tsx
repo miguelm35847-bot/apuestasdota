@@ -36,18 +36,14 @@ type ParticipanteHero = {
 const ESTADOS_ACTIVOS = ['abierta', 'llena', 'en_juego'];
 
 const PARTICULAS = [
-  { left: '6%', size: 3, delay: -1, duracion: 13 },
-  { left: '14%', size: 2, delay: -7, duracion: 16 },
-  { left: '23%', size: 4, delay: -3, duracion: 12 },
-  { left: '31%', size: 2, delay: -11, duracion: 18 },
-  { left: '42%', size: 3, delay: -5, duracion: 15 },
-  { left: '51%', size: 2, delay: -9, duracion: 14 },
-  { left: '59%', size: 4, delay: -2, duracion: 17 },
-  { left: '67%', size: 2, delay: -12, duracion: 13 },
-  { left: '74%', size: 3, delay: -6, duracion: 16 },
-  { left: '82%', size: 2, delay: -4, duracion: 12 },
-  { left: '89%', size: 4, delay: -10, duracion: 18 },
-  { left: '95%', size: 2, delay: -8, duracion: 15 },
+  { left: '8%', size: 3, delay: -1, duracion: 13 },
+  { left: '18%', size: 2, delay: -7, duracion: 16 },
+  { left: '29%', size: 4, delay: -3, duracion: 12 },
+  { left: '41%', size: 2, delay: -11, duracion: 18 },
+  { left: '55%', size: 3, delay: -5, duracion: 15 },
+  { left: '68%', size: 2, delay: -9, duracion: 14 },
+  { left: '79%', size: 4, delay: -2, duracion: 17 },
+  { left: '91%', size: 2, delay: -8, duracion: 15 },
 ];
 
 function soles(centimos: number) {
@@ -84,6 +80,78 @@ function ringEquipo(equipo: number | null) {
     : equipo === 2
       ? 'ring-2 ring-rose-400 ring-offset-2 ring-offset-[#111827]'
       : 'ring-2 ring-slate-500 ring-offset-2 ring-offset-[#111827]';
+}
+
+function IconDota({ className = '' }: { className?: string }) {
+  return (
+    <Image
+      src="/dota2.svg"
+      alt=""
+      width={24}
+      height={24}
+      aria-hidden="true"
+      className={`brightness-0 invert ${className}`}
+    />
+  );
+}
+
+function IconUsers({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function IconCoin({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v10" />
+      <path d="M15 9.2c-.7-.8-1.7-1.2-3-1.2-1.7 0-3 .9-3 2.2 0 1.4 1.2 2 3 2.4 1.9.4 3 1 3 2.4 0 1.3-1.3 2.2-3 2.2-1.3 0-2.4-.4-3.1-1.2" />
+    </svg>
+  );
+}
+
+function IconWallet({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H19a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
+      <path d="M4 8h15" />
+      <path d="M15 13h6" />
+      <circle cx="18" cy="13" r=".8" fill="currentColor" stroke="none" />
+    </svg>
+  );
 }
 
 export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolean }) {
@@ -185,13 +253,31 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
   return (
     <section
       onPointerMove={alMoverCursor}
-      className="arena-hero relative overflow-hidden bg-[#0a0e17]"
+      className="arena-hero relative isolate overflow-hidden border-b border-white/10 bg-[#05070c]"
     >
-      <div className="arena-grid pointer-events-none absolute inset-0" />
-      <div className="arena-aurora arena-aurora--radiant" aria-hidden="true" />
-      <div className="arena-aurora arena-aurora--dire" aria-hidden="true" />
-      <div className="arena-spotlight" aria-hidden="true" />
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <Image
+        src="/arena-rift.svg"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        aria-hidden="true"
+        className="pointer-events-none -z-20 object-cover object-center"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_0%_36%,rgba(239,68,68,0.2),transparent_48%),radial-gradient(circle_at_100%_58%,rgba(59,130,246,0.2),transparent_48%)] sm:hidden"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,7,12,0.42)_0%,rgba(5,7,12,0.18)_44%,rgba(5,7,12,0)_100%)]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(5,7,12,0.5)_0%,transparent_26%,transparent_68%,#070a10_100%)]"
+        aria-hidden="true"
+      />
+      <div className="arena-spotlight -z-10" aria-hidden="true" />
+      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         {PARTICULAS.map((p, i) => (
           <span
             key={i}
@@ -206,265 +292,284 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
           />
         ))}
       </div>
-      <div className="arena-hero-line absolute inset-x-0 bottom-0 h-px" />
 
-      <div className="relative mx-auto grid max-w-7xl items-center gap-5 px-4 py-6 sm:gap-8 sm:py-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12">
-        <div className="text-center lg:text-left">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-300 backdrop-blur">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            </span>
-            Salas 1v1 y 5v5 · Pagos con Yape o Plin
-          </span>
-
-          <h1 className="font-display mt-4 text-4xl font-extrabold tracking-tight sm:mt-5 sm:text-6xl">
-            Apuestas{' '}
-            <span className="bg-gradient-to-r from-emerald-300 via-white to-rose-300 bg-clip-text text-transparent">
-              Dota 2
-            </span>
-          </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400 sm:mt-4 sm:text-base lg:mx-0">
-            Salas de juego con premios en efectivo. Elige tu modalidad, arma tu equipo y juega.
-          </p>
-
-          <div className="mt-5 flex flex-wrap justify-center gap-3 sm:mt-6 lg:justify-start">
-            {isAuthenticated ? (
-              <Link
-                href="/salas"
-                className="arena-cta-shine rounded-xl bg-prism-500 px-6 py-2.5 text-sm font-bold text-white shadow-arena-glow transition hover:bg-prism-400"
-              >
-                Ver salas activas
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/register"
-                  className="arena-cta-shine rounded-xl bg-prism-500 px-6 py-2.5 text-sm font-bold text-white shadow-arena-glow transition hover:bg-prism-400"
-                >
-                  Crear cuenta
-                </Link>
-                <Link
-                  href="/login"
-                  className="rounded-xl border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-semibold text-slate-100 backdrop-blur transition hover:bg-white/10"
-                >
-                  Iniciar sesión
-                </Link>
-              </>
-            )}
-          </div>
-
-          <div className="mt-4 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[11px] font-medium text-slate-500 sm:mt-5 lg:justify-start">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Radiant
-            </span>
-            <span className="hidden h-3 w-px bg-white/10 sm:block" />
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
-              Dire
-            </span>
-            <span className="hidden h-3 w-px bg-white/10 sm:block" />
-            <span>MMR y roles en vivo</span>
-            <span className="hidden h-3 w-px bg-white/10 sm:block" />
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#fbbf24]" />
-              Premios en efectivo
-            </span>
-          </div>
-        </div>
-
-        <aside className="relative mx-auto w-full max-w-md lg:max-w-none">
-          <div
-            className="pointer-events-none absolute -inset-5 rounded-[2rem] bg-[radial-gradient(circle_at_60%_40%,rgba(99,102,241,0.28),transparent_65%)] blur-2xl"
-            aria-hidden="true"
-          />
-          <div className="arena-card relative overflow-hidden rounded-3xl border border-white/10 bg-[#111827]/90 p-4 shadow-arena backdrop-blur-xl sm:p-5">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
-                Sala destacada
+      <div className="relative mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8">
+        <div className="grid min-w-0 items-center gap-6 py-8 sm:gap-8 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(430px,540px)] lg:gap-14 lg:py-16">
+          <div className="text-center lg:text-left">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/35 px-3.5 py-1.5 text-[11px] font-semibold text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md sm:text-xs">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
               </span>
-              {destacada && (
-                <span
-                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1 ring-inset ${estadoBadge(destacada.estado)}`}
+              Salas 1v1 y 5v5 · Pagos con Yape o Plin
+            </span>
+
+            <div className="mt-5 flex items-center justify-center gap-3 lg:justify-start lg:gap-4">
+              <IconDota className="h-10 w-10 shrink-0 drop-shadow-[0_0_22px_rgba(255,255,255,0.28)] sm:h-12 sm:w-12 lg:h-14 lg:w-14" />
+              <h1 className="font-display bg-gradient-to-b from-white via-white to-slate-300 bg-clip-text text-[1.95rem] font-extrabold leading-[0.95] tracking-[-0.055em] text-transparent drop-shadow-[0_3px_22px_rgba(0,0,0,0.72)] min-[380px]:text-[2.2rem] sm:text-6xl lg:text-7xl">
+                Apuestas Dota 2
+              </h1>
+            </div>
+
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-slate-300/90 sm:text-base lg:mx-0">
+              Salas de juego con premios en efectivo. Elige tu modalidad, arma tu equipo y
+              juega.
+            </p>
+
+            <div className="mt-6 flex flex-wrap justify-center gap-3 lg:justify-start">
+              {isAuthenticated ? (
+                <Link
+                  href="#salas"
+                  className="rounded-xl bg-white px-6 py-3 text-sm font-bold text-[#070a10] shadow-[0_0_45px_-14px_rgba(255,255,255,0.75)] transition hover:bg-slate-200"
                 >
-                  <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
-                  {estadoTexto(destacada.estado)}
-                </span>
+                  Ver salas activas
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/register"
+                    className="rounded-xl bg-white px-6 py-3 text-sm font-bold text-[#070a10] shadow-[0_0_45px_-14px_rgba(255,255,255,0.75)] transition hover:bg-slate-200"
+                  >
+                    Crear cuenta
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="rounded-xl border border-white/15 bg-black/30 px-6 py-3 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/10"
+                  >
+                    Iniciar sesión
+                  </Link>
+                </>
               )}
             </div>
 
-            {cargando ? (
-              <div className="mt-3 space-y-3" aria-hidden="true">
-                <div className="h-6 w-2/3 animate-pulse rounded bg-white/10" />
-                <div className="h-4 w-1/3 animate-pulse rounded bg-white/5" />
-                <div className="grid grid-cols-2 gap-2 pt-2">
-                  <div className="h-16 animate-pulse rounded-xl bg-white/5" />
-                  <div className="h-16 animate-pulse rounded-xl bg-white/5" />
-                </div>
-                <div className="h-10 animate-pulse rounded-xl bg-white/5" />
-              </div>
-            ) : destacada ? (
-              <>
-                <div className="mt-2.5 flex min-w-0 items-center gap-2">
-                  <Image
-                    src="/dota2.svg"
-                    alt=""
-                    width={20}
-                    height={20}
-                    aria-hidden="true"
-                    className="h-5 w-5 shrink-0"
-                  />
-                  <p className="min-w-0 truncate font-display text-xl font-bold text-white">
-                    {destacada.nombre}
-                  </p>
-                </div>
-                <p className="mt-1 text-[11px] font-medium text-slate-400">
-                  {destacada.modalidad === '1v1' ? '1 vs 1' : '5 vs 5'} ·{' '}
-                  {jugadoresDestacada}/{cupoDestacada} jugadores
-                </p>
+            <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[11px] font-medium text-slate-300/80 sm:text-xs lg:justify-start">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                Radiant
+              </span>
+              <span className="hidden h-3 w-px bg-white/15 sm:block" />
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                Dire
+              </span>
+              <span className="hidden h-3 w-px bg-white/15 sm:block" />
+              <span>MMR y roles en vivo</span>
+              <span className="hidden h-3 w-px bg-white/15 sm:block" />
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#fbbf24]" />
+                Premios en efectivo
+              </span>
+            </div>
+          </div>
 
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <div className="rounded-xl bg-white/[0.03] px-3 py-2 ring-1 ring-inset ring-white/5">
-                    <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">
-                      Cuota
-                    </p>
-                    <p className="mt-0.5 text-sm font-bold text-white">
-                      {soles(destacada.cuota)}
-                    </p>
-                  </div>
-                  <div className="rounded-xl bg-white/[0.03] px-3 py-2 ring-1 ring-inset ring-white/5">
-                    <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">
-                      Premio estimado
-                    </p>
-                    <p className="mt-0.5 text-sm font-bold text-amber-300">
-                      {soles(premioDe(destacada))}
-                    </p>
-                  </div>
-                </div>
+          <aside className="relative mx-auto w-full min-w-0 max-w-[560px] lg:mx-0 lg:max-w-none">
+            <div
+              className="pointer-events-none absolute -inset-6 rounded-[2.5rem] bg-[radial-gradient(circle_at_55%_40%,rgba(99,102,241,0.26),transparent_68%)] blur-2xl"
+              aria-hidden="true"
+            />
+            <div className="relative overflow-hidden rounded-[1.65rem] border border-white/15 bg-[#080d15]/88 p-4 shadow-[0_34px_90px_-34px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl sm:p-6">
+              <div
+                className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.055] via-transparent to-white/[0.02]"
+                aria-hidden="true"
+              />
+              <div
+                className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/35 to-transparent"
+                aria-hidden="true"
+              />
 
-                <div className="mt-3">
-                  <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-                    <span>Jugadores</span>
-                    <span className="tabular-nums text-slate-400">
-                      {jugadoresDestacada}/{cupoDestacada}
+              <div className="relative">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                    Sala destacada
+                  </span>
+                  {destacada && (
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1 ring-inset ${estadoBadge(destacada.estado)}`}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
+                      {estadoTexto(destacada.estado)}
                     </span>
-                  </div>
-                  <div className="mt-2 grid grid-cols-5 gap-1.5 sm:grid-cols-10">
-                    {Array.from({ length: cupoDestacada }).map((_, i) => {
-                      const p = roster[i];
-
-                      if (!p) {
-                        return (
-                          <span
-                            key={`libre-${i}`}
-                            className="mx-auto h-6 w-6 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]"
-                            title="Slot libre"
-                            aria-hidden="true"
-                          />
-                        );
-                      }
-
-                      const nick = p.profiles?.nick ?? 'Usuario';
-                      return (
-                        <PerfilHover
-                          key={p.user_id}
-                          usuario={{
-                            id: p.user_id,
-                            nick: p.profiles?.nick,
-                            steam_avatar_url: p.profiles?.steam_avatar_url,
-                            steam_nombre: p.profiles?.steam_nombre,
-                            mmr: p.profiles?.mmr,
-                            roles_preferidos: p.profiles?.roles_preferidos,
-                            equipo: p.equipo,
-                          }}
-                          className="flex justify-center"
-                        >
-                          <Link
-                            href={`/jugadores/${p.user_id}`}
-                            aria-label={`Ver perfil de ${nick}`}
-                            className="block rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
-                          >
-                            <Avatar
-                              nick={p.profiles?.nick}
-                              src={p.profiles?.steam_avatar_url}
-                              size="xs"
-                              ringClass={ringEquipo(p.equipo)}
-                            />
-                          </Link>
-                        </PerfilHover>
-                      );
-                    })}
-                  </div>
-                  {jugadoresDestacada === 0 && (
-                    <p className="mt-2 text-[11px] text-slate-500">Sé el primero en unirte</p>
                   )}
                 </div>
 
-                <Link
-                  href={isAuthenticated ? `/salas/${destacada.id}` : '/login'}
-                  className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-prism-500 px-4 py-2.5 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400"
-                >
-                  {isAuthenticated ? 'Entrar a la sala' : 'Inicia sesión para entrar'}
-                  <span aria-hidden="true">→</span>
-                </Link>
-                <p className="mt-2 hidden text-center text-[10px] text-slate-500 sm:block">
-                  Pago por Yape o Plin · Retiros con aprobación
-                </p>
-              </>
-            ) : (
-              <div className="py-8 text-center">
-                <p className="font-display text-base font-bold text-white">
-                  No hay salas activas ahora
-                </p>
-                <p className="mx-auto mt-1 max-w-[16rem] text-xs text-slate-400">
-                  Crea una cuenta y arma la primera sala 1v1 o 5v5.
-                </p>
-                <Link
-                  href={isAuthenticated ? '/salas' : '/register'}
-                  className="mt-4 inline-flex rounded-xl bg-prism-500 px-4 py-2 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400"
-                >
-                  {isAuthenticated ? 'Ver salas' : 'Crear cuenta'}
-                </Link>
-              </div>
-            )}
-          </div>
-        </aside>
+                {cargando ? (
+                  <div className="mt-4 space-y-3" aria-hidden="true">
+                    <div className="h-7 w-2/3 animate-pulse rounded bg-white/10" />
+                    <div className="h-4 w-1/3 animate-pulse rounded bg-white/5" />
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <div className="h-16 animate-pulse rounded-xl bg-white/5" />
+                      <div className="h-16 animate-pulse rounded-xl bg-white/5" />
+                    </div>
+                    <div className="h-11 animate-pulse rounded-xl bg-white/5" />
+                  </div>
+                ) : destacada ? (
+                  <>
+                    <div className="mt-3 flex min-w-0 items-center gap-2.5">
+                      <IconDota className="h-6 w-6 shrink-0" />
+                      <p className="min-w-0 font-display text-xl font-bold leading-tight text-white sm:text-2xl">
+                        {destacada.nombre}
+                      </p>
+                    </div>
+                    <p className="mt-1.5 text-[11px] font-medium text-slate-400 sm:text-xs">
+                      {destacada.modalidad === '1v1' ? '1 vs 1' : '5 vs 5'} ·{' '}
+                      {jugadoresDestacada}/{cupoDestacada} jugadores
+                    </p>
 
-        <div className="relative col-span-full grid grid-cols-4 gap-2 border-t border-white/10 pt-4 sm:gap-3 sm:pt-5">
-          <div>
-            <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              <span className="sm:hidden">Salas</span>
-              <span className="hidden sm:inline">Salas activas</span>
-            </p>
-            <p className="font-display mt-1 text-sm font-bold tabular-nums text-white min-[380px]:text-base sm:text-lg">
-              {cargando ? '—' : salas.length}
-            </p>
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <div className="rounded-xl border border-white/[0.06] bg-black/25 px-3.5 py-2.5">
+                        <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
+                          Cuota
+                        </p>
+                        <p className="mt-1 font-display text-lg font-bold text-white">
+                          {soles(destacada.cuota)}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-white/[0.06] bg-black/25 px-3.5 py-2.5">
+                        <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
+                          Premio estimado
+                        </p>
+                        <p className="mt-1 font-display text-lg font-bold text-amber-300">
+                          {soles(premioDe(destacada))}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                        <span>Jugadores</span>
+                        <span className="tabular-nums text-slate-300">
+                          {jugadoresDestacada}/{cupoDestacada}
+                        </span>
+                      </div>
+                      <div className="mt-2.5 grid grid-cols-5 gap-2 sm:grid-cols-10">
+                        {Array.from({ length: cupoDestacada }).map((_, i) => {
+                          const p = roster[i];
+
+                          if (!p) {
+                            return (
+                              <span
+                                key={`libre-${i}`}
+                                className="mx-auto h-7 w-7 rounded-full border-2 border-dashed border-white/12 bg-white/[0.02]"
+                                title="Slot libre"
+                                aria-hidden="true"
+                              />
+                            );
+                          }
+
+                          const nick = p.profiles?.nick ?? 'Usuario';
+                          return (
+                            <PerfilHover
+                              key={p.user_id}
+                              usuario={{
+                                id: p.user_id,
+                                nick: p.profiles?.nick,
+                                steam_avatar_url: p.profiles?.steam_avatar_url,
+                                steam_nombre: p.profiles?.steam_nombre,
+                                mmr: p.profiles?.mmr,
+                                roles_preferidos: p.profiles?.roles_preferidos,
+                                equipo: p.equipo,
+                              }}
+                              className="flex justify-center"
+                            >
+                              <Link
+                                href={`/jugadores/${p.user_id}`}
+                                aria-label={`Ver perfil de ${nick}`}
+                                className="block rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                              >
+                                <Avatar
+                                  nick={p.profiles?.nick}
+                                  src={p.profiles?.steam_avatar_url}
+                                  size="xs"
+                                  ringClass={ringEquipo(p.equipo)}
+                                />
+                              </Link>
+                            </PerfilHover>
+                          );
+                        })}
+                      </div>
+                      {jugadoresDestacada === 0 && (
+                        <p className="mt-2 text-[11px] text-slate-500">Sé el primero en unirte</p>
+                      )}
+                    </div>
+
+                    <Link
+                      href={isAuthenticated ? `/salas/${destacada.id}` : '/login'}
+                      className="mt-5 flex items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-3 text-sm font-bold text-[#070a10] shadow-[0_0_38px_-16px_rgba(255,255,255,0.8)] transition hover:bg-slate-200"
+                    >
+                      {isAuthenticated ? 'Entrar a la sala' : 'Inicia sesión para entrar'}
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                    <p className="mt-2.5 hidden text-center text-[10px] text-slate-500 sm:block">
+                      Pago por Yape o Plin · Retiros con aprobación
+                    </p>
+                  </>
+                ) : (
+                  <div className="py-10 text-center">
+                    <p className="font-display text-base font-bold text-white">
+                      No hay salas activas ahora
+                    </p>
+                    <p className="mx-auto mt-1 max-w-[16rem] text-xs text-slate-400">
+                      Crea una cuenta y arma la primera sala 1v1 o 5v5.
+                    </p>
+                    <Link
+                      href={isAuthenticated ? '/salas' : '/register'}
+                      className="mt-5 inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#070a10] transition hover:bg-slate-200"
+                    >
+                      {isAuthenticated ? 'Ver salas' : 'Crear cuenta'}
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <div className="relative border-t border-white/10 bg-[#05070c]/70 backdrop-blur-md">
+        <div className="mx-auto grid max-w-[1500px] grid-cols-2 gap-px bg-white/[0.06] px-0 sm:grid-cols-4">
+          <div className="flex items-center gap-3 bg-[#060a11]/80 px-4 py-3 sm:px-6 sm:py-4">
+            <IconDota className="h-5 w-5 shrink-0 text-slate-300 opacity-70" />
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
+                Salas activas
+              </p>
+              <p className="font-display mt-0.5 text-lg font-bold tabular-nums text-white">
+                {cargando ? '—' : salas.length}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-              Jugadores
-            </p>
-            <p className="font-display mt-1 text-sm font-bold tabular-nums text-white min-[380px]:text-base sm:text-lg">
-              {cargando ? '—' : totalJugadores}
-            </p>
+          <div className="flex items-center gap-3 bg-[#060a11]/80 px-4 py-3 sm:px-6 sm:py-4">
+            <IconUsers className="h-5 w-5 shrink-0 text-slate-400" />
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
+                Jugadores
+              </p>
+              <p className="font-display mt-0.5 text-lg font-bold tabular-nums text-white">
+                {cargando ? '—' : totalJugadores}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-              En juego
-            </p>
-            <p className="font-display mt-1 whitespace-nowrap text-sm font-bold tabular-nums text-amber-300 min-[380px]:text-base sm:text-lg">
-              {cargando ? '—' : soles(enJuego)}
-            </p>
+          <div className="flex items-center gap-3 bg-[#060a11]/80 px-4 py-3 sm:px-6 sm:py-4">
+            <IconCoin className="h-5 w-5 shrink-0 text-amber-300" />
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
+                En juego
+              </p>
+              <p className="font-display mt-0.5 whitespace-nowrap text-lg font-bold tabular-nums text-amber-300">
+                {cargando ? '—' : soles(enJuego)}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
-              Pagos
-            </p>
-            <p className="font-display mt-1 whitespace-nowrap text-sm font-bold text-white min-[380px]:text-base sm:text-lg">
-              Yape / Plin
-            </p>
+          <div className="flex items-center gap-3 bg-[#060a11]/80 px-4 py-3 sm:px-6 sm:py-4">
+            <IconWallet className="h-5 w-5 shrink-0 text-slate-400" />
+            <div>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
+                Pagos
+              </p>
+              <p className="font-display mt-0.5 whitespace-nowrap text-lg font-bold text-white">
+                Yape / Plin
+              </p>
+            </div>
           </div>
         </div>
       </div>

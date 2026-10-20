@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
@@ -126,14 +127,19 @@ export default function Navbar({ titulo }: { titulo?: string }) {
   const enHistorial = pathname === '/salas/historial';
 
   return (
-    <nav className="arena-nav sticky top-0 z-40 border-b border-white/10 bg-[#0a0e17] shadow-[0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="relative mx-auto flex h-16 max-w-[1800px] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4">
+    <nav className="arena-nav sticky top-0 z-40 border-b border-white/10 bg-[#05070c]/95 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.04)]">
+      <div className="relative mx-auto flex h-16 max-w-[1500px] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6 lg:h-[72px] lg:px-8">
         <div className="flex min-w-0 items-center">
-          <Link href="/" className="flex max-w-[42vw] min-w-0 items-center gap-2.5 sm:max-w-none">
-            <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-prism-500 to-prism-700 text-sm font-black text-white shadow-arena-glow sm:flex">
-              D
-            </span>
-            <span className="font-display truncate text-[15px] font-extrabold tracking-tight text-white sm:text-lg md:max-w-[280px] xl:max-w-[420px]">
+          <Link href="/" className="flex max-w-[46vw] min-w-0 items-center gap-2.5 sm:max-w-none">
+            <Image
+              src="/dota2.svg"
+              alt=""
+              width={32}
+              height={32}
+              aria-hidden="true"
+              className="h-7 w-7 shrink-0 brightness-0 invert sm:h-8 sm:w-8"
+            />
+            <span className="font-display truncate text-[15px] font-extrabold tracking-[-0.03em] text-white sm:text-lg md:max-w-[280px] xl:max-w-[420px]">
               {titulo ?? 'Apuestas Dota 2'}
             </span>
           </Link>
@@ -144,7 +150,7 @@ export default function Navbar({ titulo }: { titulo?: string }) {
           className={`absolute left-1/2 hidden -translate-x-1/2 rounded-full px-4 py-2 text-sm font-semibold transition md:block ${
             enHistorial
               ? 'bg-white/10 text-white ring-1 ring-inset ring-white/10'
-              : 'text-slate-300 hover:bg-white/5 hover:text-white'
+              : 'text-slate-200 hover:bg-white/5 hover:text-white'
           }`}
         >
           Historial
@@ -156,13 +162,13 @@ export default function Navbar({ titulo }: { titulo?: string }) {
               <Link
                 href="/recargar"
                 title="Recargar saldo"
-                className="flex items-center gap-2 rounded-full border border-prism-500/30 bg-prism-500/10 px-2.5 py-1.5 text-sm font-semibold text-prism-200 transition hover:bg-prism-500/15 sm:px-3"
+                className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-2.5 py-1.5 text-sm font-semibold text-white transition hover:bg-white/10 sm:px-3"
               >
-                <span className="hidden text-xs font-medium text-prism-300 sm:inline">Saldo</span>
+                <span className="hidden text-xs font-medium text-slate-400 sm:inline">Saldo</span>
                 <span className="tabular-nums">
                   S/ {saldo !== null ? (saldo / 100).toFixed(2) : '...'}
                 </span>
-                <span className="hidden h-5 w-5 items-center justify-center rounded-full bg-prism-500 text-sm font-bold leading-none text-white sm:flex">
+                <span className="hidden h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-sm font-bold leading-none text-[#0a0e17] sm:flex">
                   +
                 </span>
               </Link>
@@ -321,7 +327,7 @@ export default function Navbar({ titulo }: { titulo?: string }) {
               </Link>
               <Link
                 href="/register"
-                className="rounded-xl bg-prism-500 px-2.5 py-2 text-[13px] font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 sm:px-4 sm:text-sm"
+                className="rounded-xl bg-white px-2.5 py-2 text-[13px] font-bold text-[#070a10] shadow-[0_0_32px_-14px_rgba(255,255,255,0.7)] transition hover:bg-slate-200 sm:px-4 sm:text-sm"
               >
                 Registrarse
               </Link>

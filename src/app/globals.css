@@ -87,13 +87,35 @@ body.arena-body {
 }
 
 /* Fallback instantáneo antes de que React agregue `arena-body`. */
+html:has(.arena-shell),
 body:has(.arena-shell) {
   background-color: #0a0e17;
   color: #e5e7eb;
+  color-scheme: dark;
+  scrollbar-color: #334155 #05070c;
+}
+
+html:has(.arena-shell)::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+html:has(.arena-shell)::-webkit-scrollbar-track {
+  background: #05070c;
+}
+
+html:has(.arena-shell)::-webkit-scrollbar-thumb {
+  background: #334155;
+  border: 3px solid #05070c;
+  border-radius: 9999px;
+}
+
+html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }
 
 .arena-nav {
-  background-color: #0a0e17;
+  background-color: #05070c;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
 }
@@ -116,11 +138,11 @@ body:has(.arena-shell) {
 }
 
 .arena-hero {
-  background-color: #0a0e17;
+  background-color: #05070c;
   background-image:
-    radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.28), transparent 45%),
-    radial-gradient(circle at 85% 15%, rgba(251, 113, 133, 0.18), transparent 40%),
-    radial-gradient(circle at 50% 100%, rgba(52, 211, 153, 0.14), transparent 45%);
+    radial-gradient(circle at 8% 52%, rgba(185, 28, 28, 0.32), transparent 52%),
+    radial-gradient(circle at 92% 48%, rgba(30, 64, 175, 0.3), transparent 52%),
+    radial-gradient(circle at 50% 42%, rgba(99, 102, 241, 0.12), transparent 46%);
 }
 
 .arena-grid {
@@ -172,7 +194,7 @@ body:has(.arena-shell) {
   pointer-events: none;
   background: radial-gradient(
     620px circle at var(--mx, 70%) var(--my, 30%),
-    rgba(99, 102, 241, 0.18),
+    rgba(226, 232, 240, 0.09),
     transparent 48%
   );
 }
@@ -181,8 +203,8 @@ body:has(.arena-shell) {
   position: absolute;
   bottom: -8px;
   border-radius: 9999px;
-  background: rgba(165, 180, 252, 0.75);
-  box-shadow: 0 0 10px rgba(129, 140, 248, 0.8);
+  background: rgba(226, 232, 240, 0.8);
+  box-shadow: 0 0 10px rgba(147, 197, 253, 0.65);
   opacity: 0;
   animation-name: arena-rise;
   animation-timing-function: linear;

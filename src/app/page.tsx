@@ -22,9 +22,9 @@ export default function Home() {
       <HeroArena isAuthenticated={!!user} />
 
       {/* Contenido público */}
-      <main className="mx-auto max-w-[1800px] px-4 py-6">
+      <main className="mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-5">
+          <div id="salas" className="scroll-mt-24 space-y-5">
             <SalasPublicas isAuthenticated={!!user} />
 
             <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-arena-soft">
@@ -39,7 +39,7 @@ export default function Home() {
                 </div>
                 <button
                   onClick={() => setShowHistorial(true)}
-                  className="shrink-0 rounded-xl bg-prism-500 px-4 py-2.5 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400"
+                  className="shrink-0 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#070a10] shadow-[0_0_32px_-16px_rgba(255,255,255,0.7)] transition hover:bg-slate-200"
                 >
                   Ver historial global
                 </button>
@@ -59,7 +59,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="arena-footer mt-8">
-        <div className="mx-auto max-w-[1800px] px-4 py-5 text-center text-sm text-slate-500">
+        <div className="mx-auto max-w-[1500px] px-4 py-5 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
           <p className="font-semibold text-slate-400">
             Apuestas Dota 2 · Plataforma de salas de juego
           </p>
