@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import SalasPublicas from '@/components/SalasPublicas';
 import HistorialGlobal from '@/components/HistorialGlobal';
 import ChatPanel from '@/components/ChatPanel';
+import HeroArena from '@/components/HeroArena';
 import { useAuth } from '@/components/AuthProvider';
 import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
@@ -19,63 +19,7 @@ export default function Home() {
       <Navbar />
 
       {/* Hero */}
-      <section className="arena-hero relative overflow-hidden bg-[#0a0e17]">
-        <div className="arena-grid pointer-events-none absolute inset-0" />
-        <div className="arena-hero-line absolute inset-x-0 bottom-0 h-px" />
-
-        <div className="relative mx-auto max-w-7xl px-4 py-12 text-center sm:py-14">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-300 backdrop-blur">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            Salas 1v1 y 5v5 · Pagos con Yape o Plin
-          </span>
-
-          <h1 className="font-display mt-5 text-4xl font-extrabold tracking-tight sm:text-6xl">
-            Apuestas{' '}
-            <span className="bg-gradient-to-r from-emerald-300 via-white to-rose-300 bg-clip-text text-transparent">
-              Dota 2
-            </span>
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm text-slate-400 sm:text-base">
-            Salas de juego con premios en efectivo. Elige tu modalidad, arma tu equipo y juega.
-          </p>
-
-          {!user && (
-            <div className="mt-7 flex flex-wrap justify-center gap-3">
-              <Link
-                href="/register"
-                className="rounded-xl bg-prism-500 px-6 py-2.5 text-sm font-bold text-white shadow-arena-glow transition hover:bg-prism-400"
-              >
-                Crear cuenta
-              </Link>
-              <Link
-                href="/login"
-                className="rounded-xl border border-white/10 bg-white/5 px-6 py-2.5 text-sm font-semibold text-slate-100 backdrop-blur transition hover:bg-white/10"
-              >
-                Iniciar sesión
-              </Link>
-            </div>
-          )}
-
-          <div className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[11px] font-medium text-slate-500">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Radiant
-            </span>
-            <span className="hidden h-3 w-px bg-white/10 sm:block" />
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
-              Dire
-            </span>
-            <span className="hidden h-3 w-px bg-white/10 sm:block" />
-            <span>MMR y roles en vivo</span>
-            <span className="hidden h-3 w-px bg-white/10 sm:block" />
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#fbbf24]" />
-              Premios en efectivo
-            </span>
-          </div>
-        </div>
-      </section>
+      <HeroArena isAuthenticated={!!user} />
 
       {/* Contenido público */}
       <main className="mx-auto max-w-[1800px] px-4 py-6">

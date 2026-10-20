@@ -1401,9 +1401,10 @@ end $$;
 
 ## 7. Archivos clave
 
-- `src/app/page.tsx` — landing pública con hero **Arena Dark** (base grafito, glows indigo/Radiant/Dire, Sora + Manrope), salas a la izquierda, chat general a la derecha e historial global en modal.
+- `src/app/page.tsx` — landing pública: monta `<HeroArena />` y debajo salas a la izquierda, chat general a la derecha e historial global en modal.
+- `src/components/HeroArena.tsx` — hero del landing: sala destacada en vivo (consulta `salas` + `participantes_sala`, se actualiza por Realtime `hero-salas`), stats de salas/jugadores/dinero en juego, avatares con `PerfilHover`, auroras, partículas y spotlight de cursor. Enlace “Entrar a la sala” o `/login` según sesión.
 - `src/components/SalasPublicas.tsx` — landing: tarjetas Arena Dark, slots por modalidad, avatares con color de equipo, unirse y actualización en vivo.
-- `src/app/globals.css` — tokens de **Arena Dark** (grafito, indigo, Radiant, Dire, dorado; superficies, radios y sombras), clases nativas `.arena-shell`/`.arena-card`/`.arena-hero`/`.arena-nav`, body oscuro condicionado y controles nativos con `color-scheme: dark`.
+- `src/app/globals.css` — tokens de **Arena Dark** (grafito, indigo, Radiant, Dire, dorado; superficies, radios y sombras), clases nativas `.arena-shell`/`.arena-card`/`.arena-hero`/`.arena-nav` y animaciones del hero (`arena-aurora`, `arena-particle`, `arena-spotlight`, `arena-cta-shine`), con `prefers-reduced-motion`; body oscuro condicionado y controles nativos con `color-scheme: dark`.
 - `src/app/layout.tsx` — carga **Manrope** y **Sora** con `next/font` y aplica la tipografía global.
 - `src/lib/useArenaBody.ts` — hook que activa `body.arena-body` mientras una pantalla Arena está montada.
 - `src/app/salas/page.tsx` — listado y creación de salas (admin), con conteos en una consulta y actualización en vivo.

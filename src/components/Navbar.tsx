@@ -127,13 +127,13 @@ export default function Navbar({ titulo }: { titulo?: string }) {
 
   return (
     <nav className="arena-nav sticky top-0 z-40 border-b border-white/10 bg-[#0a0e17] shadow-[0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="relative mx-auto flex h-16 max-w-[1800px] items-center justify-between gap-3 px-4">
+      <div className="relative mx-auto flex h-16 max-w-[1800px] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4">
         <div className="flex min-w-0 items-center">
           <Link href="/" className="flex max-w-[42vw] min-w-0 items-center gap-2.5 sm:max-w-none">
             <span className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-prism-500 to-prism-700 text-sm font-black text-white shadow-arena-glow sm:flex">
               D
             </span>
-            <span className="font-display truncate text-base font-extrabold tracking-tight text-white sm:text-lg md:max-w-[280px] xl:max-w-[420px]">
+            <span className="font-display truncate text-[15px] font-extrabold tracking-tight text-white sm:text-lg md:max-w-[280px] xl:max-w-[420px]">
               {titulo ?? 'Apuestas Dota 2'}
             </span>
           </Link>
@@ -314,13 +314,14 @@ export default function Navbar({ titulo }: { titulo?: string }) {
             <>
               <Link
                 href="/login"
-                className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10 sm:px-4"
+                className="rounded-xl border border-white/10 bg-white/5 px-2.5 py-2 text-[13px] font-semibold text-slate-200 transition hover:bg-white/10 sm:px-4 sm:text-sm"
               >
-                Iniciar sesión
+                <span className="sm:hidden">Entrar</span>
+                <span className="hidden sm:inline">Iniciar sesión</span>
               </Link>
               <Link
                 href="/register"
-                className="rounded-xl bg-prism-500 px-3 py-2 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 sm:px-4"
+                className="rounded-xl bg-prism-500 px-2.5 py-2 text-[13px] font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 sm:px-4 sm:text-sm"
               >
                 Registrarse
               </Link>

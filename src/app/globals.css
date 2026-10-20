@@ -140,6 +140,131 @@ body:has(.arena-shell) {
   );
 }
 
+/* Hero animado: auroras, partículas y brillo del CTA. */
+.arena-aurora {
+  position: absolute;
+  width: 36rem;
+  height: 36rem;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.5;
+  pointer-events: none;
+  will-change: transform;
+  animation: arena-drift 20s ease-in-out infinite alternate;
+}
+
+.arena-aurora--radiant {
+  top: -14rem;
+  left: -12rem;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.5), transparent 62%);
+}
+
+.arena-aurora--dire {
+  top: -12rem;
+  right: -14rem;
+  background: radial-gradient(circle, rgba(244, 63, 94, 0.4), transparent 62%);
+  animation-delay: -8s;
+}
+
+.arena-spotlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    620px circle at var(--mx, 70%) var(--my, 30%),
+    rgba(99, 102, 241, 0.18),
+    transparent 48%
+  );
+}
+
+.arena-particle {
+  position: absolute;
+  bottom: -8px;
+  border-radius: 9999px;
+  background: rgba(165, 180, 252, 0.75);
+  box-shadow: 0 0 10px rgba(129, 140, 248, 0.8);
+  opacity: 0;
+  animation-name: arena-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.arena-cta-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.arena-cta-shine::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  transform: translateX(-140%) skewX(-18deg);
+  animation: arena-shine 5s ease-in-out infinite;
+}
+
+@keyframes arena-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(3rem, 2rem, 0) scale(1.12);
+  }
+}
+
+@keyframes arena-rise {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.6);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  70% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate3d(0, -30rem, 0) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes arena-shine {
+  0%,
+  65% {
+    transform: translateX(-140%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(240%) skewX(-18deg);
+  }
+}
+
+@media (hover: none) {
+  .arena-spotlight {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-aurora,
+  .arena-particle,
+  .arena-cta-shine::after {
+    animation: none;
+  }
+
+  .arena-particle {
+    opacity: 0.3;
+    transform: translateY(-8rem);
+  }
+}
+
 /* Controles nativos dentro de Arena Dark: evita menús blancos del navegador. */
 .arena-shell input,
 .arena-shell select,
