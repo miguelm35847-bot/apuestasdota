@@ -6,6 +6,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import type { MensajeChat } from '@/lib/types';
 import Avatar from '@/components/Avatar';
+import PerfilHover from '@/components/PerfilHover';
 
 function formatearHora(fecha: string) {
   return new Date(fecha).toLocaleTimeString('es-PE', {
@@ -38,7 +39,9 @@ export default function ChatPanel({
   const cargarMensajes = useCallback(async () => {
     let query = supabase
       .from('mensajes_chat')
-      .select('id, sala_id, user_id, mensaje, created_at, profiles(nick, steam_avatar_url)')
+      .select(
+        'id, sala_id, user_id, mensaje, created_at, profiles(nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos)'
+      )
       .order('created_at', { ascending: false })
       .limit(50);
 
@@ -139,17 +142,29 @@ export default function ChatPanel({
             return (
               <div key={m.id} className={`flex gap-2 ${propio ? 'justify-end' : 'justify-start'}`}>
                 {!propio && (
-                  <Link
-                    href={`/jugadores/${m.user_id}`}
-                    aria-label={`Ver perfil de ${m.profiles?.nick ?? 'Usuario'}`}
-                    className="shrink-0 rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                  <PerfilHover
+                    usuario={{
+                      id: m.user_id,
+                      nick: m.profiles?.nick,
+                      steam_avatar_url: m.profiles?.steam_avatar_url,
+                      steam_nombre: m.profiles?.steam_nombre,
+                      mmr: m.profiles?.mmr,
+                      roles_preferidos: m.profiles?.roles_preferidos,
+                    }}
+                    className="shrink-0"
                   >
-                    <Avatar
-                      nick={m.profiles?.nick ?? '?'}
-                      src={m.profiles?.steam_avatar_url}
-                      size="sm"
-                    />
-                  </Link>
+                    <Link
+                      href={`/jugadores/${m.user_id}`}
+                      aria-label={`Ver perfil de ${m.profiles?.nick ?? 'Usuario'}`}
+                      className="block rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                    >
+                      <Avatar
+                        nick={m.profiles?.nick ?? '?'}
+                        src={m.profiles?.steam_avatar_url}
+                        size="sm"
+                      />
+                    </Link>
+                  </PerfilHover>
                 )}
                 <div
                   className={`max-w-[80%] rounded-2xl px-3 py-2 shadow-sm ${

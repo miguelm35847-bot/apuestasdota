@@ -2,6 +2,8 @@
 
 Documento para continuar el trabajo en un chat nuevo sin perder contexto.
 
+> Estado actual y punto exacto de reanudación: ver `docs/ESTADO.md`, sección “Punto de reanudación”.
+
 ## 1. Qué es
 
 Aplicación web de salas de apuestas de Dota 2 para Perú:
@@ -1414,8 +1416,8 @@ end $$;
 - `src/app/admin/page.tsx` — panel: tarjeta de ganancias de la casa, 4 KPI con enlaces (recargas/retiros pendientes, salas activas, jugadores) y grilla 2×2 de acciones rápidas.
 - `src/app/perfil/page.tsx` — perfil, Steam, historial, movimientos, billetera. Cabecera unificada (perfil + saldo), MMR como stat bloqueado, pestañas sticky con íconos y contadores, listas en tarjetas responsivas, estados vacíos con CTA y skeletons. El MMR solo se registra una vez; después solo se editan roles. Incluye medalla de rango y enlace al perfil público.
 - `src/app/jugadores/[id]/page.tsx` — perfil público: avatar/Steam, MMR + medalla, roles, partidas terminadas, victorias, winrate y últimas 10 partidas con resultado, modalidad, duración, marcador y enlace a Dotabuff. Accesible sin sesión; valida UUID y muestra un estado de “no encontrado”.
-- `src/components/MedallaMmr.tsx` — imagen de medalla de rango (Herald a Immortal) con tamaños reutilizables y placeholder “Sin MMR”.
-- `src/lib/mmr.ts` — rangos de MMR y función `rangoMmr()`; las imágenes viven en `public/medallas/rank_0.png` … `rank_7.png`.
+- `src/components/MedallaMmr.tsx` — imagen de medalla de rango (Herald a Immortal) con tamaños reutilizables, 1–5 estrellas según el MMR y placeholder “Sin MMR” con `rank_0.png`.
+- `src/lib/mmr.ts` — rangos de MMR, `rangoMmr()` y `estrellasDeMmr()`; las imágenes viven en `public/medallas/rank_0.png` … `rank_8.png` (`rank_0` = sin calibrar, `rank_1` = Herald … `rank_8` = Immortal).
 - `src/app/recargar/page.tsx`, `src/app/retirar/page.tsx` — recargas y retiros.
 - `src/app/admin/recargas/page.tsx`, `src/app/admin/retiros/page.tsx` — aprobaciones.
 - `src/components/Navbar.tsx` — menú único sticky con estilo **Arena Dark** (logo, saldo, campana y desplegable de perfil con perfil, recargar, retirar, historial, admin y cerrar sesión).
@@ -1457,7 +1459,9 @@ end $$;
 - Ruta: `/jugadores/[id]`. No exige sesión y solo lee columnas públicas (`nick`, `steam_avatar_url`, `steam_nombre`, `mmr`, `roles_preferidos`, `created_at`) de `profiles`.
 - Estadísticas: parte de `participantes_sala` con `salas!inner.estado = 'terminada'` y `partidas!inner`; cuenta solo filas con equipo 1/2 y calcula victorias/winrate comparando `participantes_sala.equipo` con `partidas.equipo_ganador`.
 - Últimas partidas: ordena por `partidas.cerrada_en`, luego `salas.iniciada_at` y `salas.created_at`; muestra fecha, modalidad, resultado, duración, marcador, chip `Auto` y enlace a Dotabuff.
-- Medallas: `src/lib/mmr.ts` mapea MMR a Herald (0–769), Guardian (770–1539), Crusader (1540–2309), Archon (2310–3079), Legend (3080–3849), Ancient (3850–4619), Divine (4620–5419) e Immortal (5420+). Las imágenes locales están en `public/medallas/`.
+- Medallas: `src/lib/mmr.ts` mapea MMR a Herald (0–769), Guardian (770–1539), Crusader (1540–2309), Archon (2310–3079), Legend (3080–3849), Ancient (3850–4619), Divine (4620–5419) e Immortal (5420+). Las imágenes locales están en `public/medallas/`: `rank_0.png` es el ícono gris de “sin calibrar”, `rank_1.png` es Herald, `rank_2.png` Guardian, `rank_3.png` Crusader, `rank_4.png` Archon, `rank_5.png` Legend, `rank_6.png` Ancient, `rank_7.png` Divine y `rank_8.png` Immortal.
+- Estrellas: cada medalla de Herald a Divine muestra 1–5 estrellas según el MMR (umbrales en `src/lib/mmr.ts`). Inmortal se muestra con 5 estrellas como indicador de rango máximo porque la app no usa posición de leaderboard; sin MMR no se muestran estrellas. Ejemplos: 100 → Herald 1 estrella; 3500 → Legend 3 estrellas; 4500 → Ancient 5 estrellas.
+- Tarjeta de jugador al pasar el cursor o enfocar el avatar en el chat y en la sala: muestra avatar, nick, nombre de Steam si existe, equipo, MMR, medalla con estrellas, roles y el botón “Ver perfil público”. Se renderiza en un portal para que no la recorte el scroll del chat ni los contenedores `overflow-hidden`.
 - Enlaces al perfil público desde avatares/nombres en landing, historial global, historial, chat, sala del jugador y paneles admin. El menú de perfil agrega “Perfil público”.
 - Sin SQL nuevo: usa las políticas de lectura pública de `profiles`, `salas`, `participantes_sala` y `partidas` ya aplicadas.
 

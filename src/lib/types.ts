@@ -3,6 +3,7 @@ export type RolDota = 'carry' | 'mid' | 'off' | 'roamer' | 'support';
 export type PerfilPublico = {
   nick: string;
   steam_avatar_url?: string | null;
+  steam_nombre?: string | null;
   mmr?: number | null;
   roles_preferidos?: RolDota[] | null;
 };

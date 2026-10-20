@@ -9,6 +9,7 @@ import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
 import ChatPanel from '@/components/ChatPanel';
 import Avatar from '@/components/Avatar';
+import PerfilHover from '@/components/PerfilHover';
 import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
 import {
   etiquetaRol,
@@ -234,96 +235,116 @@ function Columna({
           const nick = p.profiles?.nick ?? 'Usuario';
           const esTuyo = p.user_id === userId;
 
+          const usuarioHover = {
+            id: p.user_id,
+            nick: p.profiles?.nick,
+            steam_avatar_url: p.profiles?.steam_avatar_url,
+            steam_nombre: p.profiles?.steam_nombre,
+            mmr: p.profiles?.mmr,
+            roles_preferidos: p.profiles?.roles_preferidos,
+            equipo: p.equipo,
+          };
+
           if (compacta) {
             return (
-              <Link
+              <PerfilHover
                 key={p.user_id}
+                usuario={usuarioHover}
+                className="block"
+              >
+                <Link
+                  href={`/jugadores/${p.user_id}`}
+                  aria-label={`Ver perfil de ${nick}`}
+                  className={`flex min-h-10 items-center gap-1.5 rounded-lg border px-1.5 py-0.5 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
+                    esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
+                  }`}
+                >
+                  <Avatar
+                    nick={p.profiles?.nick}
+                    src={p.profiles?.steam_avatar_url}
+                    size="sm"
+                    ringClass="ring-2 ring-white/20"
+                    title={detalle}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-xs font-medium text-slate-100">
+                      {p.es_capitan ? '⭐ ' : ''}
+                      {nick}
+                      {esTuyo ? ' (tú)' : ''}
+                    </p>
+                    <div className="flex min-w-0 items-center justify-between gap-1">
+                      <p
+                        className={`truncate text-[11px] font-bold ${
+                          mmr != null ? 'text-prism-300' : 'text-slate-500'
+                        }`}
+                      >
+                        {mmr != null ? `MMR ${formatearMmr(mmr)}` : 'Sin MMR'}
+                      </p>
+                      {roles.length > 0 && (
+                        <span
+                          className="flex shrink-0 items-center gap-0.5"
+                          aria-label={`Roles: ${roles.map((r) => etiquetaRol(r)).join(', ')}`}
+                        >
+                          {roles.map((rol) => (
+                            <span
+                              key={rol}
+                              title={etiquetaRol(rol)}
+                              className="text-[11px] leading-none"
+                            >
+                              {ICONOS_ROL[rol]}
+                            </span>
+                          ))}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              </PerfilHover>
+            );
+          }
+
+          return (
+            <PerfilHover
+              key={p.user_id}
+              usuario={usuarioHover}
+              className="block"
+            >
+              <Link
                 href={`/jugadores/${p.user_id}`}
                 aria-label={`Ver perfil de ${nick}`}
-                className={`flex min-h-10 items-center gap-1.5 rounded-lg border px-1.5 py-0.5 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
+                className={`flex min-h-10 items-center gap-2 rounded-lg border px-2 py-0.5 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
                   esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
                 }`}
               >
                 <Avatar
                   nick={p.profiles?.nick}
                   src={p.profiles?.steam_avatar_url}
-                  size="sm"
                   ringClass="ring-2 ring-white/20"
                   title={detalle}
                 />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-medium text-slate-100">
-                    {p.es_capitan ? '⭐ ' : ''}
-                    {nick}
-                    {esTuyo ? ' (tú)' : ''}
-                  </p>
-                  <div className="flex min-w-0 items-center justify-between gap-1">
-                    <p
-                      className={`truncate text-[11px] font-bold ${
-                        mmr != null ? 'text-prism-300' : 'text-slate-500'
-                      }`}
-                    >
-                      {mmr != null ? `MMR ${formatearMmr(mmr)}` : 'Sin MMR'}
+                <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-slate-100">
+                      {p.es_capitan ? '⭐ ' : ''}
+                      {nick}
+                      {esTuyo ? ' (tú)' : ''}
                     </p>
-                    {roles.length > 0 && (
-                      <span
-                        className="flex shrink-0 items-center gap-0.5"
-                        aria-label={`Roles: ${roles.map((r) => etiquetaRol(r)).join(', ')}`}
-                      >
-                        {roles.map((rol) => (
-                          <span
-                            key={rol}
-                            title={etiquetaRol(rol)}
-                            className="text-[11px] leading-none"
-                          >
-                            {ICONOS_ROL[rol]}
-                          </span>
-                        ))}
-                      </span>
-                    )}
+                    <p className="truncate text-[10px] text-slate-500">
+                      {resumenRolesConIconos(roles)}
+                    </p>
                   </div>
+                  <span
+                    className={`shrink-0 rounded px-2 py-0.5 text-sm font-extrabold ${
+                      mmr != null
+                        ? 'bg-prism-500/15 text-prism-200'
+                        : 'bg-white/5 text-slate-500'
+                    }`}
+                  >
+                    {mmr != null ? `MMR ${formatearMmr(mmr)}` : 'Sin MMR'}
+                  </span>
                 </div>
               </Link>
-            );
-          }
-
-          return (
-            <Link
-              key={p.user_id}
-              href={`/jugadores/${p.user_id}`}
-              aria-label={`Ver perfil de ${nick}`}
-              className={`flex min-h-10 items-center gap-2 rounded-lg border px-2 py-0.5 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
-                esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
-              }`}
-            >
-              <Avatar
-                nick={p.profiles?.nick}
-                src={p.profiles?.steam_avatar_url}
-                ringClass="ring-2 ring-white/20"
-                title={detalle}
-              />
-              <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-slate-100">
-                    {p.es_capitan ? '⭐ ' : ''}
-                    {nick}
-                    {esTuyo ? ' (tú)' : ''}
-                  </p>
-                  <p className="truncate text-[10px] text-slate-500">
-                    {resumenRolesConIconos(roles)}
-                  </p>
-                </div>
-                <span
-                  className={`shrink-0 rounded px-2 py-0.5 text-sm font-extrabold ${
-                    mmr != null
-                      ? 'bg-prism-500/15 text-prism-200'
-                      : 'bg-white/5 text-slate-500'
-                  }`}
-                >
-                  {mmr != null ? `MMR ${formatearMmr(mmr)}` : 'Sin MMR'}
-                </span>
-              </div>
-            </Link>
+            </PerfilHover>
           );
         })}
       </div>
@@ -636,7 +657,9 @@ function SalaContenido() {
 
     const { data: partData } = await supabase
       .from('participantes_sala')
-      .select('user_id, equipo, es_capitan, pick_orden, profiles(nick, steam_avatar_url, mmr, roles_preferidos)')
+      .select(
+        'user_id, equipo, es_capitan, pick_orden, profiles(nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos)'
+      )
       .eq('sala_id', salaId)
       .order('created_at', { ascending: true });
 
