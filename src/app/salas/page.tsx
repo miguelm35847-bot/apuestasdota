@@ -16,6 +16,7 @@ type Sala = {
   comision_bp: number;
   estado: string;
   modalidad?: string;
+  destacada?: boolean;
   creado_por: string;
   created_at: string;
   participantes_count?: number;
@@ -36,6 +37,7 @@ export default function SalasPage() {
   const [modalidad, setModalidad] = useState<'1v1' | '5v5'>('5v5');
   const [comision, setComision] = useState('1500');
   const [creating, setCreating] = useState(false);
+  const [destacandoId, setDestacandoId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -143,6 +145,27 @@ export default function SalasPage() {
       cargarSalas();
     }
     setCreating(false);
+  }
+
+  async function alternarDestacada(sala: Sala) {
+    setError(null);
+    setDestacandoId(sala.id);
+
+    const { error: rpcError } = await supabase.rpc('admin_destacar_sala', {
+      p_sala: sala.id,
+      p_destacar: !sala.destacada,
+    });
+
+    if (rpcError) {
+      const detalle = rpcError.message.includes('Could not find the function')
+        ? 'falta ejecutar el SQL de admin_destacar_sala en Supabase'
+        : rpcError.message;
+      setError('No se pudo actualizar la sala destacada: ' + detalle);
+    } else {
+      await cargarSalas();
+    }
+
+    setDestacandoId(null);
   }
 
   function estadoBadge(estado: string) {
@@ -284,11 +307,16 @@ export default function SalasPage() {
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h3 className="font-display text-lg font-bold text-white">{sala.nombre}</h3>
                       <span className="rounded bg-prism-500/15 px-2 py-0.5 text-xs font-bold text-prism-200 ring-1 ring-inset ring-prism-500/30">
                         {sala.modalidad ?? (sala.cupo === 2 ? '1v1' : '5v5')}
                       </span>
+                      {sala.destacada && (
+                        <span className="rounded bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-300 ring-1 ring-inset ring-amber-500/30">
+                          ★ Destacada
+                        </span>
+                      )}
                     </div>
                     <div className="mt-2 space-y-1 text-sm text-slate-400">
                       <p>
@@ -323,6 +351,24 @@ export default function SalasPage() {
                     >
                       Gestionar sala
                     </Link>
+                  )}
+                  {isAdmin && (sala.estado === 'abierta' || sala.estado === 'llena' || sala.estado === 'en_juego') && (
+                    <button
+                      type="button"
+                      onClick={() => void alternarDestacada(sala)}
+                      disabled={destacandoId === sala.id}
+                      className={`block w-full rounded-lg border py-2 text-center font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                        sala.destacada
+                          ? 'border-amber-500/30 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20'
+                          : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                      }`}
+                    >
+                      {destacandoId === sala.id
+                        ? 'Guardando…'
+                        : sala.destacada
+                          ? '★ Quitar de destacadas'
+                          : '☆ Destacar en landing'}
+                    </button>
                   )}
                 </div>
               </div>

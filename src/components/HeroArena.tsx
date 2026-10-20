@@ -16,6 +16,7 @@ type SalaHero = {
   comision_bp: number | null;
   estado: string;
   modalidad: string | null;
+  destacada?: boolean | null;
   participantes_sala: { count: number }[];
 };
 
@@ -94,12 +95,9 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
   const cargar = useCallback(async () => {
     const { data } = await supabase
       .from('salas')
-      .select(
-        'id, nombre, cuota, cupo, comision_bp, estado, modalidad, participantes_sala(count)'
-      )
+      .select('*, participantes_sala(count)')
       .in('estado', ESTADOS_ACTIVOS)
-      .order('created_at', { ascending: false })
-      .limit(20);
+      .order('created_at', { ascending: false });
 
     const filas = (data ?? []) as unknown as SalaHero[];
     setSalas(filas);
@@ -164,6 +162,8 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
 
   const destacada = useMemo(() => {
     if (salas.length === 0) return null;
+    const elegida = salas.find((s) => s.destacada === true);
+    if (elegida) return elegida;
     const conJugadores = salas.filter((s) => jugadoresDe(s) > 0);
     const jugables = conJugadores.filter((s) => s.estado !== 'en_juego');
     const pool = jugables.length > 0 ? jugables : conJugadores.length > 0 ? conJugadores : salas;

@@ -31,6 +31,7 @@ export type Sala = {
   comision_bp: number;
   estado: string;
   modalidad?: string;
+  destacada?: boolean;
   creado_por?: string;
   created_at: string;
   participantes_sala?: { count: number }[];

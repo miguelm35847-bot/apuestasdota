@@ -18,6 +18,7 @@ type Sala = {
   cupo: number;
   estado: string;
   modalidad?: string;
+  destacada?: boolean;
   participantes_sala: {
     count: number;
   }[];
@@ -237,6 +238,11 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                       <span className="rounded-full bg-prism-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-prism-300 ring-1 ring-inset ring-prism-500/30">
                         {sala.modalidad ?? (sala.cupo === 2 ? '1v1' : '5v5')}
                       </span>
+                      {sala.destacada && (
+                        <span className="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-300 ring-1 ring-inset ring-amber-500/30">
+                          ★ Destacada
+                        </span>
+                      )}
                     </div>
                     <span
                       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${estadoBadge(sala.estado)}`}

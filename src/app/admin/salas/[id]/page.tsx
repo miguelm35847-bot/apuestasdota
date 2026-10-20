@@ -175,6 +175,7 @@ function AdminSalaContenido() {
   const [editandoNombre, setEditandoNombre] = useState(false);
   const [nombreSala, setNombreSala] = useState('');
   const [guardandoNombre, setGuardandoNombre] = useState(false);
+  const [destacando, setDestacando] = useState(false);
   const cierreAutoEnviado = useRef(false);
 
   const cargarSala = useCallback(async () => {
@@ -416,6 +417,35 @@ function AdminSalaContenido() {
     }
 
     setGuardandoNombre(false);
+  }
+
+  async function alternarDestacada() {
+    if (!sala) return;
+
+    setError(null);
+    setSuccess(null);
+    setDestacando(true);
+
+    const { error: rpcError } = await supabase.rpc('admin_destacar_sala', {
+      p_sala: salaId,
+      p_destacar: !sala.destacada,
+    });
+
+    if (rpcError) {
+      const detalle = rpcError.message.includes('Could not find the function')
+        ? 'falta ejecutar el SQL de admin_destacar_sala en Supabase'
+        : rpcError.message;
+      setError('No se pudo actualizar la sala destacada: ' + detalle);
+    } else {
+      setSuccess(
+        sala.destacada
+          ? 'La sala ya no se muestra como destacada.'
+          : 'Sala destacada en el landing.'
+      );
+      await cargarSala();
+    }
+
+    setDestacando(false);
   }
 
   async function iniciarPicks() {
@@ -916,6 +946,27 @@ function AdminSalaContenido() {
                 >
                   <span aria-hidden="true">✎</span> Cambiar nombre
                 </button>
+                <button
+                  type="button"
+                  onClick={() => void alternarDestacada()}
+                  disabled={destacando}
+                  className={`shrink-0 rounded-md border px-2 py-1 text-[11px] font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                    sala.destacada
+                      ? 'border-amber-500/30 bg-amber-500/10 text-amber-200 hover:bg-amber-500/20'
+                      : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                  }`}
+                  title={
+                    sala.destacada
+                      ? 'Quitar esta sala de la portada'
+                      : 'Mostrar esta sala en la portada'
+                  }
+                >
+                  {destacando
+                    ? 'Guardando…'
+                    : sala.destacada
+                      ? '★ Quitar destacada'
+                      : '☆ Destacar'}
+                </button>
               </div>
             )}
             <button
@@ -930,6 +981,11 @@ function AdminSalaContenido() {
             <span className="rounded-full bg-prism-500/15 px-2.5 py-1 font-bold text-prism-200 ring-1 ring-inset ring-prism-500/30">
               {sala.modalidad ?? (sala.cupo === 2 ? '1v1' : '5v5')}
             </span>
+            {sala.destacada && (
+              <span className="rounded-full bg-amber-500/15 px-2.5 py-1 font-bold text-amber-200 ring-1 ring-inset ring-amber-500/30">
+                ★ Destacada en landing
+              </span>
+            )}
             <span className="rounded-full bg-white/5 px-2.5 py-1 font-semibold text-slate-300 ring-1 ring-inset ring-white/10">
               {sala.estado === 'abierta'
                 ? 'Abierta'

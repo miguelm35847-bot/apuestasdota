@@ -65,6 +65,7 @@ Estados de sala: `abierta`, `llena`, `en_juego`, `terminada`, `cancelada`.
 - `guardar_roles_preferidos(p_roles)` — edita solo los roles del usuario autenticado (no toca el MMR). La usan `Mi perfil` (cuando el MMR ya está registrado) y la sala.
 - `admin_editar_mmr(p_user, p_mmr)` — solo admin: corrige el MMR de cualquier usuario (antifraude/boosters).
 - `admin_renombrar_sala(p_sala, p_nombre)` — solo admin: cambia el nombre de una sala activa (`abierta`, `llena` o `en_juego`), con validación de 3–60 caracteres.
+- `admin_destacar_sala(p_sala, p_destacar)` — solo admin: elige la sala que se muestra en el hero del landing; al activar una, desmarca la anterior. Solo acepta salas activas.
 - `proteger_mmr()` — trigger `before update` en `profiles`: bloquea cambiar un MMR ya registrado salvo que lo haga un admin (o un proceso interno sin `auth.uid()`).
 - `validar_perfil_dota()` — trigger `before insert` en `participantes_sala`: exige `profiles.mmr` antes de unirse.
 - `capitan_de_pick(p_primer, p_otro, p_num)` — calcula el capitán del pick `n` con orden serpiente A-B-B-A.
@@ -1400,7 +1401,7 @@ begin
 end $$;
 ```
 
-### Renombrar sala desde el panel admin (pendiente de ejecutar)
+### Renombrar sala desde el panel admin (aplicado y verificado 20/10/2026)
 
 ```sql
 -- Admin: cambia el nombre de una sala activa sin abrir UPDATE directo en `salas`.
@@ -1445,18 +1446,76 @@ grant execute on function public.admin_renombrar_sala(uuid, text) to authenticat
 notify pgrst, 'reload schema';
 ```
 
+### Sala destacada elegida por el admin (pendiente de ejecutar)
+
+```sql
+-- Una sola sala puede estar destacada en el landing.
+alter table public.salas
+  add column if not exists destacada boolean not null default false;
+
+create unique index if not exists salas_solo_una_destacada
+  on public.salas (destacada)
+  where destacada;
+
+create or replace function public.admin_destacar_sala(
+  p_sala uuid,
+  p_destacar boolean default true
+)
+returns void
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+begin
+  if auth.uid() is null then raise exception 'No autenticado'; end if;
+  if not exists (
+    select 1 from public.profiles
+    where id = auth.uid() and rol = 'admin'
+  ) then
+    raise exception 'Solo un administrador puede elegir la sala destacada';
+  end if;
+
+  if p_destacar then
+    if not exists (
+      select 1 from public.salas
+      where id = p_sala
+        and estado in ('abierta', 'llena', 'en_juego')
+    ) then
+      raise exception 'Sala no encontrada o no está activa';
+    end if;
+
+    update public.salas
+    set destacada = false
+    where destacada = true and id <> p_sala;
+
+    update public.salas
+    set destacada = true
+    where id = p_sala;
+  else
+    update public.salas
+    set destacada = false
+    where id = p_sala;
+  end if;
+end;
+$function$;
+
+grant execute on function public.admin_destacar_sala(uuid, boolean) to authenticated;
+
+notify pgrst, 'reload schema';
+```
+
 ## 7. Archivos clave
 
 - `src/app/page.tsx` — landing pública: monta `<HeroArena />` y debajo salas a la izquierda, chat general a la derecha e historial global en modal.
-- `src/components/HeroArena.tsx` — hero del landing: sala destacada en vivo (consulta `salas` + `participantes_sala`, se actualiza por Realtime `hero-salas`), **todos los slots de la modalidad** (10 en 5v5, 2 en 1v1, libres y ocupados) con `PerfilHover`, ícono de Dota 2, stats de salas/jugadores/dinero en juego, auroras, partículas y spotlight de cursor. Enlace “Entrar a la sala” o `/login` según sesión.
-- `src/components/SalasPublicas.tsx` — landing: tarjetas Arena Dark con ícono de Dota 2, slots por modalidad, avatares con color de equipo, unirse y actualización en vivo.
+- `src/components/HeroArena.tsx` — hero del landing: sala destacada en vivo (consulta `salas` + `participantes_sala`, se actualiza por Realtime `hero-salas`), **sala elegida por el admin** (`destacada`) con respaldo automático a la más llena, **todos los slots de la modalidad** (10 en 5v5, 2 en 1v1, libres y ocupados) con `PerfilHover`, ícono de Dota 2, stats de salas/jugadores/dinero en juego, auroras, partículas y spotlight de cursor. Enlace “Entrar a la sala” o `/login` según sesión.
+- `src/components/SalasPublicas.tsx` — landing: tarjetas Arena Dark con ícono de Dota 2, chip **★ Destacada**, slots por modalidad, avatares con color de equipo, unirse y actualización en vivo.
 - `public/dota2.svg` — ícono de Dota 2 (Simple Icons) usado en las tarjetas del landing y en la gestión de sala.
 - `src/app/globals.css` — tokens de **Arena Dark** (grafito, indigo, Radiant, Dire, dorado; superficies, radios y sombras), clases nativas `.arena-shell`/`.arena-card`/`.arena-hero`/`.arena-nav` y animaciones del hero (`arena-aurora`, `arena-particle`, `arena-spotlight`, `arena-cta-shine`), con `prefers-reduced-motion`; body oscuro condicionado y controles nativos con `color-scheme: dark`.
 - `src/app/layout.tsx` — carga **Manrope** y **Sora** con `next/font` y aplica la tipografía global.
 - `src/lib/useArenaBody.ts` — hook que activa `body.arena-body` mientras una pantalla Arena está montada.
-- `src/app/salas/page.tsx` — listado y creación de salas (admin), con conteos en una consulta y actualización en vivo.
+- `src/app/salas/page.tsx` — listado y creación de salas (admin), con conteos en una consulta y actualización en vivo; para salas activas, botón **Destacar en landing / Quitar de destacadas** con chip ★.
 - `src/app/salas/[id]/page.tsx` — sala del jugador: Radiant/Dire y **lista de espera** en tres columnas en pantallas grandes, moverse, lobby, compartir enlace, salir, expulsión en vivo, **tablero de picks** (moneda, elección de lado, picks con cuenta regresiva) y tarjeta **Mis roles** compacta con guardado automático y actualización en vivo. Chat privado a la derecha.
-- `src/app/admin/salas/[id]/page.tsx` — gestión: cambiar el nombre de la sala (`admin_renombrar_sala`), mover jugadores (inmediato), expulsar, ver MMR/roles y promedios por equipo, **iniciar/cancelar la fase de picks**, forzar auto-pick, poner en juego y cerrar partida con confirmación.
+- `src/app/admin/salas/[id]/page.tsx` — gestión: cambiar el nombre de la sala (`admin_renombrar_sala`), **elegir/quitar la sala destacada** (`admin_destacar_sala`), mover jugadores (inmediato), expulsar, ver MMR/roles y promedios por equipo, **iniciar/cancelar la fase de picks**, forzar auto-pick, poner en juego y cerrar partida con confirmación.
 - `src/app/admin/jugadores/page.tsx` — admin: buscador de jugadores, MMR/roles y edición del MMR (antifraude) mediante `admin_editar_mmr`.
 - `src/components/ConfirmDialog.tsx` — modal reutilizable de confirmación para acciones destructivas.
 - `src/components/Toast.tsx` — aviso flotante con cierre automático y estilo Arena Dark.
