@@ -23,18 +23,26 @@ type PerfilHoverProps = {
   usuario: UsuarioHover;
   children: ReactNode;
   className?: string;
+  /** Si es true, un clic sobre el jugador abre la tarjeta en vez de navegar al perfil. */
+  abrirConClick?: boolean;
 };
 
 /**
- * Tarjeta de información de jugador al pasar el cursor o enfocar su avatar.
- * Se renderiza en un portal para que no la recorten el scroll del chat ni
- * los contenedores con overflow-hidden de las salas.
+ * Tarjeta de información de jugador al pasar el cursor, enfocar o hacer clic
+ * sobre su avatar. Se renderiza en un portal para que no la recorten el scroll
+ * del chat ni los contenedores con overflow-hidden de las salas.
  */
-export default function PerfilHover({ usuario, children, className = '' }: PerfilHoverProps) {
+export default function PerfilHover({
+  usuario,
+  children,
+  className = '',
+  abrirConClick = false,
+}: PerfilHoverProps) {
   const triggerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [abierto, setAbierto] = useState(false);
+  const [fijado, setFijado] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
 
   const nick = usuario.nick?.trim() || 'Usuario';
@@ -56,11 +64,18 @@ export default function PerfilHover({ usuario, children, className = '' }: Perfi
   }, []);
 
   const cerrarDiferido = useCallback(() => {
+    if (fijado) return;
     cancelarCierre();
     closeTimer.current = setTimeout(() => {
       setAbierto(false);
       closeTimer.current = null;
     }, 140);
+  }, [cancelarCierre, fijado]);
+
+  const cerrar = useCallback(() => {
+    cancelarCierre();
+    setFijado(false);
+    setAbierto(false);
   }, [cancelarCierre]);
 
   const calcularPosicion = useCallback(() => {
@@ -108,6 +123,15 @@ export default function PerfilHover({ usuario, children, className = '' }: Perfi
     setAbierto(true);
   }, [cancelarCierre]);
 
+  const alternarFijado = useCallback(() => {
+    if (fijado) {
+      cerrar();
+      return;
+    }
+    setFijado(true);
+    abrir();
+  }, [abrir, cerrar, fijado]);
+
   useEffect(() => {
     if (!abierto) return;
 
@@ -128,12 +152,31 @@ export default function PerfilHover({ usuario, children, className = '' }: Perfi
     if (!abierto) return;
 
     const alPresionar = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setAbierto(false);
+      if (event.key === 'Escape') cerrar();
     };
 
     document.addEventListener('keydown', alPresionar);
     return () => document.removeEventListener('keydown', alPresionar);
-  }, [abierto]);
+  }, [abierto, cerrar]);
+
+  useEffect(() => {
+    if (!abierto || !fijado) return;
+
+    const alClicFuera = (event: MouseEvent) => {
+      const destino = event.target as Node | null;
+      if (!destino) return;
+      if (
+        triggerRef.current?.contains(destino) ||
+        cardRef.current?.contains(destino)
+      ) {
+        return;
+      }
+      cerrar();
+    };
+
+    document.addEventListener('mousedown', alClicFuera);
+    return () => document.removeEventListener('mousedown', alClicFuera);
+  }, [abierto, cerrar, fijado]);
 
   useEffect(
     () => () => {
@@ -150,6 +193,23 @@ export default function PerfilHover({ usuario, children, className = '' }: Perfi
         onMouseEnter={abrir}
         onMouseLeave={cerrarDiferido}
         onFocus={abrir}
+        onClickCapture={(event) => {
+          if (!abrirConClick) return;
+          // Deja pasar clic con modificadores o botón no principal (abrir en otra pestaña).
+          if (
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+          ) {
+            return;
+          }
+          // En la sala el clic fija la tarjeta; el perfil se abre desde su botón.
+          event.preventDefault();
+          event.stopPropagation();
+          alternarFijado();
+        }}
         onBlur={(event) => {
           const destino = event.relatedTarget as Node | null;
           if (

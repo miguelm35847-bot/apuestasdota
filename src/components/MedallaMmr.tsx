@@ -99,6 +99,7 @@ export default function MedallaMmr({
   return (
     <div className={`flex items-center gap-3 ${className}`.trim()}>
       <div className="flex shrink-0 flex-col items-center gap-1">
+        {mostrarEstrellas && <EstrellasMmr cantidad={estrellas} size={size} />}
         <Image
           src={rango.icono}
           alt={`Medalla ${rango.nombre}`}
@@ -107,7 +108,6 @@ export default function MedallaMmr({
           className={`${CLASES_TAMANO[size]} object-contain drop-shadow-[0_0_18px_rgba(255,255,255,0.12)]`}
           sizes={`${px}px`}
         />
-        {mostrarEstrellas && <EstrellasMmr cantidad={estrellas} size={size} />}
       </div>
       {mostrarNombre && (
         <div className="min-w-0">

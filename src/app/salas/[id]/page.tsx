@@ -251,6 +251,7 @@ function Columna({
                 key={p.user_id}
                 usuario={usuarioHover}
                 className="block"
+                abrirConClick
               >
                 <Link
                   href={`/jugadores/${p.user_id}`}
@@ -308,6 +309,7 @@ function Columna({
               key={p.user_id}
               usuario={usuarioHover}
               className="block"
+              abrirConClick
             >
               <Link
                 href={`/jugadores/${p.user_id}`}
