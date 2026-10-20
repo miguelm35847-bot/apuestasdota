@@ -229,6 +229,13 @@ export default function Navbar({ titulo }: { titulo?: string }) {
                         Mi perfil
                       </Link>
                       <Link
+                        href={`/jugadores/${user.id}`}
+                        onClick={() => setMenuAbierto(false)}
+                        className="block rounded-xl px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white"
+                      >
+                        Perfil público
+                      </Link>
+                      <Link
                         href="/recargar"
                         onClick={() => setMenuAbierto(false)}
                         className="block rounded-xl px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white"

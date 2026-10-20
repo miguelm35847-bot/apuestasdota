@@ -194,7 +194,11 @@ export default function AdminJugadoresPage() {
                 key={j.id}
                 className="arena-card flex flex-col gap-3 rounded-2xl border border-white/10 bg-[#111827] p-4 shadow-arena-soft sm:flex-row sm:items-center sm:justify-between"
               >
-                <div className="flex min-w-0 items-center gap-3">
+                <Link
+                  href={`/jugadores/${j.id}`}
+                  title={`Ver perfil de ${j.nick ?? 'Usuario'}`}
+                  className="flex min-w-0 items-center gap-3 rounded-xl transition hover:bg-white/5"
+                >
                   <Avatar nick={j.nick} src={j.steam_avatar_url} />
                   <div className="min-w-0">
                     <p className="flex items-center gap-2 truncate font-medium text-slate-100">
@@ -217,7 +221,7 @@ export default function AdminJugadoresPage() {
                       {resumenRolesConIconos(j.roles_preferidos)}
                     </p>
                   </div>
-                </div>
+                </Link>
 
                 <div className="flex shrink-0 items-center gap-2">
                   {editando === j.id ? (

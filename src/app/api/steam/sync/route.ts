@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { obtenerResumenSteam } from '@/lib/steamServer';
+import { limitarPorClave } from '@/lib/rateLimit';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -24,6 +25,13 @@ export async function POST(request: NextRequest) {
 
     if (userError || !user) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
+    if (!limitarPorClave(`steam-sync:${user.id}`, 3, 60_000)) {
+      return NextResponse.json(
+        { error: 'Demasiadas actualizaciones. Espera un momento.' },
+        { status: 429 }
+      );
     }
 
     const { data: perfil, error: perfilError } = await supabaseAdmin

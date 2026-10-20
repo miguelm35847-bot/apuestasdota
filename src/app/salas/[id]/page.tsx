@@ -9,6 +9,7 @@ import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
 import ChatPanel from '@/components/ChatPanel';
 import Avatar from '@/components/Avatar';
+import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
 import {
   etiquetaRol,
   formatearMmr,
@@ -235,9 +236,11 @@ function Columna({
 
           if (compacta) {
             return (
-              <div
+              <Link
                 key={p.user_id}
-                className={`flex min-h-10 items-center gap-1.5 rounded-lg border px-1.5 py-0.5 ${
+                href={`/jugadores/${p.user_id}`}
+                aria-label={`Ver perfil de ${nick}`}
+                className={`flex min-h-10 items-center gap-1.5 rounded-lg border px-1.5 py-0.5 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
                   esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
                 }`}
               >
@@ -280,14 +283,16 @@ function Columna({
                     )}
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           }
 
           return (
-            <div
+            <Link
               key={p.user_id}
-              className={`flex min-h-10 items-center gap-2 rounded-lg border px-2 py-0.5 ${
+              href={`/jugadores/${p.user_id}`}
+              aria-label={`Ver perfil de ${nick}`}
+              className={`flex min-h-10 items-center gap-2 rounded-lg border px-2 py-0.5 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
                 esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
               }`}
             >
@@ -318,7 +323,7 @@ function Columna({
                   {mmr != null ? `MMR ${formatearMmr(mmr)}` : 'Sin MMR'}
                 </span>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -407,21 +412,36 @@ function TableroPicks({
   return (
     <section className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-4 shadow-arena-soft">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-display text-lg font-bold text-white">Fase de picks</h2>
+        <h2 className="font-display text-lg font-bold text-white">
+          {sala.cupo === 2 ? 'Sorteo de lado' : 'Fase de picks'}
+        </h2>
         <span className="rounded-full bg-prism-500/15 px-3 py-1 text-xs font-semibold text-prism-200 ring-1 ring-inset ring-prism-500/30">
-          {estado === 'eleccion'
-            ? 'Moneda'
-            : estado === 'en_curso'
-              ? `Pick ${Math.min(8, participantes.filter((p) => p.equipo !== null && !p.es_capitan).length + 1)}/8`
-              : 'Completado'}
+          {sala.cupo === 2
+            ? estado === 'eleccion'
+              ? 'Sorteo'
+              : 'Completado'
+            : estado === 'eleccion'
+              ? 'Moneda'
+              : estado === 'en_curso'
+                ? `Pick ${Math.min(8, participantes.filter((p) => p.equipo !== null && !p.es_capitan).length + 1)}/8`
+                : 'Completado'}
         </span>
       </div>
 
       {estado === 'eleccion' && (
         <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
           <p className="text-sm text-amber-200">
-            🪙 La moneda eligió a <strong>{nombre(sala.pick_ganador_moneda)}</strong>. El ganador
-            decide si pickea primero o elige lado; el otro completa la decisión.
+            {sala.cupo === 2 ? (
+              <>
+                🪙 El sorteo eligió a <strong>{nombre(sala.pick_ganador_moneda)}</strong>. Elegirá su
+                lado (Radiant o Dire); el otro jugador irá al lado contrario.
+              </>
+            ) : (
+              <>
+                🪙 La moneda eligió a <strong>{nombre(sala.pick_ganador_moneda)}</strong>. El ganador
+                decide si pickea primero o elige lado; el otro completa la decisión.
+              </>
+            )}
           </p>
 
           {deboDecidir && sala.pick_decision_tipo === 'moneda' && (
@@ -445,18 +465,22 @@ function TableroPicks({
 
           {deboDecidir && sala.pick_decision_tipo === 'lado' && (
             <div className="mt-3 flex flex-wrap gap-2">
-              <p className="w-full text-sm text-amber-200">Elige tu lado:</p>
+              <p className="w-full text-sm text-amber-200">
+                {sala.cupo === 2
+                  ? 'Elige tu lado (el otro jugador irá al contrario):'
+                  : 'Elige tu lado:'}
+              </p>
               <button
                 onClick={() => onElegirLado(1)}
                 disabled={procesando}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                className="rounded-lg border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/25 disabled:opacity-50"
               >
                 Radiant
               </button>
               <button
                 onClick={() => onElegirLado(2)}
                 disabled={procesando}
-                className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:opacity-50"
+                className="rounded-lg border border-rose-400/30 bg-rose-500/15 px-4 py-2 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/25 disabled:opacity-50"
               >
                 Dire
               </button>
@@ -587,8 +611,10 @@ function SalaContenido() {
   const [rolesSala, setRolesSala] = useState<RolDota[]>([]);
   const [guardandoRoles, setGuardandoRoles] = useState(false);
   const [copiado, setCopiado] = useState<string | null>(null);
+  const [segundosSalida, setSegundosSalida] = useState(5);
   const eraParticipante = useRef(false);
   const autoPickEnviado = useRef(false);
+  const cierreAutoEnviado = useRef(false);
   const guardadoRolesTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rolesSaveSeq = useRef(0);
 
@@ -769,6 +795,62 @@ function SalaContenido() {
     sala?.pick_turno_expira_at,
     cargarSala,
   ]);
+
+  // Cierre automático: cualquier jugador con la sala abierta puede disparar la detección.
+  useEffect(() => {
+    if (!salaId || sala?.estado !== 'en_juego') return;
+
+    cierreAutoEnviado.current = false;
+
+    const revisar = async () => {
+      if (cierreAutoEnviado.current) return;
+
+      const resultado = await intentarCierreAutomatico(salaId);
+      if (!resultado || cierreAutoEnviado.current) return;
+
+      if (resultado.cerrada) {
+        cierreAutoEnviado.current = true;
+        setSuccess('Partida finalizada automáticamente. Revisa el resultado en tu historial.');
+        void cargarSala();
+      }
+    };
+
+    const inicial = setTimeout(() => {
+      void revisar();
+    }, 12000);
+    const intervalo = setInterval(() => {
+      void revisar();
+    }, 90000);
+
+    return () => {
+      clearTimeout(inicial);
+      clearInterval(intervalo);
+    };
+  }, [salaId, sala?.estado, cargarSala]);
+
+  // Al terminar o cancelarse la sala, nadie puede quedarse dentro: se oculta
+  // de los listados y volvemos al inicio automáticamente.
+  const estadoSalaActual = sala?.estado;
+
+  useEffect(() => {
+    if (estadoSalaActual !== 'terminada' && estadoSalaActual !== 'cancelada') {
+      return;
+    }
+
+    window.dispatchEvent(new Event('saldo:refresh'));
+
+    const intervalo = setInterval(() => {
+      setSegundosSalida((restante) => Math.max(0, restante - 1));
+    }, 1000);
+    const salida = setTimeout(() => {
+      router.replace('/');
+    }, 5000);
+
+    return () => {
+      clearInterval(intervalo);
+      clearTimeout(salida);
+    };
+  }, [estadoSalaActual, router]);
 
   // Mantiene la selección local sincronizada con los roles guardados.
   useEffect(() => {
@@ -1018,6 +1100,53 @@ function SalaContenido() {
           <Link href="/salas" className="mt-4 inline-block text-prism-300 hover:underline">
             Volver a salas
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (sala.estado === 'terminada' || sala.estado === 'cancelada') {
+    const terminada = sala.estado === 'terminada';
+
+    return (
+      <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] px-4 text-slate-100">
+        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#111827] p-6 text-center shadow-arena-soft">
+          <div
+            className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full text-xl font-bold ${
+              terminada
+                ? 'bg-emerald-500/15 text-emerald-300'
+                : 'bg-amber-500/15 text-amber-300'
+            }`}
+          >
+            {terminada ? '✓' : '!'}
+          </div>
+          <h1 className="mt-4 font-display text-xl font-bold text-white">
+            {terminada ? 'Partida finalizada' : 'Sala cancelada'}
+          </h1>
+          <p className="mt-2 text-sm text-slate-300">
+            {terminada
+              ? 'Los premios ya fueron repartidos. Esta sala se cerró y ya no aparece en la lista.'
+              : 'La sala fue cancelada y se reembolsó a los participantes.'}
+          </p>
+          <p className="mt-4 text-sm text-slate-400">
+            Volviendo al inicio en {segundosSalida} s…
+          </p>
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-center">
+            <button
+              onClick={() => router.replace('/')}
+              className="rounded-lg bg-prism-500 px-4 py-2 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400"
+            >
+              Ir al inicio ahora
+            </button>
+            {terminada && (
+              <Link
+                href="/salas/historial"
+                className="rounded-lg bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10"
+              >
+                Ver historial
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     );

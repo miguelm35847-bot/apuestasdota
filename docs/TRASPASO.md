@@ -44,10 +44,10 @@ Aplicación web de salas de apuestas de Dota 2 para Perú:
 ## 4. Modelo de datos relevante
 
 - `profiles`: `id`, `nick`, `rol` (`admin`/`jugador`), `baneado`, `steam_id`, `steam_avatar_url`, `steam_nombre`, `mmr` (público), `roles_preferidos` (array de `carry`/`mid`/`off`/`roamer`/`support`, hasta 3 en orden; opcional).
-- `salas`: `id`, `nombre`, `cuota`, `cupo`, `comision_bp`, `modalidad` (`1v1`/`5v5`), `estado`, `creado_por`, `picks_estado` (`inactivo`/`eleccion`/`en_curso`/`terminado`), `pick_capitan1`, `pick_capitan2`, `pick_ganador_moneda`, `pick_decision_user_id`, `pick_decision_tipo` (`moneda`/`lado`), `pick_primer_user_id`, `pick_turno_user_id`, `pick_turno_expira_at`.
+- `salas`: `id`, `nombre`, `cuota`, `cupo`, `comision_bp`, `modalidad` (`1v1`/`5v5`), `estado`, `creado_por`, `iniciada_at`, `picks_estado` (`inactivo`/`eleccion`/`en_curso`/`terminado`), `pick_capitan1`, `pick_capitan2`, `pick_ganador_moneda`, `pick_decision_user_id`, `pick_decision_tipo` (`moneda`/`lado`), `pick_primer_user_id`, `pick_turno_user_id`, `pick_turno_expira_at`.
 - `participantes_sala`: `sala_id`, `user_id`, `equipo` (nullable), `es_capitan`, `pick_orden`. `equipo = null` significa **lista de espera**; 1 = Radiant; 2 = Dire.
 - `lobbies`: `sala_id` (único), `nombre`, `clave`.
-- `partidas`: `sala_id`, `dota_match_id`, `equipo_ganador`, `pozo`, `comision`, `premio_por_ganador`, `cerrada_por`.
+- `partidas`: `sala_id`, `dota_match_id`, `equipo_ganador`, `pozo`, `comision`, `premio_por_ganador`, `cerrada_por`, `duracion_segundos`, `radiant_score`, `dire_score`, `detectada_auto`.
 - `movimientos_billetera`: `user_id`, `tipo`, `monto`, `referencia_id`, `descripcion`, `creado_por`.
 - `notificaciones`: `user_id`, `tipo`, `mensaje`, `leida`, `created_at`.
 - `mensajes_chat`: `sala_id` (null = chat general), `user_id`, `mensaje`, `created_at`.
@@ -67,17 +67,20 @@ Estados de sala: `abierta`, `llena`, `en_juego`, `terminada`, `cancelada`.
 - `capitan_de_pick(p_primer, p_otro, p_num)` — calcula el capitán del pick `n` con orden serpiente A-B-B-A.
 - `iniciar_picks(p_sala, p_capitan1, p_capitan2)` — admin: valida sala 5v5 llena, resetea equipos, elige dos capitanes y lanza la moneda en el servidor.
 - `elegir_moneda(p_sala, p_opcion)` — el ganador elige `pickear_primero` o `lado`; el otro completa la decisión.
-- `elegir_lado(p_sala, p_equipo)` — asigna lado a los capitanes y arranca el draft con el primer turno.
+- `elegir_lado(p_sala, p_equipo)` — en 5v5 asigna lado a los capitanes y arranca el draft; en 1v1 asigna al ganador del sorteo y manda al otro al lado contrario. El sorteo 1v1 lo dispara `iniciar_sorteo_1v1()` automáticamente al llenarse la sala (2 jugadores).
 - `pickear_jugador(p_sala, p_user)` — solo el capitán de turno; asigna equipo, guarda `pick_orden` y avanza el turno.
 - `auto_pickear_si_vencido(p_sala, p_forzar)` — auto-pick a los 60 s (o forzado por admin): prioriza roles faltantes y luego MMR.
 - `cancelar_picks(p_sala)` — admin: devuelve a todos a la lista de espera y limpia la fase.
-- `bloquear_cambios_en_picks()` — trigger `before update/delete` en `participantes_sala`: impide mover/expulsar durante `en_curso`.
+- `bloquear_cambios_en_picks()` — trigger `before update/delete` en `participantes_sala`: impide mover/expulsar durante `en_curso`; en salas 1v1 permite salir durante el sorteo de lado.
 - `salir_de_sala(p_sala)` — reembolsa y permite salir en `abierta`/`llena`.
 - `unirse_a_equipo(p_sala, p_equipo)` — jugador se mueve a espera (`null`), Radiant (1) o Dire (2), con límite por equipo.
 - `asignar_equipo(p_sala, p_user, p_equipo)` — admin mueve a cualquier jugador (incluida espera).
 - `definir_lobby(p_sala, p_nombre, p_clave)` — valida equipos completos y espera vacía, pone `en_juego` y notifica a los jugadores.
 - `cancelar_sala(p_sala, p_motivo)` — reembolsa a todos y cancela.
 - `cerrar_partida(p_sala, p_dota_match_id, p_equipo_ganador)` — reparte premios y guarda en `partidas`.
+- `cerrar_partida_con_detalle(...)` — admin: cierra con `cerrar_partida` y completa duración, marcador y origen automático.
+- `cerrar_partida_auto(...)` — solo `service_role`: la usa `/api/dota/auto-close` tras validar la partida con Steam.
+- `marcar_inicio_sala()` — trigger `before update` en `salas`: guarda `iniciada_at` al pasar a `en_juego`.
 - `ajuste_admin`, `mi_saldo`, `_saldo_de`, `ganancias_casa`, `es_admin`.
 
 ## 6. Funciones y SQL pendientes de ejecutar
@@ -879,6 +882,371 @@ before delete on public.participantes_sala
 for each row execute function public.bloquear_cambios_en_picks();
 ```
 
+### Sorteo automático de lado en salas 1v1 (pendiente de ejecutar)
+
+Cuando una sala 1v1 se llena, el servidor sortea al azar quién elige lado. El ganador ve en su
+sala los botones Radiant/Dire; el otro jugador queda en el lado contrario automáticamente. Si un
+jugador sale mientras el sorteo está pendiente, la sala vuelve a `inactivo` y el próximo en unirse
+dispara un nuevo sorteo. Incluye la versión de `bloquear_cambios_en_picks` que permite salir de la
+sala 1v1 aunque el sorteo esté activo (en 5v5 se sigue bloqueando todo durante los picks).
+
+```sql
+-- Sorteo automático 1v1: al llenarse la sala (2 jugadores) se elige al azar quién decide lado.
+create or replace function public.iniciar_sorteo_1v1()
+returns trigger
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+declare
+  v_sala_id uuid;
+  s public.salas%rowtype;
+  v_total int;
+  v_ids uuid[];
+  v_ganador uuid;
+begin
+  if TG_OP = 'DELETE' then
+    v_sala_id := old.sala_id;
+  else
+    v_sala_id := new.sala_id;
+  end if;
+
+  select * into s from public.salas where id = v_sala_id for update;
+  if not found then
+    if TG_OP = 'DELETE' then return old; else return new; end if;
+  end if;
+
+  -- Solo aplica a salas 1v1
+  if s.cupo <> 2 then
+    if TG_OP = 'DELETE' then return old; else return new; end if;
+  end if;
+
+  select count(*), array_agg(user_id order by created_at)
+    into v_total, v_ids
+  from public.participantes_sala
+  where sala_id = v_sala_id;
+
+  if v_total = 2 then
+    if s.estado in ('abierta', 'llena')
+       and s.picks_estado = 'inactivo'
+       and not exists (
+         select 1 from public.participantes_sala
+         where sala_id = v_sala_id and equipo is not null
+       )
+    then
+      v_ganador := v_ids[case when random() < 0.5 then 1 else 2 end];
+
+      update public.salas
+      set picks_estado = 'eleccion',
+          pick_capitan1 = v_ids[1],
+          pick_capitan2 = v_ids[2],
+          pick_ganador_moneda = v_ganador,
+          pick_decision_user_id = v_ganador,
+          pick_decision_tipo = 'lado',
+          pick_primer_user_id = null,
+          pick_turno_user_id = null,
+          pick_turno_expira_at = null
+      where id = v_sala_id;
+    end if;
+  elsif v_total < 2 then
+    -- Si alguien sale antes de decidir, se limpia el sorteo para el próximo que entre
+    if s.picks_estado <> 'inactivo' and s.estado <> 'en_juego' then
+      update public.salas
+      set picks_estado = 'inactivo',
+          pick_capitan1 = null,
+          pick_capitan2 = null,
+          pick_ganador_moneda = null,
+          pick_decision_user_id = null,
+          pick_decision_tipo = null,
+          pick_primer_user_id = null,
+          pick_turno_user_id = null,
+          pick_turno_expira_at = null
+      where id = v_sala_id;
+
+      update public.participantes_sala
+      set equipo = null, es_capitan = false, pick_orden = null
+      where sala_id = v_sala_id;
+    end if;
+  end if;
+
+  if TG_OP = 'DELETE' then return old; else return new; end if;
+end;
+$function$;
+
+drop trigger if exists sorteo_1v1_sync on public.participantes_sala;
+create trigger sorteo_1v1_sync
+after insert or delete on public.participantes_sala
+for each row execute function public.iniciar_sorteo_1v1();
+
+-- Elegir lado: en 1v1 asigna al ganador del sorteo y manda al otro al lado contrario; en 5v5
+-- arranca el draft como antes.
+create or replace function public.elegir_lado(p_sala uuid, p_equipo integer)
+returns void
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+declare
+  s public.salas%rowtype;
+  v_otro uuid;
+  v_equipo_otro int;
+begin
+  if auth.uid() is null then raise exception 'No autenticado'; end if;
+
+  select * into s from public.salas where id = p_sala for update;
+  if not found then raise exception 'La sala no existe'; end if;
+  if s.picks_estado <> 'eleccion' or s.pick_decision_tipo <> 'lado' then
+    raise exception 'No es momento de elegir lado';
+  end if;
+  if s.pick_decision_user_id is distinct from auth.uid() then raise exception 'No es tu turno de elegir'; end if;
+  if p_equipo not in (1,2) then raise exception 'Equipo inválido'; end if;
+
+  v_otro := case when s.pick_decision_user_id = s.pick_capitan1 then s.pick_capitan2 else s.pick_capitan1 end;
+  v_equipo_otro := case when p_equipo = 1 then 2 else 1 end;
+
+  perform set_config('app.picks_operacion', 'on', true);
+
+  if s.cupo = 2 then
+    -- 1v1: el ganador elige su lado y el otro va al contrario. El sorteo queda cerrado.
+    update public.participantes_sala
+    set equipo = p_equipo, es_capitan = false, pick_orden = null
+    where sala_id = p_sala and user_id = s.pick_decision_user_id;
+
+    update public.participantes_sala
+    set equipo = v_equipo_otro, es_capitan = false, pick_orden = null
+    where sala_id = p_sala and user_id = v_otro;
+
+    update public.salas
+    set picks_estado = 'terminado',
+        pick_capitan1 = null,
+        pick_capitan2 = null,
+        pick_ganador_moneda = null,
+        pick_decision_user_id = null,
+        pick_decision_tipo = null,
+        pick_primer_user_id = null,
+        pick_turno_user_id = null,
+        pick_turno_expira_at = null
+    where id = p_sala;
+    return;
+  end if;
+
+  update public.participantes_sala
+  set es_capitan = true, equipo = p_equipo, pick_orden = 0
+  where sala_id = p_sala and user_id = s.pick_decision_user_id;
+
+  update public.participantes_sala
+  set es_capitan = true, equipo = v_equipo_otro, pick_orden = 0
+  where sala_id = p_sala and user_id = v_otro;
+
+  update public.salas
+  set picks_estado = 'en_curso',
+      pick_decision_user_id = null,
+      pick_decision_tipo = null,
+      pick_turno_user_id = s.pick_primer_user_id,
+      pick_turno_expira_at = now() + interval '60 seconds'
+  where id = p_sala;
+end;
+$function$;
+
+-- En 1v1 se puede salir de la sala aunque el sorteo esté activo; en 5v5 se bloquea igual que antes.
+create or replace function public.bloquear_cambios_en_picks()
+returns trigger
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+declare
+  v_estado text;
+  v_cupo int;
+  v_sala_id uuid;
+begin
+  if coalesce(current_setting('app.picks_operacion', true), '') = 'on' then
+    if TG_OP = 'DELETE' then return old; end if;
+    return new;
+  end if;
+
+  v_sala_id := case when TG_OP = 'DELETE' then old.sala_id else new.sala_id end;
+
+  select picks_estado, cupo into v_estado, v_cupo
+  from public.salas where id = v_sala_id;
+
+  if v_estado in ('eleccion', 'en_curso') then
+    if TG_OP = 'DELETE' and v_cupo = 2 then
+      return old;
+    end if;
+    raise exception 'La fase de picks está activa; espera a que termine';
+  end if;
+
+  if TG_OP = 'DELETE' then return old; end if;
+  return new;
+end;
+$function$;
+```
+
+> Nota: si ya ejecutaste la versión anterior de `bloquear_cambios_en_picks` y `elegir_lado`, este bloque
+> las reemplaza sin tocar los triggers existentes (se referencian por nombre).
+
+### Cierre automático de partida e historial con detalle (pendiente de ejecutar)
+
+La app consulta la API de Steam desde `POST /api/dota/auto-close` mientras la sala está `en_juego`.
+Cualquier jugador o admin con la sala abierta dispara la revisión (cada 60–90 s). El servidor:
+
+1. Verifica que quien llama sea participante o admin.
+2. Convierte los `steam_id` de los jugadores a `account_id` y consulta sus partidas recientes.
+3. Confirma con `GetMatchDetails` que la partida contiene a los jugadores de la sala (al menos la mitad,
+   con presencia en ambos lados).
+4. Cierra con `cerrar_partida` reutilizando premios/notificaciones y guarda duración, marcador y si fue automática.
+
+Requisitos: el lobby debe ser **público** en Dota 2 y deben existir `STEAM_API_KEY` y
+`SUPABASE_SERVICE_ROLE_KEY` en `.env.local`. Si la partida no es pública o falta el SQL, el cierre
+manual con ID sigue funcionando.
+
+```sql
+-- 1) Detalle de la partida para el historial
+alter table public.partidas
+  add column if not exists duracion_segundos integer,
+  add column if not exists radiant_score integer,
+  add column if not exists dire_score integer,
+  add column if not exists detectada_auto boolean not null default false;
+
+-- 2) Marca de inicio para no confundir la partida con una anterior
+alter table public.salas
+  add column if not exists iniciada_at timestamptz;
+
+create or replace function public.marcar_inicio_sala()
+returns trigger
+language plpgsql
+as $function$
+begin
+  if new.estado = 'en_juego' and old.estado is distinct from 'en_juego' then
+    new.iniciada_at := now();
+  end if;
+  return new;
+end;
+$function$;
+
+drop trigger if exists marcar_inicio_sala_trg on public.salas;
+create trigger marcar_inicio_sala_trg
+before update on public.salas
+for each row execute function public.marcar_inicio_sala();
+
+-- 3) Cierre con detalle (admin). Llama al cierre oficial y completa el historial.
+create or replace function public.cerrar_partida_con_detalle(
+  p_sala uuid,
+  p_dota_match_id bigint,
+  p_equipo_ganador integer,
+  p_duracion integer default null,
+  p_radiant_score integer default null,
+  p_dire_score integer default null,
+  p_auto boolean default false
+)
+returns void
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+declare
+  s public.salas%rowtype;
+begin
+  if not public.es_admin() then
+    raise exception 'Solo administradores';
+  end if;
+
+  select * into s from public.salas where id = p_sala for update;
+  if not found then raise exception 'La sala no existe'; end if;
+  if s.estado <> 'en_juego' then raise exception 'La sala no está en juego'; end if;
+  if p_dota_match_id is null or p_dota_match_id <= 0 then
+    raise exception 'ID de partida inválido';
+  end if;
+  if p_equipo_ganador not in (1, 2) then
+    raise exception 'Equipo ganador inválido';
+  end if;
+
+  perform public.cerrar_partida(p_sala, p_dota_match_id, p_equipo_ganador);
+
+  update public.partidas
+  set duracion_segundos = coalesce(p_duracion, duracion_segundos),
+      radiant_score = coalesce(p_radiant_score, radiant_score),
+      dire_score = coalesce(p_dire_score, dire_score),
+      detectada_auto = coalesce(p_auto, false)
+  where sala_id = p_sala and dota_match_id = p_dota_match_id;
+end;
+$function$;
+
+revoke all on function public.cerrar_partida_con_detalle(uuid, bigint, integer, integer, integer, integer, boolean) from public;
+revoke all on function public.cerrar_partida_con_detalle(uuid, bigint, integer, integer, integer, integer, boolean) from anon;
+grant execute on function public.cerrar_partida_con_detalle(uuid, bigint, integer, integer, integer, integer, boolean) to authenticated;
+
+-- 4) Cierre automático desde el servidor. Solo service_role puede ejecutarlo;
+--    el route valida la partida contra Steam antes de llamarlo.
+create or replace function public.cerrar_partida_auto(
+  p_sala uuid,
+  p_dota_match_id bigint,
+  p_equipo_ganador integer,
+  p_duracion integer,
+  p_radiant_score integer,
+  p_dire_score integer
+)
+returns void
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+declare
+  s public.salas%rowtype;
+  v_admin uuid;
+begin
+  if auth.role() <> 'service_role' then
+    raise exception 'No autorizado';
+  end if;
+
+  select * into s from public.salas where id = p_sala for update;
+  if not found then raise exception 'La sala no existe'; end if;
+  if s.estado <> 'en_juego' then raise exception 'La sala no está en juego'; end if;
+  if exists (select 1 from public.partidas where sala_id = p_sala) then
+    raise exception 'La partida ya fue cerrada';
+  end if;
+
+  -- Reutiliza el cierre oficial con contexto de admin.
+  select id into v_admin
+  from public.profiles
+  where rol = 'admin' and coalesce(baneado, false) = false
+  order by (id = s.creado_por) desc
+  limit 1;
+
+  if v_admin is null then
+    raise exception 'No hay un administrador disponible para cerrar la partida';
+  end if;
+
+  perform set_config('request.jwt.claim.sub', v_admin::text, true);
+  perform set_config('request.jwt.claim.role', 'authenticated', true);
+  perform set_config(
+    'request.jwt.claims',
+    json_build_object('sub', v_admin, 'role', 'authenticated')::text,
+    true
+  );
+
+  perform public.cerrar_partida_con_detalle(
+    p_sala,
+    p_dota_match_id,
+    p_equipo_ganador,
+    p_duracion,
+    p_radiant_score,
+    p_dire_score,
+    true
+  );
+end;
+$function$;
+
+revoke all on function public.cerrar_partida_auto(uuid, bigint, integer, integer, integer, integer) from public;
+revoke all on function public.cerrar_partida_auto(uuid, bigint, integer, integer, integer, integer) from anon;
+revoke all on function public.cerrar_partida_auto(uuid, bigint, integer, integer, integer, integer) from authenticated;
+grant execute on function public.cerrar_partida_auto(uuid, bigint, integer, integer, integer, integer) to service_role;
+```
+
+> Nota: `cerrar_partida_auto` es la única función que puede ejecutar el route con la service role.
+> No se expone a `anon` ni a `authenticated`. El route además exige sesión de participante o admin.
+
 ### SQL del MMR de un solo uso y edición por admin (pendiente de ejecutar)
 
 Reemplaza la definición de `guardar_perfil_competitivo` con la versión que bloquea el MMR
@@ -1044,7 +1412,10 @@ end $$;
 - `src/components/Toast.tsx` — aviso flotante con cierre automático y estilo Arena Dark.
 - `src/components/AdminNav.tsx` — sub-navegación segmentada compartida por las pantallas admin (`Panel · Recargas · Retiros · Jugadores · Salas`), con estado activo e íconos.
 - `src/app/admin/page.tsx` — panel: tarjeta de ganancias de la casa, 4 KPI con enlaces (recargas/retiros pendientes, salas activas, jugadores) y grilla 2×2 de acciones rápidas.
-- `src/app/perfil/page.tsx` — perfil, Steam, historial, movimientos, billetera. Cabecera unificada (perfil + saldo), MMR como stat bloqueado, pestañas sticky con íconos y contadores, listas en tarjetas responsivas, estados vacíos con CTA y skeletons. El MMR solo se registra una vez; después solo se editan roles.
+- `src/app/perfil/page.tsx` — perfil, Steam, historial, movimientos, billetera. Cabecera unificada (perfil + saldo), MMR como stat bloqueado, pestañas sticky con íconos y contadores, listas en tarjetas responsivas, estados vacíos con CTA y skeletons. El MMR solo se registra una vez; después solo se editan roles. Incluye medalla de rango y enlace al perfil público.
+- `src/app/jugadores/[id]/page.tsx` — perfil público: avatar/Steam, MMR + medalla, roles, partidas terminadas, victorias, winrate y últimas 10 partidas con resultado, modalidad, duración, marcador y enlace a Dotabuff. Accesible sin sesión; valida UUID y muestra un estado de “no encontrado”.
+- `src/components/MedallaMmr.tsx` — imagen de medalla de rango (Herald a Immortal) con tamaños reutilizables y placeholder “Sin MMR”.
+- `src/lib/mmr.ts` — rangos de MMR y función `rangoMmr()`; las imágenes viven en `public/medallas/rank_0.png` … `rank_7.png`.
 - `src/app/recargar/page.tsx`, `src/app/retirar/page.tsx` — recargas y retiros.
 - `src/app/admin/recargas/page.tsx`, `src/app/admin/retiros/page.tsx` — aprobaciones.
 - `src/components/Navbar.tsx` — menú único sticky con estilo **Arena Dark** (logo, saldo, campana y desplegable de perfil con perfil, recargar, retirar, historial, admin y cerrar sesión).
@@ -1054,11 +1425,18 @@ end $$;
 - `src/components/HistorialGlobal.tsx` — historial de partidas con tarjetas y badges Arena Dark.
 - `src/lib/steamServer.ts` — resolución de vanity URL y consulta de avatar/nombre a Steam (solo servidor).
 - `src/lib/steamClient.ts` — sincronización del avatar desde componentes cliente.
-- `src/app/api/steam/sync/route.ts` — actualiza avatar/nombre del usuario autenticado.
-- `src/app/api/dota/match/route.ts` — proxy a Steam Web API (usa `STEAM_API_KEY`).
+- `src/app/api/steam/sync/route.ts` — actualiza avatar/nombre del usuario autenticado, con rate limit.
+- `src/app/api/auth/steam/start/route.ts` — inicia el OpenID de Steam con state firmado y cookie HttpOnly; el access token ya no viaja en la URL.
+- `src/lib/steamState.ts` — firma/verificación HMAC del state de Steam y constantes de la cookie.
+- `src/lib/rateLimit.ts` — rate limit en memoria por usuario/clave para las APIs.
+- `src/app/api/dota/match/route.ts` — proxy a Steam Web API (usa `STEAM_API_KEY`); exige sesión de admin.
+- `src/app/api/dota/auto-close/route.ts` — detecta la partida terminada de una sala, valida a los jugadores con Steam y cierra con `cerrar_partida_auto` (service role), con rate limit.
+- `src/app/salas/[id]/page.tsx` — sala de jugador. Al pasar a `terminada`/`cancelada` muestra una pantalla de cierre y vuelve al inicio en 5 s; la sala deja de aparecer en los listados activos y la URL directa ya no permite volver al lobby.
+- `src/lib/dotaAutoClose.ts` — helper de cliente para disparar la detección automática con la sesión del usuario.
 - `src/lib/balance.ts` — roles de Dota, formato de MMR, promedios y orden serpiente de picks (referencia del cálculo SQL).
 - `src/lib/supabase.ts` — cliente de navegador.
 - `src/lib/types.ts` — tipos de dominio compartidos.
+- `next.config.ts` — CSP y cabeceras de seguridad (X-Frame-Options, nosniff, HSTS en producción, etc.).
 - `docs/ESTADO.md` — bitácora resumida.
 
 ## 8. Flujo de una sala
@@ -1072,14 +1450,197 @@ end $$;
 7. Al completarse los 8 picks, cada equipo queda 5/5. El admin escribe nombre y clave del lobby y pulsa **Poner partida en juego**.
 8. La sala pasa a `en_juego`; los jugadores ven el lobby en la sala y reciben notificación.
 9. El admin crea el lobby en Dota 2 e invita a los jugadores (la web NO puede crear lobbies ni invitar).
-10. Al terminar, el admin pega el ID de la partida, verifica con Steam API y cierra: se reparten premios y queda en el historial.
+10. Al terminar, la app detecta la partida en Steam y la cierra automáticamente (cualquier sala abierta). Se reparten premios y queda en el historial con duración y marcador. Si la partida no es pública (lobby custom/practice sin ticket), el admin puede pegar el ID, elegir el ganador y cerrar manualmente; al cerrarse, los jugadores ven “Partida finalizada” y vuelven al inicio en 5 s. La sala queda oculta de los listados activos, pero se conserva en el historial.
+
+## 8.1 Perfiles públicos (20/10/2026)
+
+- Ruta: `/jugadores/[id]`. No exige sesión y solo lee columnas públicas (`nick`, `steam_avatar_url`, `steam_nombre`, `mmr`, `roles_preferidos`, `created_at`) de `profiles`.
+- Estadísticas: parte de `participantes_sala` con `salas!inner.estado = 'terminada'` y `partidas!inner`; cuenta solo filas con equipo 1/2 y calcula victorias/winrate comparando `participantes_sala.equipo` con `partidas.equipo_ganador`.
+- Últimas partidas: ordena por `partidas.cerrada_en`, luego `salas.iniciada_at` y `salas.created_at`; muestra fecha, modalidad, resultado, duración, marcador, chip `Auto` y enlace a Dotabuff.
+- Medallas: `src/lib/mmr.ts` mapea MMR a Herald (0–769), Guardian (770–1539), Crusader (1540–2309), Archon (2310–3079), Legend (3080–3849), Ancient (3850–4619), Divine (4620–5419) e Immortal (5420+). Las imágenes locales están en `public/medallas/`.
+- Enlaces al perfil público desde avatares/nombres en landing, historial global, historial, chat, sala del jugador y paneles admin. El menú de perfil agrega “Perfil público”.
+- Sin SQL nuevo: usa las políticas de lectura pública de `profiles`, `salas`, `participantes_sala` y `partidas` ya aplicadas.
+
+## 8.2 Endurecimiento de seguridad (20/10/2026)
+
+Se auditó la app con usuarios de prueba. Hallazgos y correcciones:
+
+- Las RPCs administrativas y de dinero ya validan `es_admin()` en el servidor (probado: un jugador no puede crear salas, aprobar recargas/retiros, editar MMR, expulsar, definir lobby, cancelar picks ni cerrar partidas).
+- Las escrituras directas a `profiles`, `salas`, `participantes_sala`, `partidas`, `lobbies`, `recargas`, `retiros`, `movimientos_billetera` y `notificaciones` quedan bloqueadas para `anon` y `authenticated`; todo pasa por RPCs `security definer`.
+- `profiles` deja de exponer `steam_id`, `rol` y `baneado` a visitantes anónimos. El landing, historial y chat público solo leen columnas públicas.
+- `lobbies` solo lo leen los participantes de la sala o un admin.
+- Notificaciones: lectura solo del propio usuario; el panel admin usa `notificar_usuario`; la campana usa `marcar_notificaciones_leidas`.
+- Storage `capturas`: bucket privado, subida solo a la carpeta del propio usuario y lectura ajena bloqueada (auditado).
+- Steam: el flujo OpenID ya no pone el access token de Supabase en la URL. Usa un state firmado (HMAC) y una cookie HttpOnly de corta duración. Se eliminó `/api/auth/steam/link`, que permitía vincular una cuenta de Steam sin demostrar propiedad. En producción detrás de un proxy, define `NEXT_PUBLIC_APP_URL=https://tudominio.com` para que el `return_to` de Steam use el dominio público.
+- APIs: `/api/dota/match` exige admin; `/api/dota/match`, `/api/dota/auto-close`, `/api/steam/sync` y `/api/auth/steam/start` tienen rate limit en memoria por usuario/clave.
+- La service role no tenía `SELECT` en `salas` ni `participantes_sala`; se le otorgó solo lectura para que el cierre automático pueda detectar la partida. No se le dieron permisos de escritura.
+- Cabeceras de seguridad y CSP en `next.config.ts`.
+
+Opcional recomendado: agregar `STEAM_STATE_SECRET` a `.env.local` con una cadena aleatoria larga. Si no está, se usa `SUPABASE_SERVICE_ROLE_KEY` como secreto HMAC (ambos quedan solo en el servidor).
+
+### SQL de endurecimiento aplicado en Supabase (20/10/2026)
+
+```sql
+-- Endurecimiento de seguridad (20/10/2026) — aplicado y verificado
+-- 1) Notificaciones: lectura propia; escritura solo por RPCs security definer.
+alter table public.notificaciones enable row level security;
+
+do $$
+declare p record;
+begin
+  for p in
+    select policyname
+    from pg_policies
+    where schemaname = 'public' and tablename = 'notificaciones'
+  loop
+    execute format('drop policy if exists %I on public.notificaciones', p.policyname);
+  end loop;
+end $$;
+
+revoke all on public.notificaciones from anon, authenticated;
+grant select on public.notificaciones to authenticated;
+
+create policy "notificaciones_lectura_propia"
+on public.notificaciones for select
+to authenticated
+using (user_id = auth.uid());
+
+create index if not exists notificaciones_user_created_idx
+on public.notificaciones (user_id, created_at desc);
+
+-- 2) RPC admin para notificar (reemplaza los inserts directos del panel)
+create or replace function public.notificar_usuario(
+  p_user uuid,
+  p_tipo text,
+  p_mensaje text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.es_admin() then
+    raise exception 'Solo administradores';
+  end if;
+
+  if p_user is null or p_tipo is null or p_mensaje is null then
+    raise exception 'Datos incompletos';
+  end if;
+
+  if length(p_mensaje) > 500 then
+    raise exception 'Mensaje demasiado largo';
+  end if;
+
+  if not exists (select 1 from public.profiles where id = p_user) then
+    raise exception 'El usuario no existe';
+  end if;
+
+  insert into public.notificaciones (user_id, tipo, mensaje)
+  values (p_user, p_tipo, p_mensaje);
+end;
+$$;
+
+revoke all on function public.notificar_usuario(uuid, text, text) from public;
+grant execute on function public.notificar_usuario(uuid, text, text) to authenticated;
+
+-- 3) RPC para marcar notificaciones propias como leídas
+create or replace function public.marcar_notificaciones_leidas(p_ids uuid[] default null)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'Debes iniciar sesión';
+  end if;
+
+  if p_ids is null then
+    update public.notificaciones
+    set leida = true
+    where user_id = auth.uid() and leida = false;
+  else
+    update public.notificaciones
+    set leida = true
+    where user_id = auth.uid() and id = any(p_ids);
+  end if;
+end;
+$$;
+
+revoke all on function public.marcar_notificaciones_leidas(uuid[]) from public;
+grant execute on function public.marcar_notificaciones_leidas(uuid[]) to authenticated;
+
+-- 4) Perfiles: visitantes anónimos solo ven columnas públicas
+revoke select on public.profiles from anon;
+revoke select (steam_id, rol, baneado) on public.profiles from anon;
+grant select (id, nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos, created_at)
+  on public.profiles to anon;
+
+-- 5) Lobbies: solo participantes de la sala o admin
+alter table public.lobbies enable row level security;
+
+do $$
+declare p record;
+begin
+  for p in
+    select policyname
+    from pg_policies
+    where schemaname = 'public' and tablename = 'lobbies'
+  loop
+    execute format('drop policy if exists %I on public.lobbies', p.policyname);
+  end loop;
+end $$;
+
+revoke all on public.lobbies from anon, authenticated;
+grant select on public.lobbies to authenticated;
+
+create policy "lobbies_solo_participantes"
+on public.lobbies for select
+to authenticated
+using (
+  public.es_admin()
+  or exists (
+    select 1
+    from public.participantes_sala p
+    where p.sala_id = lobbies.sala_id
+      and p.user_id = auth.uid()
+  )
+);
+
+-- 6) Escrituras directas: todo pasa por RPCs security definer
+revoke insert, update, delete on public.profiles from anon, authenticated;
+revoke insert, update, delete on public.salas from anon, authenticated;
+revoke insert, update, delete on public.participantes_sala from anon, authenticated;
+revoke insert, update, delete on public.partidas from anon, authenticated;
+revoke insert, update, delete on public.lobbies from anon, authenticated;
+revoke insert, update, delete on public.recargas from anon, authenticated;
+revoke insert, update, delete on public.retiros from anon, authenticated;
+revoke insert, update, delete on public.movimientos_billetera from anon, authenticated;
+
+-- 6b) Lectura mínima para la service role: la necesita el cierre automático.
+--     (En este proyecto la service role no tenía SELECT en salas ni participantes_sala.)
+grant select on public.salas to service_role;
+grant select on public.participantes_sala to service_role;
+grant select on public.profiles to service_role;
+
+-- 7) Refrescar la caché de PostgREST para las nuevas RPCs
+notify pgrst, 'reload schema';
+```
 
 ## 9. Limitaciones conocidas
 
 - **Dota 2 no tiene API pública** para crear lobbies ni enviar invitaciones. Eso lo hace el admin desde el cliente del juego.
-- El cierre de partida es **manual** (botón Verificar + ID de Dotabuff). El cierre automático con Steam API es el siguiente módulo.
-- La verificación de admin es del lado del cliente (`supabase.rpc('es_admin')`). Sirve para operar; para lanzamiento público hay que mover la seguridad al servidor.
-- Las notificaciones se insertan desde el cliente con RLS permisiva (temporal).
+- El cierre de partida es **automático** cuando el lobby es público y hay una sala abierta (jugador o admin): `/api/dota/auto-close` busca la partida en Steam, valida a los jugadores y cierra con `cerrar_partida_auto`. El cierre manual con ID queda como respaldo. Si nadie tiene la app abierta, la detección corre en la siguiente visita a la sala.
+- **Los lobbies personalizados/practice sin ticket no aparecen en la API pública** (Steam/OpenDota). El ID existe en el cliente, pero `GetMatchDetails` responde 500 y OpenDota 404. Probado con `9053507699` (1v1 custom): OpenDota 404 / Steam 500. Para cierre automático hay que usar un **lobby de torneo con ticket/liga** o cerrar manualmente eligiendo el ganador (sin duración/marcador).
+- `GetMatchDetails` de Steam puede devolver HTTP 500 incluso para partidas públicas; `/api/dota/match` y `/api/dota/auto-close` tienen respaldo por `GetMatchHistoryBySequenceNum` y OpenDota.
+- La detección automática consume la API de Steam. Hay caché de 45 s por sala y rate limit en memoria por usuario/clave; en un despliegue multi-instancia conviene un rate limit distribuido (Redis).
+- La UI de admin usa `es_admin` para mostrar/ocultar, pero todas las RPCs administrativas y de dinero validan `es_admin()`/`auth.role()` en el servidor. Auditado con un usuario de prueba: no puede escalar rol, escribir tablas sensibles ni ejecutar RPCs de admin.
+- Notificaciones: lectura solo del propio usuario; el panel admin inserta con `notificar_usuario` y la campana marca leídas con `marcar_notificaciones_leidas`. No hay inserts directos desde el cliente.
+- Los visitantes anónimos solo leen columnas públicas de `profiles`; `steam_id`, `rol` y `baneado` quedan fuera del landing/historial/chat público.
+- El perfil público calcula partidas/victorias/winrate en el cliente a partir de `participantes_sala` + `salas` + `partidas`; solo cuenta salas `terminada` con equipo asignado y partida registrada.
+- `lobbies` solo es legible por participantes de la sala o admin.
+- El flujo Steam usa state HMAC + cookie HttpOnly; el access token de Supabase ya no viaja en la URL. `/api/auth/steam/link` fue eliminado.
 - El auto-pick de los 60 s se dispara desde la sala o el panel admin abiertos (el RPC valida el vencimiento en el servidor). Si nadie tiene la pantalla abierta, se resuelve en la siguiente interacción.
 - Los triggers de la fase de picks bloquean mover/expulsar durante `en_curso`; si hiciera falta, el admin debe cancelar la fase primero.
 - No hay tests automatizados.
@@ -1092,13 +1653,10 @@ El chat general y el chat privado por sala también están implementados en `src
 
 Opciones para continuar (elegir una):
 
-1. **Endurecimiento de seguridad/dinero**: mover la verificación de admin al servidor, restringir notificaciones y revisar RLS antes del lanzamiento público.
-2. **Cierre automático + historial con datos de la partida**:
-   - Guardar `steam_id` de cada participante (ya existe en `profiles`).
-   - Consultar partidas recientes con Steam Web API y detectar una partida común.
-   - Cerrar la sala con `cerrar_partida` y compartir duración, marcador y ganador en el historial.
-   - Requisito: el lobby debe ser público en Dota 2 para que Steam exponga la partida.
-   - Alternativa segura: mantener el cierre manual y mejorar el historial con los datos que ya devuelve `/api/dota/match`.
+1. **Endurecimiento de seguridad/dinero**: completado el 20/10/2026 (RLS de notificaciones/lobbies, columnas públicas de perfiles, RPCs admin, Steam state HMAC, rate limit y cabeceras). Pendiente opcional: rate limit distribuido y revisión de políticas de Storage si se agregan más buckets.
+2. **Historial y estadísticas**: agregar filtros por jugador/sala, detalle de la partida y enlaces a Dotabuff/OpenDota.
+3. **Créditos y comprobantes**: mejorar el flujo de recargas/retiros con comprobantes y validación admin.
+4. **Lobby automático + invitaciones + ticket de torneo**: bot de Steam conectado al Game Coordinator (`steam-user` + `node-dota2`), cuenta(s) bot, creación del lobby, invitaciones automáticas y asociación a una liga/ticket para que Dota 2 muestre “jugando un torneo” y la partida aparezca en la API pública. Requiere dependencias nuevas, un proceso persistente y un league/ticket ID; es un módulo aparte.
 
 ## 11. Cómo probar rápido
 
@@ -1120,4 +1678,8 @@ Opciones para continuar (elegir una):
 16. Draft: verificar el orden serpiente A-B-B-A, que solo el capitán de turno pueda pickear y que los equipos se actualicen en vivo. Al completar 8 picks deben quedar 5/5 y `picks_estado = terminado`.
 17. Auto-pick: dejar vencer 60 s sin pickear; el sistema debe elegir al mejor disponible (rol faltante y luego MMR). Probar también “Auto-pick ahora” desde el admin.
 18. Cancelar picks: el admin cancela, todos vuelven a la lista de espera y se pueden mover de nuevo. Durante `en_curso` los botones de mover/expulsar deben estar bloqueados.
-19. Con picks terminados, definir lobby y “Poner partida en juego”; el flujo de cierre manual sigue igual.
+19. Con picks terminados, definir lobby y “Poner partida en juego”; el cierre automático debe empezar a revisar a los 8–12 s y luego cada 60–90 s.
+20. Sala 1v1: al entrar el segundo jugador debe dispararse el sorteo automáticamente. El ganador ve los botones Radiant/Dire en su sala; al elegir, el otro jugador queda en el lado contrario y el sorteo queda cerrado. Si alguien sale antes de decidir, la sala vuelve a `inactivo` y el siguiente en entrar dispara un nuevo sorteo.
+21. Cierre automático: jugar una partida en un **lobby de torneo con ticket** (los lobbies custom/practice sin ticket no aparecen en la API) y con cuentas con Steam vinculado. Al terminar, en menos de ~2 minutos la sala debe pasar a `terminada`, repartir premios y aparecer en el historial con duración, marcador y chip `Auto`. Probar “Detectar ahora” y el toggle `Auto` en el panel admin.
+22. Cierre manual: desactivar `Auto`, pegar el ID, verificar y confirmar. También debe guardar duración/marcador en el historial. Si la partida es un lobby custom/practice sin ticket, la verificación fallará; elige el ganador manualmente y confirma (no se guardarán duración/marcador).
+23. Perfil público: sin iniciar sesión, abrir el avatar/nombre de un jugador desde el landing, historial, chat o sala. Debe mostrar su MMR con la medalla correcta, partidas terminadas, victorias, winrate y últimas partidas. Probar `/jugadores/[id]` con un ID inexistente o inválido: debe aparecer “Jugador no encontrado”.

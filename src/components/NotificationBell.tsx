@@ -46,11 +46,7 @@ export default function NotificationBell() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    await supabase
-      .from('notificaciones')
-      .update({ leida: true })
-      .eq('user_id', user.id)
-      .eq('leida', false);
+    await supabase.rpc('marcar_notificaciones_leidas', { p_ids: null });
 
     setNoLeidas(0);
     setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));

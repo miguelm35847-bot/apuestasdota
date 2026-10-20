@@ -70,10 +70,10 @@ export default function AdminRetirosPage() {
     } else {
       const retiro = retiros.find((r) => r.id === id);
       if (retiro) {
-        const { error: notifError } = await supabase.from('notificaciones').insert({
-          user_id: retiro.user_id,
-          tipo: 'retiro_pagado',
-          mensaje: `Tu retiro de S/ ${(retiro.monto / 100).toFixed(2)} fue pagado.`,
+        const { error: notifError } = await supabase.rpc('notificar_usuario', {
+          p_user: retiro.user_id,
+          p_tipo: 'retiro_pagado',
+          p_mensaje: `Tu retiro de S/ ${(retiro.monto / 100).toFixed(2)} fue pagado.`,
         });
         if (notifError) console.error('Error creando notificación:', notifError.message);
       }
@@ -98,10 +98,10 @@ export default function AdminRetirosPage() {
       setError('Error: ' + rpcError.message);
     } else {
       if (retiro) {
-        const { error: notifError } = await supabase.from('notificaciones').insert({
-          user_id: retiro.user_id,
-          tipo: 'retiro_rechazado',
-          mensaje: `Tu retiro de S/ ${(retiro.monto / 100).toFixed(2)} fue rechazado. Motivo: ${notaRechazo.trim() || 'Sin motivo'}. El saldo fue reembolsado.`,
+        const { error: notifError } = await supabase.rpc('notificar_usuario', {
+          p_user: retiro.user_id,
+          p_tipo: 'retiro_rechazado',
+          p_mensaje: `Tu retiro de S/ ${(retiro.monto / 100).toFixed(2)} fue rechazado. Motivo: ${notaRechazo.trim() || 'Sin motivo'}. El saldo fue reembolsado.`,
         });
         if (notifError) console.error('Error creando notificación:', notifError.message);
       }

@@ -35,6 +35,7 @@ export default function RecargarPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [recargas, setRecargas] = useState<Recarga[]>([]);
+  const [copiado, setCopiado] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -158,6 +159,16 @@ export default function RecargarPage() {
     return errores[msg] ?? msg;
   }
 
+  async function copiarNumero() {
+    try {
+      await navigator.clipboard.writeText('949451869');
+      setCopiado(true);
+      window.setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      setError('No se pudo copiar el número. Escríbelo manualmente.');
+    }
+  }
+
   function estadoBadge(estado: string) {
     const clases: Record<string, string> = {
       pendiente: 'bg-amber-500/15 text-amber-300',
@@ -186,6 +197,44 @@ export default function RecargarPage() {
       <main className="mx-auto max-w-3xl px-4 py-8">
         <div className="mb-6">
           <SaldoDisplay />
+        </div>
+
+        <div className="mb-4 arena-card rounded-2xl border border-emerald-400/20 bg-emerald-500/[0.05] p-4 shadow-arena-soft">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-400/25">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.8}
+                  className="h-5 w-5"
+                  aria-hidden="true"
+                >
+                  <rect x="6" y="2.5" width="12" height="19" rx="3" />
+                  <path d="M10.5 18.5h3" strokeLinecap="round" />
+                </svg>
+              </span>
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-emerald-300/80">
+                  Paga con Yape o Plin
+                </p>
+                <p className="font-display text-2xl font-bold tabular-nums tracking-tight text-white">
+                  949 451 869
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  Envía el monto exacto y registra la operación abajo.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={copiarNumero}
+              className="shrink-0 rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/40"
+            >
+              {copiado ? '¡Copiado!' : 'Copiar número'}
+            </button>
+          </div>
         </div>
 
         {error && (

@@ -5,12 +5,12 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
-import { getSteamLoginUrl } from '@/lib/steam';
 import { sincronizarSteam } from '@/lib/steamClient';
 import { useArenaBody } from '@/lib/useArenaBody';
 import { etiquetaRol, ICONOS_ROL, ROLES_DOTA } from '@/lib/balance';
 import Navbar from '@/components/Navbar';
 import Avatar from '@/components/Avatar';
+import MedallaMmr from '@/components/MedallaMmr';
 import type { RolDota } from '@/lib/types';
 
 type Pestaña = 'historial' | 'movimientos' | 'billetera';
@@ -430,10 +430,25 @@ function PerfilContenido() {
       setError('No se pudo obtener la sesión actual');
       return;
     }
-    const origin = window.location.origin;
-    const returnUrl = `${origin}/api/auth/steam/callback`;
-    const steamUrl = getSteamLoginUrl(returnUrl, session.access_token);
-    window.location.href = steamUrl;
+
+    try {
+      const response = await fetch('/api/auth/steam/start', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      const data = (await response.json()) as { url?: string; error?: string };
+
+      if (!response.ok || !data.url) {
+        setError(data.error || 'No se pudo iniciar la vinculación con Steam');
+        return;
+      }
+
+      window.location.href = data.url;
+    } catch {
+      setError('No se pudo iniciar la vinculación con Steam');
+    }
   }
 
   async function handleActualizarSteam() {
@@ -589,6 +604,15 @@ function PerfilContenido() {
                   </span>
                 </div>
                 <p className="mt-1 truncate text-sm text-slate-400">{user?.email}</p>
+                {user && (
+                  <Link
+                    href={`/jugadores/${user.id}`}
+                    className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-prism-300 transition hover:text-prism-200 hover:underline"
+                  >
+                    Ver mi perfil público
+                    <span aria-hidden="true">↗</span>
+                  </Link>
+                )}
                 <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-400">
                   <span className="inline-flex items-center gap-1.5">
                     <span className={`h-2 w-2 rounded-full ${steamId ? 'bg-emerald-400' : 'bg-slate-500'}`} />
@@ -673,11 +697,16 @@ function PerfilContenido() {
               <div>
                 <span className="text-sm font-medium text-slate-300">MMR</span>
                 {mmrGuardado ? (
-                  <div className="mt-1 flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div className="mt-1 flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5">
+                    <MedallaMmr
+                      mmr={mmr.trim() === '' ? null : Number(mmr)}
+                      size="sm"
+                      mostrarNombre={false}
+                    />
                     <span className="font-display text-2xl font-bold tabular-nums text-white">
                       {mmr || '—'}
                     </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300 ring-1 ring-inset ring-emerald-500/30">
+                    <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300 ring-1 ring-inset ring-emerald-500/30">
                       <svg
                         className="h-3 w-3"
                         viewBox="0 0 24 24"

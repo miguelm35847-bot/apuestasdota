@@ -258,17 +258,23 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                       const p = parts[i];
 
                       return p ? (
-                        <Avatar
+                        <Link
                           key={p.user_id}
-                          nick={p.profiles?.nick ?? '?'}
-                          src={p.profiles?.steam_avatar_url}
-                          ringClass={ringEquipo(p.equipo)}
-                          title={`${p.profiles?.nick ?? 'Usuario'}${
-                            p.profiles?.mmr != null ? ` · MMR ${p.profiles.mmr}` : ''
-                          }${
-                            p.equipo === 1 ? ' · Radiant' : p.equipo === 2 ? ' · Dire' : ' · Espera'
-                          }`}
-                        />
+                          href={`/jugadores/${p.user_id}`}
+                          aria-label={`Ver perfil de ${p.profiles?.nick ?? 'jugador'}`}
+                          className="rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                        >
+                          <Avatar
+                            nick={p.profiles?.nick ?? '?'}
+                            src={p.profiles?.steam_avatar_url}
+                            ringClass={ringEquipo(p.equipo)}
+                            title={`${p.profiles?.nick ?? 'Usuario'}${
+                              p.profiles?.mmr != null ? ` · MMR ${p.profiles.mmr}` : ''
+                            }${
+                              p.equipo === 1 ? ' · Radiant' : p.equipo === 2 ? ' · Dire' : ' · Espera'
+                            }`}
+                          />
+                        </Link>
                       ) : (
                         <div
                           key={`libre-${i}`}

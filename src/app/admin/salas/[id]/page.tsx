@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
@@ -10,6 +10,7 @@ import Navbar from '@/components/Navbar';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import ChatPanel from '@/components/ChatPanel';
 import Avatar from '@/components/Avatar';
+import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
 import { formatearMmr, promedioMmr, resumenRolesConIconos } from '@/lib/balance';
 import type { DotaMatch, Lobby, Participante, Sala } from '@/lib/types';
 
@@ -33,29 +34,36 @@ function FilaJugador({
   onExpulsar: (p: Participante) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-2 rounded border border-white/10 px-2 py-1.5">
-      <div className="flex min-w-0 items-center gap-2">
-        <Avatar nick={p.profiles?.nick} src={p.profiles?.steam_avatar_url} />
+    <div className="flex items-center justify-between gap-2 rounded-md border border-white/10 px-2 py-1">
+      <Link
+        href={`/jugadores/${p.user_id}`}
+        title={`Ver perfil de ${p.profiles?.nick ?? 'Usuario'}`}
+        className="flex min-w-0 items-center gap-2 rounded-md transition hover:bg-white/5"
+      >
+        <Avatar nick={p.profiles?.nick} src={p.profiles?.steam_avatar_url} size="sm" />
         <div className="min-w-0">
-          <span className="block truncate text-sm text-slate-100">
+          <span className="block truncate text-xs font-medium text-slate-100">
             {p.es_capitan ? '⭐ ' : ''}
             {p.profiles?.nick ?? 'Usuario'}
           </span>
-          <span className="block truncate text-sm font-bold text-prism-300">
-            {p.profiles?.mmr != null
-              ? `MMR ${formatearMmr(p.profiles.mmr)}`
-              : 'Sin MMR'}
-          </span>
-          <span className="block truncate text-[11px] text-slate-500">
-            {resumenRolesConIconos(p.profiles?.roles_preferidos)}
+          <span className="block truncate text-[11px] text-slate-400">
+            <span className="font-bold text-prism-300/90">
+              {p.profiles?.mmr != null
+                ? `MMR ${formatearMmr(p.profiles.mmr)}`
+                : 'Sin MMR'}
+            </span>
+            <span className="text-slate-500">
+              {' · '}
+              {resumenRolesConIconos(p.profiles?.roles_preferidos)}
+            </span>
           </span>
         </div>
-      </div>
+      </Link>
       <div className="flex shrink-0 flex-wrap justify-end gap-1">
         {estadoSala !== 'en_juego' && actual !== null && (
           <button
             onClick={() => onMover(p.user_id, null)}
-            className="rounded bg-white/5 px-2 py-1 text-xs font-medium text-slate-300 transition hover:bg-white/10"
+            className="rounded px-1.5 py-0.5 text-[11px] font-medium text-slate-300 ring-1 ring-inset ring-white/10 transition hover:bg-white/5"
             title="Mover a lista de espera"
           >
             Espera
@@ -64,7 +72,7 @@ function FilaJugador({
         {estadoSala !== 'en_juego' && actual !== 1 && (
           <button
             onClick={() => onMover(p.user_id, 1)}
-            className="rounded bg-emerald-500/15 px-2 py-1 text-xs font-medium text-emerald-300 transition hover:bg-emerald-500/25"
+            className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[11px] font-medium text-emerald-200 ring-1 ring-inset ring-emerald-400/20 transition hover:bg-emerald-500/20"
           >
             Radiant
           </button>
@@ -72,7 +80,7 @@ function FilaJugador({
         {estadoSala !== 'en_juego' && actual !== 2 && (
           <button
             onClick={() => onMover(p.user_id, 2)}
-            className="rounded bg-rose-500/15 px-2 py-1 text-xs font-medium text-rose-300 transition hover:bg-rose-500/25"
+            className="rounded bg-rose-500/10 px-1.5 py-0.5 text-[11px] font-medium text-rose-200 ring-1 ring-inset ring-rose-400/20 transition hover:bg-rose-500/20"
           >
             Dire
           </button>
@@ -80,7 +88,7 @@ function FilaJugador({
         {estadoSala !== 'en_juego' && (
           <button
             onClick={() => onExpulsar(p)}
-            className="rounded bg-rose-600 px-2 py-1 text-xs font-medium text-white transition hover:bg-rose-500"
+            className="rounded bg-rose-500/10 px-1.5 py-0.5 text-[11px] font-medium text-rose-300 ring-1 ring-inset ring-rose-500/25 transition hover:bg-rose-500/20"
             title="Sacar de la sala y devolver la cuota"
           >
             Sacar
@@ -123,7 +131,7 @@ function Slots({
         ) : (
           <div
             key={`libre-${i}`}
-            className="flex h-[46px] items-center justify-center rounded border-2 border-dashed border-white/10 text-xs text-slate-500"
+            className="flex h-[36px] items-center justify-center rounded-md border border-dashed border-white/10 text-[11px] text-slate-500"
           >
             Libre
           </div>
@@ -160,6 +168,10 @@ function AdminSalaContenido() {
   const [capitan1, setCapitan1] = useState('');
   const [capitan2, setCapitan2] = useState('');
   const [procesandoPicks, setProcesandoPicks] = useState(false);
+  const [autoCierre, setAutoCierre] = useState(true);
+  const [detectando, setDetectando] = useState(false);
+  const [estadoDeteccion, setEstadoDeteccion] = useState<string | null>(null);
+  const cierreAutoEnviado = useRef(false);
 
   const cargarSala = useCallback(async () => {
     if (!salaId || !user) return;
@@ -205,6 +217,50 @@ function AdminSalaContenido() {
 
     setLoading(false);
   }, [salaId, user]);
+
+  const revisarCierreAuto = useCallback(async () => {
+    if (!salaId || cierreAutoEnviado.current) return;
+
+    setDetectando(true);
+
+    const resultado = await intentarCierreAutomatico(salaId);
+
+    setDetectando(false);
+
+    if (!resultado) {
+      setEstadoDeteccion('No se pudo consultar la detección automática.');
+      return;
+    }
+
+    if (resultado.cerrada) {
+      cierreAutoEnviado.current = true;
+      setEstadoDeteccion('Partida detectada y cerrada automáticamente.');
+      setSuccess('Partida terminada automáticamente. Premios repartidos a los ganadores.');
+      void cargarSala();
+      return;
+    }
+
+    setEstadoDeteccion(resultado.reason ?? 'Esperando el fin de la partida…');
+  }, [salaId, cargarSala]);
+
+  // Detección automática del final de la partida mientras la sala está en juego.
+  useEffect(() => {
+    if (!salaId || sala?.estado !== 'en_juego' || !autoCierre) return;
+
+    cierreAutoEnviado.current = false;
+
+    const inicial = setTimeout(() => {
+      void revisarCierreAuto();
+    }, 8000);
+    const intervalo = setInterval(() => {
+      void revisarCierreAuto();
+    }, 60000);
+
+    return () => {
+      clearTimeout(inicial);
+      clearInterval(intervalo);
+    };
+  }, [salaId, sala?.estado, autoCierre, revisarCierreAuto]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -491,7 +547,18 @@ function AdminSalaContenido() {
     setVerificando(true);
 
     try {
-      const response = await fetch(`/api/dota/match?match_id=${dotaMatchId}`);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError('Sesión expirada. Vuelve a iniciar sesión.');
+        setVerificando(false);
+        return;
+      }
+
+      const response = await fetch(`/api/dota/match?match_id=${dotaMatchId}`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
       const data = await response.json();
 
       if (data.error) {
@@ -525,11 +592,38 @@ function AdminSalaContenido() {
 
     setTerminando(true);
 
-    const { error: rpcError } = await supabase.rpc('cerrar_partida', {
+    // Guardamos también duración y marcador cuando la partida fue verificada.
+    // Si el SQL nuevo aún no está aplicado, caemos al cierre clásico.
+    const { error: rpcError } = await supabase.rpc('cerrar_partida_con_detalle', {
       p_sala: salaId,
       p_dota_match_id: matchId,
       p_equipo_ganador: parseInt(equipoGanador),
+      p_duracion: datosPartida?.duration ?? null,
+      p_radiant_score: datosPartida?.radiant_score ?? null,
+      p_dire_score: datosPartida?.dire_score ?? null,
+      p_auto: false,
     });
+
+    if (rpcError && /could not find the function|schema cache|does not exist/i.test(rpcError.message)) {
+      const { error: fallbackError } = await supabase.rpc('cerrar_partida', {
+        p_sala: salaId,
+        p_dota_match_id: matchId,
+        p_equipo_ganador: parseInt(equipoGanador),
+      });
+
+      setTerminando(false);
+
+      if (fallbackError) {
+        setError('Error al cerrar partida: ' + fallbackError.message);
+      } else {
+        setSuccess('Partida terminada. Premios repartidos a los ganadores.');
+        setDotaMatchId('');
+        setEquipoGanador('');
+        setDatosPartida(null);
+        cargarSala();
+      }
+      return;
+    }
 
     setTerminando(false);
 
@@ -598,11 +692,15 @@ function AdminSalaContenido() {
     }
 
     return {
-      titulo: 'Terminar partida',
+      titulo: datosPartida ? 'Terminar partida' : 'Cerrar con ganador manual',
       mensaje: `Se cerrará la partida y se repartirán los premios al equipo ${
         equipoGanador === '1' ? 'Radiant' : equipoGanador === '2' ? 'Dire' : 'seleccionado'
-      }. Verifica que el ID y el ganador sean correctos.`,
-      confirmar: 'Confirmar y terminar',
+      }. ${
+        datosPartida
+          ? 'Verifica que el ID y el ganador sean correctos.'
+          : 'No se pudo verificar con Steam/OpenDota: se guardará el ganador manual y no se registrarán duración ni marcador.'
+      }`,
+      confirmar: datosPartida ? 'Confirmar y terminar' : 'Cerrar con ganador manual',
     };
   }
 
@@ -632,16 +730,30 @@ function AdminSalaContenido() {
   }
 
   if (!['abierta', 'llena', 'en_juego'].includes(sala.estado)) {
+    const terminada = sala.estado === 'terminada';
+
     return (
       <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
         <div className="text-center">
-          <p className="text-amber-300">
-            La sala no puede ser gestionada en este estado
+          <p className={terminada ? 'text-emerald-300' : 'text-amber-300'}>
+            {terminada
+              ? 'Partida terminada. Los premios ya fueron repartidos.'
+              : 'La sala no puede ser gestionada en este estado'}
           </p>
-          <p className="mt-2 text-sm text-slate-500">Estado actual: {sala.estado}</p>
-          <Link href="/salas" className="mt-4 inline-block text-prism-300 hover:underline">
-            Volver a salas
-          </Link>
+          <p className="mt-2 text-sm text-slate-400">Estado actual: {sala.estado}</p>
+          <div className="mt-4 flex items-center justify-center gap-4 text-sm">
+            {terminada && (
+              <Link href="/salas/historial" className="text-prism-300 hover:underline">
+                Ver historial
+              </Link>
+            )}
+            <Link href="/" className="inline-block text-prism-300 hover:underline">
+              Ir al inicio
+            </Link>
+            <Link href="/salas" className="inline-block text-prism-300 hover:underline">
+              Volver a salas
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -679,68 +791,88 @@ function AdminSalaContenido() {
     <div className="arena-shell min-h-screen bg-[#0a0e17] text-slate-100">
       <Navbar titulo={`Admin: ${sala.nombre}`} />
 
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-5">
         {error && (
-          <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+          <div className="mb-3 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 text-sm text-rose-300">
             {error}
           </div>
         )}
         {success && (
-          <div className="mb-4 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+          <div className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5 text-sm text-emerald-300">
             {success}
           </div>
         )}
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft lg:col-span-2">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="rounded-full bg-prism-500/15 px-2.5 py-1 font-bold text-prism-200 ring-1 ring-inset ring-prism-500/30">
+              {sala.modalidad ?? (sala.cupo === 2 ? '1v1' : '5v5')}
+            </span>
+            <span className="rounded-full bg-white/5 px-2.5 py-1 font-semibold text-slate-300 ring-1 ring-inset ring-white/10">
+              {sala.estado === 'abierta'
+                ? 'Abierta'
+                : sala.estado === 'llena'
+                  ? 'Llena'
+                  : 'En juego'}
+            </span>
+            <span className="text-slate-400">
+              {participantes.length}/{sala.cupo} jugadores
+            </span>
+            {sala.cupo === 10 && (
+              <span
+                className={`rounded-full px-2.5 py-1 font-semibold ring-1 ring-inset ${
+                  picksEstado === 'terminado'
+                    ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30'
+                    : picksEstado === 'inactivo'
+                      ? 'bg-white/5 text-slate-400 ring-white/10'
+                      : 'bg-amber-500/15 text-amber-300 ring-amber-500/30'
+                }`}
+              >
+                {picksEstado === 'inactivo'
+                  ? 'Picks sin iniciar'
+                  : picksEstado === 'eleccion'
+                    ? 'Moneda / elección'
+                    : picksEstado === 'en_curso'
+                      ? `Pick ${participantes.filter((p) => p.equipo !== null && !p.es_capitan).length + 1}/8`
+                      : 'Picks completados'}
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => setConfirmacion({ tipo: 'cancelar' })}
+            className="rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/15"
+          >
+            Cancelar sala
+          </button>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+          <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-4 shadow-arena-soft">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <h2 className="font-display text-lg font-bold text-white">Equipos de la sala</h2>
-                <span className="rounded bg-prism-500/15 px-2 py-0.5 text-xs font-bold text-prism-200 ring-1 ring-inset ring-prism-500/30">
-                  {sala.modalidad ?? (sala.cupo === 2 ? '1v1' : '5v5')}
-                </span>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {sala.cupo === 10 && (
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      picksEstado === 'terminado'
-                        ? 'bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-500/30'
-                        : picksEstado === 'inactivo'
-                          ? 'bg-white/5 text-slate-400 ring-1 ring-inset ring-white/10'
-                          : 'bg-amber-500/15 text-amber-300 ring-1 ring-inset ring-amber-500/30'
-                    }`}
-                  >
-                    {picksEstado === 'inactivo'
-                      ? 'Picks sin iniciar'
-                      : picksEstado === 'eleccion'
-                        ? 'Moneda / elección'
-                        : picksEstado === 'en_curso'
-                          ? `Pick ${participantes.filter((p) => p.equipo !== null && !p.es_capitan).length + 1}/8`
-                          : 'Picks completados'}
-                  </span>
-                )}
-                <span className="text-sm text-slate-400">
-                  {participantes.length}/{sala.cupo} jugadores
-                </span>
-              </div>
+              <h2 className="font-display text-base font-bold text-white">Equipos</h2>
+              <span className="text-xs text-slate-400">
+                Mueve jugadores entre equipos y espera
+              </span>
             </div>
-            <p className="mt-1 text-sm text-slate-400">
-              Los capitanes eligen por turnos. Mientras la fase de picks esté activa no se pueden
-              mover jugadores manualmente.
-            </p>
+
+            {sala.cupo === 2 && enFasePicks && (
+              <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-200">
+                Sorteo 1v1: <strong>{nombreJugador(sala.pick_decision_user_id)}</strong> elige su
+                lado (Radiant o Dire). El otro jugador irá al lado contrario.
+              </div>
+            )}
 
             {sala.cupo === 10 && estadoSala !== 'en_juego' && (
-              <div className="mt-4 rounded-xl border border-prism-500/30 bg-prism-500/10 p-4">
+              <div className="mt-3 rounded-xl border border-prism-500/25 bg-prism-500/[0.06] p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h3 className="text-sm font-semibold text-prism-200">Fase de picks</h3>
                   {picksEstado !== 'inactivo' && (
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5">
                       {picksEstado === 'en_curso' && (
                         <button
                           onClick={forzarAutoPick}
                           disabled={procesandoPicks}
-                          className="rounded bg-amber-500 px-3 py-1.5 text-xs font-semibold text-amber-950 transition hover:bg-amber-400 disabled:opacity-50"
+                          className="rounded-md bg-amber-500/15 px-2.5 py-1 text-[11px] font-semibold text-amber-200 ring-1 ring-inset ring-amber-500/25 transition hover:bg-amber-500/25 disabled:opacity-50"
                         >
                           Auto-pick ahora
                         </button>
@@ -748,7 +880,7 @@ function AdminSalaContenido() {
                       <button
                         onClick={() => setConfirmacion({ tipo: 'cancelar_picks' })}
                         disabled={procesandoPicks}
-                        className="rounded bg-rose-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-rose-500 disabled:opacity-50"
+                        className="rounded-md bg-rose-500/15 px-2.5 py-1 text-[11px] font-semibold text-rose-200 ring-1 ring-inset ring-rose-500/25 transition hover:bg-rose-500/25 disabled:opacity-50"
                       >
                         {picksEstado === 'terminado' ? 'Reiniciar picks' : 'Cancelar picks'}
                       </button>
@@ -759,16 +891,15 @@ function AdminSalaContenido() {
                 {picksEstado === 'inactivo' && (
                   <>
                     <p className="mt-1 text-xs text-prism-300">
-                      Elige dos capitanes y lanza la moneda. El ganador decide si pickea primero o
-                      elige lado; los picks son en serpiente.
+                      Elige dos capitanes y lanza la moneda.
                     </p>
-                    <div className="mt-3 grid gap-2 md:grid-cols-2">
+                    <div className="mt-2 grid gap-2 md:grid-cols-2">
                       <label className="block">
                         <span className="text-xs font-medium text-prism-200">Capitán 1</span>
                         <select
                           value={capitan1}
                           onChange={(e) => setCapitan1(e.target.value)}
-                          className="mt-1 block w-full rounded border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100"
+                          className="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-sm text-slate-100"
                         >
                           <option value="">Elegir jugador…</option>
                           {participantes.map((p) => (
@@ -783,7 +914,7 @@ function AdminSalaContenido() {
                         <select
                           value={capitan2}
                           onChange={(e) => setCapitan2(e.target.value)}
-                          className="mt-1 block w-full rounded border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100"
+                          className="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-sm text-slate-100"
                         >
                           <option value="">Elegir jugador…</option>
                           {participantes.map((p) => (
@@ -797,12 +928,12 @@ function AdminSalaContenido() {
                     <button
                       onClick={iniciarPicks}
                       disabled={procesandoPicks || participantes.length !== 10}
-                      className="mt-3 w-full rounded bg-prism-500 py-2 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
+                      className="mt-2 w-full rounded-lg bg-prism-500 py-1.5 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
                     >
                       {procesandoPicks ? 'Lanzando moneda…' : 'Lanzar moneda e iniciar picks'}
                     </button>
                     {participantes.length !== 10 && (
-                      <p className="mt-2 text-xs text-prism-300">
+                      <p className="mt-1.5 text-xs text-prism-300">
                         La sala debe tener 10 jugadores para iniciar.
                       </p>
                     )}
@@ -841,7 +972,7 @@ function AdminSalaContenido() {
               </div>
             )}
 
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div className="mt-3 grid gap-2 md:grid-cols-2">
               <div className="rounded-xl border border-emerald-400/15 bg-emerald-500/[0.04] p-3">
                 <div className="flex items-center justify-between gap-2">
                   <div className="min-w-0">
@@ -887,7 +1018,7 @@ function AdminSalaContenido() {
               </div>
             </div>
 
-            <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.02] p-3">
+            <div className="mt-2 rounded-xl border border-white/10 bg-white/[0.02] p-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
                   Lista de espera
@@ -906,160 +1037,184 @@ function AdminSalaContenido() {
                 Los equipos no están balanceados: Radiant {enRadiant.length} vs Dire {enDire.length}
               </div>
             )}
+          </div>
 
-            <div className="mt-5 rounded-lg border border-white/10 bg-white/[0.03] p-4">
-              <h3 className="text-sm font-semibold text-white">Datos del lobby</h3>
-              <p className="text-xs text-slate-500">
-                Se mostrarán en la sala y en la campana de los jugadores al poner en juego.
+          <div className="space-y-4">
+            <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-4 shadow-arena-soft">
+              <h2 className="font-display text-base font-bold text-white">Lobby</h2>
+              <p className="mt-0.5 text-xs text-slate-400">
+                Nombre y clave que verán los jugadores al poner en juego.
               </p>
 
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300">
-                    Nombre del lobby
-                  </label>
+              <div className="mt-3 space-y-2">
+                <label className="block">
+                  <span className="text-xs font-medium text-slate-300">Nombre del lobby</span>
                   <input
                     type="text"
                     value={lobbyNombre}
                     onChange={(e) => setLobbyNombre(e.target.value)}
-                    className="mt-1 block w-full rounded border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
+                    className="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-prism-400 focus:outline-none focus:ring-2 focus:ring-prism-500/20"
                     placeholder="Ej: Sala Pro 5v5"
                   />
-                </div>
+                </label>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-300">
-                    Clave del lobby
-                  </label>
+                <label className="block">
+                  <span className="text-xs font-medium text-slate-300">Clave del lobby</span>
                   <input
                     type="text"
                     value={lobbyClave}
                     onChange={(e) => setLobbyClave(e.target.value)}
-                    className="mt-1 block w-full rounded border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
+                    className="mt-1 block w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-prism-400 focus:outline-none focus:ring-2 focus:ring-prism-500/20"
                     placeholder="Ej: abc123"
                   />
-                </div>
+                </label>
               </div>
+
+              <button
+                onClick={ponerEnJuego}
+                disabled={saving || picksEstado === 'eleccion' || picksEstado === 'en_curso'}
+                className="mt-3 w-full rounded-lg bg-emerald-500 py-2 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-400 disabled:opacity-50"
+              >
+                {saving
+                  ? 'Guardando...'
+                  : sala.estado === 'en_juego'
+                    ? 'Actualizar datos del lobby'
+                    : 'Guardar cambios y poner en juego'}
+              </button>
+              {picksEstado === 'eleccion' || picksEstado === 'en_curso' ? (
+                <p className="mt-1.5 text-[11px] text-amber-300">
+                  Termina la fase de picks para poner la partida en juego.
+                </p>
+              ) : null}
+              <p className="mt-1.5 text-[11px] text-slate-400">
+                {sala.estado === 'en_juego'
+                  ? 'Puedes corregir el nombre o la clave.'
+                  : 'Al guardar, la sala pasa a «en juego» y se avisa a los jugadores.'}
+              </p>
+              {lobby && (
+                <div className="mt-2 rounded-lg border border-prism-500/20 bg-prism-500/[0.08] px-2.5 py-2 text-[11px] text-prism-200">
+                  <span className="font-semibold">Publicado:</span> {lobby.nombre} · Clave{' '}
+                  {lobby.clave}
+                </div>
+              )}
             </div>
 
-            <button
-              onClick={ponerEnJuego}
-              disabled={saving || picksEstado === 'eleccion' || picksEstado === 'en_curso'}
-              className="mt-4 w-full rounded bg-emerald-500 py-3 text-base font-semibold text-emerald-950 transition hover:bg-emerald-400 disabled:opacity-50"
-            >
-              {saving
-                ? 'Guardando...'
-                : sala.estado === 'en_juego'
-                  ? 'Actualizar datos del lobby'
-                  : 'Guardar cambios y poner en juego'}
-            </button>
-            {picksEstado === 'eleccion' || picksEstado === 'en_curso' ? (
-              <p className="mt-2 text-xs text-amber-300">
-                Termina la fase de picks para poner la partida en juego.
-              </p>
-            ) : null}
-            <p className="mt-2 text-xs text-slate-500">
-              {sala.estado === 'en_juego'
-                ? 'La partida ya está en juego. Aquí solo puedes corregir el nombre o la clave.'
-                : 'Al guardar, la sala pasa a "en juego" y los jugadores reciben el aviso con el nombre y la clave del lobby.'}
-            </p>
+            <ChatPanel
+              salaId={salaId}
+              titulo="Chat de la sala"
+              descripcion="Coordina con los jugadores"
+              altura="h-[340px]"
+            />
           </div>
 
-          {lobby && (
-            <div className="rounded-2xl border border-prism-500/30 bg-prism-500/10 p-6">
-              <h2 className="font-display text-lg font-bold text-prism-100">Lobby en juego</h2>
-              <p className="mt-1 text-sm text-prism-300">
-                Estos datos ya están publicados para todos los jugadores de la sala.
-              </p>
-              <div className="mt-3 space-y-2">
-                <p className="text-sm text-prism-100">
-                  <span className="font-semibold">Nombre:</span> {lobby.nombre}
-                </p>
-                <p className="text-sm text-prism-100">
-                  <span className="font-semibold">Clave:</span> {lobby.clave}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {(sala.estado === 'abierta' || sala.estado === 'llena' || sala.estado === 'en_juego') && (
-            <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
-              <h2 className="font-display text-lg font-bold text-white">Cancelar sala</h2>
-              <p className="mt-2 text-sm text-slate-400">
-                Reembolsará a todos los participantes y cerrará la sala.
-              </p>
-              <button
-                onClick={() => setConfirmacion({ tipo: 'cancelar' })}
-                className="mt-4 w-full rounded bg-rose-600 py-2 text-white transition hover:bg-rose-500"
-              >
-                Cancelar sala
-              </button>
-            </div>
-          )}
-
           {sala.estado === 'en_juego' && (
-            <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
-              <h2 className="font-display text-lg font-bold text-white">Terminar partida</h2>
-              <p className="mt-2 text-sm text-slate-400">
-                Ingresa el ID de la partida y verifica el resultado antes de terminar.
+            <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-4 shadow-arena-soft lg:col-span-2">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h2 className="font-display text-base font-bold text-white">Terminar partida</h2>
+                  <p className="mt-0.5 text-xs text-slate-400">
+                    La app busca la partida automáticamente. También puedes ingresar el ID y verificar el resultado.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2 py-1 text-[11px] font-medium text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={autoCierre}
+                      onChange={(e) => setAutoCierre(e.target.checked)}
+                      className="h-3.5 w-3.5 accent-emerald-500"
+                    />
+                    Auto
+                  </label>
+                  <button
+                    onClick={() => void revisarCierreAuto()}
+                    disabled={detectando}
+                    className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-200 transition hover:bg-white/10 disabled:opacity-50"
+                  >
+                    {detectando ? 'Buscando…' : 'Detectar ahora'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-2 flex items-start gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[11px] text-slate-400">
+                <span
+                  className={`mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full ${
+                    detectando ? 'animate-pulse bg-amber-400' : autoCierre ? 'bg-emerald-400' : 'bg-slate-500'
+                  }`}
+                />
+                <span>
+                  {detectando
+                    ? 'Buscando la partida en Steam…'
+                    : !autoCierre
+                      ? 'Detección automática desactivada.'
+                      : estadoDeteccion ??
+                        'Detección automática activa: revisa cada 60 segundos.'}
+                </span>
+              </div>
+
+              <p className="mt-1.5 text-[11px] text-slate-400">
+                ¿Lobby personalizado/practice sin ticket? Steam no lo expone en su API.
+                Elige el ganador y confirma manualmente; no se guardarán duración ni marcador.
               </p>
 
-              <div className="mt-4 space-y-4">
+              <div className="mt-3 space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300">
+                  <label className="block text-xs font-medium text-slate-300">
                     ID de la partida de Dota 2
                   </label>
-                  <div className="flex gap-2">
+                  <div className="mt-1 flex gap-2">
                     <input
                       type="number"
                       min="1"
                       value={dotaMatchId}
                       onChange={(e) => setDotaMatchId(e.target.value)}
-                      className="flex-1 rounded border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
+                      className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-prism-400 focus:outline-none focus:ring-2 focus:ring-prism-500/20"
                       placeholder="Ej: 7654321098"
                     />
                     <button
                       onClick={verificarPartida}
                       disabled={verificando || !dotaMatchId}
-                      className="rounded bg-prism-500 px-4 py-2 text-white transition hover:bg-prism-400 disabled:opacity-50"
+                      className="rounded-lg bg-prism-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-prism-400 disabled:opacity-50"
                     >
                       {verificando ? 'Verificando...' : 'Verificar'}
                     </button>
                   </div>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Lo encuentras en Dotabuff o en tu perfil de Dota 2
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    Lo encuentras en Dotabuff o en tu perfil de Dota 2.
                   </p>
                 </div>
 
                 {datosPartida && (
-                  <div className="space-y-2 rounded-lg border border-white/10 bg-white/[0.03] p-4">
-                    <p className="text-sm text-slate-200">
-                      <span className="font-medium">Ganador:</span>{' '}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 rounded-lg border border-white/10 bg-white/[0.03] p-3 text-xs text-slate-200 sm:grid-cols-3">
+                    <p>
+                      <span className="text-slate-400">Ganador:</span>{' '}
                       {datosPartida.radiant_win ? 'Radiant' : 'Dire'}
                     </p>
-                    <p className="text-sm text-slate-200">
-                      <span className="font-medium">Duración:</span>{' '}
+                    <p>
+                      <span className="text-slate-400">Duración:</span>{' '}
                       {Math.floor(datosPartida.duration / 60)}m {datosPartida.duration % 60}s
                     </p>
-                    <p className="text-sm text-slate-200">
-                      <span className="font-medium">Puntuación:</span>{' '}
+                    <p>
+                      <span className="text-slate-400">Puntuación:</span>{' '}
                       {datosPartida.radiant_score} - {datosPartida.dire_score}
                     </p>
-                    <p className="text-sm text-slate-200">
-                      <span className="font-medium">Equipo ganador (automático):</span>{' '}
-                      {datosPartida.radiant_win ? 'Radiant' : 'Dire'}
-                    </p>
+                    {datosPartida.fuente && (
+                      <p className="col-span-2 text-[11px] text-slate-400 sm:col-span-3">
+                        Datos obtenidos vía{' '}
+                        {datosPartida.fuente === 'opendota' ? 'OpenDota' : 'Steam'}.
+                      </p>
+                    )}
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300">
+                  <label className="block text-xs font-medium text-slate-300">
                     Equipo ganador (se llena automáticamente al verificar)
                   </label>
-                  <div className="flex gap-2">
+                  <div className="mt-1 flex gap-2">
                     <button
                       onClick={() => setEquipoGanador('1')}
-                      className={`flex-1 rounded-md border py-2 text-sm font-semibold transition ${
+                      className={`flex-1 rounded-md border py-1.5 text-sm font-semibold transition ${
                         equipoGanador === '1'
                           ? 'border-emerald-400/30 bg-emerald-500/15 text-emerald-100'
                           : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
@@ -1069,7 +1224,7 @@ function AdminSalaContenido() {
                     </button>
                     <button
                       onClick={() => setEquipoGanador('2')}
-                      className={`flex-1 rounded-md border py-2 text-sm font-semibold transition ${
+                      className={`flex-1 rounded-md border py-1.5 text-sm font-semibold transition ${
                         equipoGanador === '2'
                           ? 'border-rose-400/30 bg-rose-500/15 text-rose-100'
                           : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
@@ -1080,13 +1235,23 @@ function AdminSalaContenido() {
                   </div>
                 </div>
 
+                {!datosPartida && (
+                  <p className="rounded-lg border border-amber-400/20 bg-amber-500/10 px-2.5 py-1.5 text-[11px] text-amber-200">
+                    Sin verificación automática: se cerrará con el ganador que elijas manualmente.
+                  </p>
+                )}
+
                 <div className="flex gap-2">
                   <button
                     onClick={() => setConfirmacion({ tipo: 'terminar' })}
                     disabled={terminando || !dotaMatchId || !equipoGanador}
-                    className="flex-1 rounded bg-rose-600 py-2 text-white transition hover:bg-rose-500 disabled:opacity-50"
+                    className="flex-1 rounded-lg bg-rose-600 py-2 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:opacity-50"
                   >
-                    {terminando ? 'Cerrando...' : 'Confirmar y terminar'}
+                    {terminando
+                      ? 'Cerrando...'
+                      : datosPartida
+                        ? 'Confirmar y terminar'
+                        : 'Cerrar con ganador manual'}
                   </button>
                   <button
                     onClick={() => {
@@ -1094,7 +1259,7 @@ function AdminSalaContenido() {
                       setEquipoGanador('');
                       setDatosPartida(null);
                     }}
-                    className="flex-1 rounded bg-white/5 py-2 text-slate-300 transition hover:bg-white/10"
+                    className="flex-1 rounded-lg bg-white/5 py-2 text-sm text-slate-300 transition hover:bg-white/10"
                   >
                     Cancelar
                   </button>
@@ -1103,15 +1268,6 @@ function AdminSalaContenido() {
             </div>
           )}
         </div>
-
-        <section className="mt-6">
-          <ChatPanel
-            salaId={salaId}
-            titulo="Chat de la sala"
-            descripcion="Vista de administrador: puedes leer y escribir para moderar"
-            altura="h-[420px]"
-          />
-        </section>
       </main>
 
       <ConfirmDialog

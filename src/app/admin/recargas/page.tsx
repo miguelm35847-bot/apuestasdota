@@ -120,10 +120,10 @@ export default function AdminRecargasPage() {
       setError('Error al aprobar: ' + rpcError.message);
     } else {
       if (recarga) {
-        const { error: notifError } = await supabase.from('notificaciones').insert({
-          user_id: recarga.user_id,
-          tipo: 'recarga_aprobada',
-          mensaje: `Tu recarga de S/ ${(recarga.monto / 100).toFixed(2)} fue aprobada.`,
+        const { error: notifError } = await supabase.rpc('notificar_usuario', {
+          p_user: recarga.user_id,
+          p_tipo: 'recarga_aprobada',
+          p_mensaje: `Tu recarga de S/ ${(recarga.monto / 100).toFixed(2)} fue aprobada.`,
         });
         if (notifError) console.error('Error creando notificación:', notifError.message);
       }
@@ -148,10 +148,10 @@ export default function AdminRecargasPage() {
       setError('Error al rechazar: ' + rpcError.message);
     } else {
       if (recarga) {
-        const { error: notifError } = await supabase.from('notificaciones').insert({
-          user_id: recarga.user_id,
-          tipo: 'recarga_rechazada',
-          mensaje: `Tu recarga de S/ ${(recarga.monto / 100).toFixed(2)} fue rechazada. Motivo: ${notaRechazo.trim() || 'Sin motivo'}.`,
+        const { error: notifError } = await supabase.rpc('notificar_usuario', {
+          p_user: recarga.user_id,
+          p_tipo: 'recarga_rechazada',
+          p_mensaje: `Tu recarga de S/ ${(recarga.monto / 100).toFixed(2)} fue rechazada. Motivo: ${notaRechazo.trim() || 'Sin motivo'}.`,
         });
         if (notifError) console.error('Error creando notificación:', notifError.message);
       }

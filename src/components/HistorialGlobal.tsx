@@ -23,6 +23,10 @@ type PartidaGlobal = {
     equipo_ganador: number;
     pozo: number;
     premio_por_ganador: number;
+    duracion_segundos?: number | null;
+    radiant_score?: number | null;
+    dire_score?: number | null;
+    detectada_auto?: boolean | null;
   } | null;
   participantes_sala: Participante[];
 };
@@ -88,7 +92,7 @@ export default function HistorialGlobal() {
             <div key={sala.id} className="border-b border-white/5 pb-4 last:border-b-0 last:pb-0">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="font-bold tracking-tight text-white">{sala.nombre}</h3>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-400">
                   {new Date(sala.created_at).toLocaleDateString('es-PE')}
                 </span>
               </div>
@@ -100,6 +104,43 @@ export default function HistorialGlobal() {
                   <span className="mx-2 text-slate-600">|</span>
                   <span className="font-semibold text-slate-300">Pozo:</span> S/{' '}
                   {(sala.partidas.pozo / 100).toFixed(2)}
+                  {sala.partidas.dota_match_id ? (
+                    <>
+                      <span className="mx-2 text-slate-600">|</span>
+                      {sala.partidas.duracion_segundos != null ||
+                      sala.partidas.radiant_score != null ? (
+                        <a
+                          href={`https://www.dotabuff.com/matches/${sala.partidas.dota_match_id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-prism-300 hover:underline"
+                        >
+                          #{sala.partidas.dota_match_id}
+                        </a>
+                      ) : (
+                        <span className="text-slate-400">
+                          #{sala.partidas.dota_match_id} (sin verificar)
+                        </span>
+                      )}
+                    </>
+                  ) : null}
+                  {sala.partidas.duracion_segundos != null ? (
+                    <>
+                      <span className="mx-2 text-slate-600">|</span>
+                      {Math.floor(sala.partidas.duracion_segundos / 60)}m
+                    </>
+                  ) : null}
+                  {sala.partidas.radiant_score != null && sala.partidas.dire_score != null ? (
+                    <>
+                      <span className="mx-2 text-slate-600">|</span>
+                      {sala.partidas.radiant_score} - {sala.partidas.dire_score}
+                    </>
+                  ) : null}
+                  {sala.partidas.detectada_auto ? (
+                    <span className="ml-2 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-500/20">
+                      Auto
+                    </span>
+                  ) : null}
                 </div>
               )}
 
@@ -108,9 +149,11 @@ export default function HistorialGlobal() {
                   {[...sala.participantes_sala]
                     .sort((a, b) => (a.equipo ?? 0) - (b.equipo ?? 0))
                     .map((p) => (
-                      <div
+                      <Link
                         key={p.user_id}
-                        className="flex items-center gap-1.5 rounded-full bg-white/5 py-1 pl-1 pr-2.5 ring-1 ring-inset ring-white/10"
+                        href={`/jugadores/${p.user_id}`}
+                        title={`Ver perfil de ${p.profiles?.nick ?? 'Usuario'}`}
+                        className="flex items-center gap-1.5 rounded-full bg-white/5 py-1 pl-1 pr-2.5 ring-1 ring-inset ring-white/10 transition hover:bg-white/10 hover:ring-prism-400/30"
                       >
                         <EquipoBadge equipo={p.equipo ?? 0} />
                         <Avatar
@@ -121,7 +164,7 @@ export default function HistorialGlobal() {
                         <span className="text-sm font-medium text-slate-200">
                           {p.profiles?.nick ?? 'Usuario'}
                         </span>
-                      </div>
+                      </Link>
                     ))}
                 </div>
               )}

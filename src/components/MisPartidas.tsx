@@ -15,6 +15,9 @@ type Partida = {
       equipo_ganador: number;
       pozo: number;
       premio_por_ganador: number;
+      duracion_segundos?: number | null;
+      radiant_score?: number | null;
+      dire_score?: number | null;
     } | null;
   };
 };
@@ -80,10 +83,19 @@ export default function MisPartidas() {
               <tr key={p.sala_id} className="border-b border-white/5">
                 <td className="py-2 text-slate-200">{p.salas?.nombre ?? 'Sala'}</td>
                 <td className="py-2 text-slate-200">
-                  {new Date(p.salas?.created_at ?? '').toLocaleDateString('es-PE')}
+                  <div>{new Date(p.salas?.created_at ?? '').toLocaleDateString('es-PE')}</div>
+                  {p.salas?.partidas?.duracion_segundos != null && (
+                    <div className="text-[11px] text-slate-400">
+                      {Math.floor(p.salas.partidas.duracion_segundos / 60)}m
+                      {p.salas.partidas.radiant_score != null &&
+                        p.salas.partidas.dire_score != null && (
+                          <> · {p.salas.partidas.radiant_score}-{p.salas.partidas.dire_score}</>
+                        )}
+                    </div>
+                  )}
                 </td>
                 <td className="py-2 text-slate-200">
-                  {miEquipo === 1 ? 'Equipo 1' : miEquipo === 2 ? 'Equipo 2' : 'Sin asignar'}
+                  {miEquipo === 1 ? 'Radiant' : miEquipo === 2 ? 'Dire' : 'Sin asignar'}
                 </td>
                 <td className="py-2">
                   {ganador ? (

@@ -139,11 +139,17 @@ export default function ChatPanel({
             return (
               <div key={m.id} className={`flex gap-2 ${propio ? 'justify-end' : 'justify-start'}`}>
                 {!propio && (
-                  <Avatar
-                    nick={m.profiles?.nick ?? '?'}
-                    src={m.profiles?.steam_avatar_url}
-                    size="sm"
-                  />
+                  <Link
+                    href={`/jugadores/${m.user_id}`}
+                    aria-label={`Ver perfil de ${m.profiles?.nick ?? 'Usuario'}`}
+                    className="shrink-0 rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                  >
+                    <Avatar
+                      nick={m.profiles?.nick ?? '?'}
+                      src={m.profiles?.steam_avatar_url}
+                      size="sm"
+                    />
+                  </Link>
                 )}
                 <div
                   className={`max-w-[80%] rounded-2xl px-3 py-2 shadow-sm ${
@@ -153,9 +159,12 @@ export default function ChatPanel({
                   }`}
                 >
                   {!propio && (
-                    <p className="text-[11px] font-semibold text-prism-300">
+                    <Link
+                      href={`/jugadores/${m.user_id}`}
+                      className="text-[11px] font-semibold text-prism-300 transition hover:text-prism-200 hover:underline"
+                    >
                       {m.profiles?.nick ?? 'Usuario'}
-                    </p>
+                    </Link>
                   )}
                   <p className="whitespace-pre-wrap break-words text-sm">{m.mensaje}</p>
                   <p className={`mt-1 text-[10px] ${propio ? 'text-prism-100/70' : 'text-slate-500'}`}>

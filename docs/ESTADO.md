@@ -5,7 +5,7 @@
 - Supabase instalado y configurado (.env.local + src/lib/supabase.ts)
 - Esquema SQL completo ejecutado en Supabase (tablas, RLS, funciones)
 - Sistema de autenticación implementado (AuthProvider + login)
-- Verificación de admin en cliente (supabase.rpc('es_admin')) - mejora pendiente para producción
+- Verificación de admin en UI (`es_admin`) y validación server-side en todas las RPCs administrativas/de dinero (auditada 20/10/2026)
 - Vinculación Steam funcionando (método OpenID)
 - Landing pública (/) unificada: hero, salas activas e historial (navbar dinámica según auth)
 - Landing con unirse directo, avatares de participantes y "Ir a mi sala"
@@ -78,14 +78,24 @@
 - Pulido de diseño (tanda 2, admin): sub-navegación compartida `AdminNav` (`Panel · Recargas · Retiros · Jugadores · Salas`) en todas las pantallas admin; el panel muestra tarjeta destacada de ganancias de la casa, 4 KPI con enlaces (recargas y retiros pendientes, salas activas, jugadores) y una grilla 2×2 de acciones rápidas con íconos y conteos; recargas y retiros muestran el monto destacado y una cabecera con el total pendiente
 - Verificado con captura headless del perfil (1440×1000 y 390×844): la nueva cabecera, perfil competitivo, pestañas y estado vacío se ven correctos y sin errores de consola (la verificación autenticada quedó limitada porque la cuenta QA ya no existe en Supabase)
 - Columnas Radiant/Dire refinadas en la sala: se quitaron las cabeceras sólidas `emerald-600`/`rose-600`; ahora usan una superficie tenue, un acento lateral, íconos SVG y chips con ring. El mismo tratamiento se aplicó al tablero de picks y a la sala de administración (paneles de equipo y selector de ganador), para que el verde/rojo identifiquen sin saturar
+- Sala de administración compactada: layout de dos columnas en escritorio (equipos + espera a la izquierda, lobby/acciones a la derecha), cabecera con estado/modalidad/jugadores y botón de cancelar, formulario de lobby pequeño, filas de jugador de dos líneas con avatar `sm`, slots vacíos más bajos y tarjeta de cierre de partida más densa. El chat de la sala se movió a la columna derecha, debajo del lobby, para coordinar sin bajar. Se eliminaron las tarjetas duplicadas de "Lobby en juego" y "Cancelar sala"
+- Recargas: tarjeta destacada con el número de Yape/Plin **949 451 869** y botón para copiarlo, visible antes del formulario de recarga
+- Salas 1v1: al llenarse (2 jugadores) se hace un sorteo automático en el servidor; el ganador elige Radiant o Dire desde su sala y el otro jugador queda en el lado contrario. Si alguien sale antes de decidir, el sorteo se limpia y se repite al volver a llenarse. Incluye SQL pendiente en `docs/TRASPASO.md` (trigger `sorteo_1v1_sync` + `elegir_lado` adaptado)
+- Cierre automático de partida: `POST /api/dota/auto-close` detecta la partida terminada con la API de Steam (muestra de `GetMatchHistory` + verificación con `GetMatchDetails`), valida que sea de los jugadores de la sala y cierra con `cerrar_partida_auto` (service role). Cualquier jugador o admin con la sala abierta dispara la revisión cada 60–90 s; el panel admin agrega toggle `Auto`, botón “Detectar ahora” y estado en vivo. La duración, el marcador y el origen automático se guardan en `partidas` y se muestran en historial y perfil; el cierre manual con ID queda como respaldo. Incluye SQL pendiente en `docs/TRASPASO.md`
+- Diagnóstico de verificación: `GetMatchDetails` de Steam devuelve HTTP 500 incluso para partidas públicas; se agregó respaldo con `GetMatchHistoryBySequenceNum` y OpenDota en `/api/dota/match` y `/api/dota/auto-close`. Los lobbies custom/practice **sin ticket** no aparecen en la API pública (Steam 500 / OpenDota 404), así que para cierre automático se necesita un lobby de torneo con ticket/liga; si no, el admin elige el ganador y cierra manualmente sin duración/marcador. Probado con `9053507699`: OpenDota 404 / Steam 500
+- Salida automática al terminar: cuando la sala pasa a `terminada` o `cancelada`, el jugador ve una pantalla de cierre y vuelve al inicio en 5 s. La sala se oculta de landing, `/salas` y panel admin porque esos listados filtran estados activos; la URL directa ya no permite volver al lobby. El registro se conserva para el historial
+- Endurecimiento de seguridad (20/10/2026): auditoría con usuarios de prueba; las RPCs admin/dinero validan `es_admin()`; escrituras directas revocadas en tablas sensibles; notificaciones solo de lectura propia + RPC admin `notificar_usuario` y `marcar_notificaciones_leidas`; `profiles` anónimo solo columnas públicas; `lobbies` solo participantes/admin; Steam OpenID con state HMAC + cookie HttpOnly (se eliminó `/api/auth/steam/link`); `/api/dota/match` exige admin; rate limit en APIs; CSP y cabeceras en `next.config.ts`. Incluye SQL pendiente en `docs/TRASPASO.md`
+- Perfiles públicos en `/jugadores/[id]`: cualquier visitante puede ver nick, avatar/Steam, MMR, medalla de rango, roles, cantidad de partidas terminadas, victorias, winrate y las últimas 10 partidas con resultado, fecha, modalidad, duración, marcador, chip `Auto` y enlace a Dotabuff. Los nombres/avatares de salas, historial, chat y paneles admin enlazan al perfil público. Las medallas oficiales de rango están en `public/medallas/rank_0.png` … `rank_7.png` y se mapean por MMR (Herald a Immortal). No requiere SQL nuevo: usa las columnas públicas y las políticas de lectura ya existentes
+- SQL de endurecimiento aplicado y verificado en Supabase (notificaciones, perfiles anónimos, lobbies y revokes); landing/historial/chat conservan avatares, la campana marca leídas y el panel admin notifica por RPC
 
 ## Siguiente
 - Revisión visual final del usuario en 1366×768 y 1440×1000; ajustar detalles de contraste si hace falta
+- Revisar el perfil público (`/jugadores/[id]`) en escritorio y móvil: medalla, stats y últimas partidas; confirmar que los enlaces desde salas, historial y chat abren el perfil correcto
 - Revisar el pulido de diseño de perfil y admin (cabecera, KPI, acciones rápidas, sub-navegación) y confirmar que la sala y el landing quedan intactos
 - Probar el flujo completo de MMR único + fase de picks en Supabase y en la interfaz
-- Endurecimiento de seguridad/dinero antes del lanzamiento público
-- Cierre automático de la sala al terminar la partida (API de Steam)
-- Historial automático con datos de la partida (duración, marcador, ganador)
+- Probar la vinculación de Steam con el nuevo flujo (state HMAC + cookie HttpOnly) y confirmar que el access token no aparece en la URL
+- Probar el cierre automático con un lobby de torneo con ticket y cuentas con Steam vinculado
+- Para lobbies custom/practice: cierre manual del admin (flujo oficial por ahora). No avanzar con bot de Steam ni ticket/liga hasta contar con una cuenta bot y un league/ticket ID; opcionalmente, evaluar confirmación por capitanes sin bot
 - Sistema de apuestas en partida
 
 ## Decisiones

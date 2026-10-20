@@ -132,5 +132,6 @@ export type DotaMatch = {
   duration: number;
   radiant_score: number;
   dire_score: number;
+  fuente?: 'steam' | 'opendota';
   players?: DotaPlayer[];
 };
