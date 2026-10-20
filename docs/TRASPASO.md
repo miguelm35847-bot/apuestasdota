@@ -1446,7 +1446,7 @@ grant execute on function public.admin_renombrar_sala(uuid, text) to authenticat
 notify pgrst, 'reload schema';
 ```
 
-### Sala destacada elegida por el admin (pendiente de ejecutar)
+### Sala destacada elegida por el admin (aplicado y verificado 20/10/2026)
 
 ```sql
 -- Una sola sala puede estar destacada en el landing.
