@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { steam64ToAccountId } from '@/lib/dotabuff';
 import { limitarPorClave } from '@/lib/rateLimit';
 
 const STEAM_API_KEY = process.env.STEAM_API_KEY || '';
@@ -7,7 +8,6 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-const STEAM64_BASE = BigInt('76561197960265728');
 const CACHE_MS = 45_000;
 const MIN_START_BUFFER_SEC = 15 * 60;
 const MAX_HISTORY_SAMPLE = 4;
@@ -92,25 +92,6 @@ const cache = new Map<string, { expires: number; resultado: Resultado }>();
 function perfilDe(profiles: ParticipanteRow['profiles']): PerfilSteam | null {
   if (!profiles) return null;
   return Array.isArray(profiles) ? (profiles[0] ?? null) : profiles;
-}
-
-/**
- * Convierte un SteamID64 (o un account_id de 32 bits) al account_id que usa la API de Dota.
- */
-function steam64ToAccountId(steamId: string | null | undefined): number | null {
-  if (!steamId) return null;
-
-  try {
-    const numero = BigInt(steamId.trim());
-    if (numero <= BigInt(0)) return null;
-
-    const cuenta = numero >= STEAM64_BASE ? numero - STEAM64_BASE : numero;
-    if (cuenta <= BigInt(0) || cuenta > BigInt('4294967295')) return null;
-
-    return Number(cuenta);
-  } catch {
-    return null;
-  }
 }
 
 async function fetchHistorial(accountId: number): Promise<SteamHistoryMatch[]> {

@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
 import Avatar from '@/components/Avatar';
+import DotabuffLink from '@/components/DotabuffLink';
 import MedallaMmr from '@/components/MedallaMmr';
 import { etiquetaRol, ICONOS_ROL } from '@/lib/balance';
 import type { RolDota } from '@/lib/types';
@@ -377,6 +378,8 @@ function PerfilJugadorContenido() {
                 {miembroDesde && (
                   <p className="mt-0.5 text-xs text-slate-500">Miembro desde {miembroDesde}</p>
                 )}
+
+                <DotabuffLink userId={perfil.id} className="mt-2" />
 
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   {roles.length > 0 ? (

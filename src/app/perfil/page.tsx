@@ -10,6 +10,7 @@ import { useArenaBody } from '@/lib/useArenaBody';
 import { etiquetaRol, ICONOS_ROL, ROLES_DOTA } from '@/lib/balance';
 import Navbar from '@/components/Navbar';
 import Avatar from '@/components/Avatar';
+import DotabuffLink from '@/components/DotabuffLink';
 import MedallaMmr from '@/components/MedallaMmr';
 import type { RolDota } from '@/lib/types';
 
@@ -733,6 +734,7 @@ function PerfilContenido() {
                       Vincular Steam
                     </button>
                   )}
+                  <DotabuffLink steamId={steamId} compact />
                 </div>
               </div>
             </div>

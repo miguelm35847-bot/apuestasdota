@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Avatar from '@/components/Avatar';
+import DotabuffLink from '@/components/DotabuffLink';
 import MedallaMmr from '@/components/MedallaMmr';
 import { etiquetaRol, ICONOS_ROL } from '@/lib/balance';
 import type { RolDota } from '@/lib/types';
@@ -289,6 +290,12 @@ export default function PerfilHover({
               Ver perfil público
               <span aria-hidden="true">→</span>
             </Link>
+
+            <DotabuffLink
+              userId={usuario.id}
+              compact
+              className="mt-1.5 w-full justify-center"
+            />
           </div>,
           document.body
         )}
