@@ -217,21 +217,20 @@ export default function AdminJugadoresPage() {
     setSuccess(null);
 
     const delta = accion.tipo === 'recarga' ? montoCentimos : -montoCentimos;
-    const descripcion = accion.tipo === 'recarga' ? 'Recarga manual' : `Multa: ${motivo}`;
-
-    const { error: rpcError } = await supabase.rpc('ajuste_admin', {
-      p_user: accion.jugador.id,
-      p_monto: delta,
-      p_motivo: descripcion,
-    });
-
-    if (rpcError) {
-      setErrorModal('No se pudo aplicar el movimiento: ' + rpcError.message);
-      setProcesandoSaldo(false);
-      return;
-    }
 
     if (accion.tipo === 'recarga') {
+      const { error: rpcError } = await supabase.rpc('ajuste_admin', {
+        p_user: accion.jugador.id,
+        p_monto: montoCentimos,
+        p_motivo: 'Recarga manual',
+      });
+
+      if (rpcError) {
+        setErrorModal('No se pudo aplicar el movimiento: ' + rpcError.message);
+        setProcesandoSaldo(false);
+        return;
+      }
+
       const { error: notifError } = await supabase.rpc('notificar_usuario', {
         p_user: accion.jugador.id,
         p_tipo: 'recarga_aprobada',
@@ -242,16 +241,18 @@ export default function AdminJugadoresPage() {
         setAviso('El saldo se acreditó, pero no se pudo crear la notificación al jugador.');
       }
     } else {
-      const { error: notifError } = await supabase.rpc('notificar_usuario', {
+      // La RPC aplica el movimiento, deja la multa en el panel de actividades y
+      // notifica al jugador, todo en una sola operación.
+      const { error: rpcError } = await supabase.rpc('admin_aplicar_multa', {
         p_user: accion.jugador.id,
-        p_tipo: 'multa',
-        p_mensaje: `Se aplicó una multa de ${formatSoles(montoCentimos)}. Motivo: ${motivo}.`,
+        p_monto: montoCentimos,
+        p_motivo: motivo,
       });
-      if (notifError) {
-        console.error('Error creando notificación de multa:', notifError.message);
-        setAviso(
-          'La multa se aplicó, pero no se pudo notificar al jugador. Aplica docs/sql/2026-10-21-multas.sql en Supabase para habilitar el tipo de notificación "multa".'
-        );
+
+      if (rpcError) {
+        setErrorModal('No se pudo aplicar la multa: ' + rpcError.message);
+        setProcesandoSaldo(false);
+        return;
       }
     }
 
@@ -588,7 +589,8 @@ export default function AdminJugadoresPage() {
                       {quedaNegativo && (
                         <span className="font-semibold text-amber-300">
                           {' '}
-                          La multa supera el saldo actual; la cuenta quedará en negativo.
+                          La multa no puede ser mayor al saldo disponible (
+                          {formatSoles(saldoAccion ?? 0)}).
                         </span>
                       )}
                     </>

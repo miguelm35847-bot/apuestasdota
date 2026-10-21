@@ -13,6 +13,8 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 - Salas 1v1/5v5 con equipos, picks, lobby, cierre automático/manual, panel admin y endurecimiento de RPCs.
 - Admin → Jugadores: MMR, **recarga manual** (sin motivo) y **multas** por faltas a las reglas, con saldo por jugador y notificación.
 - Verificación de sala "Estoy listo": el admin la pide cuando la sala está completa, cada jugador confirma desde la sala (aviso sonoro dentro de la sala + notificación) y los slots marcan con ✓ a los que confirmaron. No bloquea el inicio de la partida.
+- Donaciones entre usuarios: botón "Donar saldo" en el perfil público, con mensaje opcional; todo el movimiento ocurre en la RPC `donar_saldo` (atómico, con control de saldo y sin donarse a uno mismo).
+- Panel público de actividades en el landing: muestra en vivo las donaciones ("Perfil 1 donó S/ 2.00 a Perfil 2", con avatares) y las multas aplicadas por el admin.
 - Sonidos de la arena (Web Audio, sin archivos ni botón de volumen): aviso de verificación (suena a los jugadores de la sala, estén donde estén) y fin de partida (suena para todos los jugadores de la sala). Los avisos de verificación **no** aparecen en la campana.
 - Guía pública `/como-jugar` con pasos y reglas.
 - QA automatizado: harness visual por CDP (`npm run qa`) y QA de datos (`qa:seed`, `qa:probes`, `qa:flows`, `qa:cleanup`) con 10 actores API + admin efímero.
@@ -20,7 +22,7 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 
 ## Pendientes
 
-- SQL aplicado en Supabase: `docs/sql/2026-10-21-multas.sql` (tipo `multa`), `docs/sql/2026-10-21-verificacion-sala.sql` (columnas + RPCs de la verificación), `docs/sql/2026-10-21-fin-partida-sonido.sql` (tipo `partida_finalizada` + RPC `notificar_sala_terminada`). **Pendiente de aplicar**: `docs/sql/2026-10-21-realtime-notificaciones.sql` (publica `notificaciones` en Realtime: sin esto la campana no se actualiza en vivo y el sonido de fin de partida no suena) y, opcional, `docs/sql/2026-10-21-verificacion-sin-notificacion.sql` (deja de crear los avisos `verificacion_sala` en la base).
+- SQL pendiente de aplicar en Supabase: `docs/sql/2026-10-21-donaciones.sql` (tablas `actividades` y `donaciones`, RPCs `donar_saldo` y `admin_aplicar_multa`, tipo de notificación `donacion_recibida` y publicación de `actividades` en Realtime). Sin ese SQL el panel de actividades queda vacío y el botón de donar avisa que la función no existe.
 - Panel de actividades en el landing: hoy se guardan las multas como movimientos `ajuste_admin` con descripción `Multa: <motivo>`; falta el panel público (fines y luego donaciones) con Realtime.
 - Donaciones entre usuarios y panel de actividades: siguiente bloque agreed (recarga → verificación → donaciones/panel → en vivo).
 - Vista en vivo de héroe/kills: sigue pendiente; depende de que Valve apruebe liga/ticket (la API pública solo muestra partidas de liga).

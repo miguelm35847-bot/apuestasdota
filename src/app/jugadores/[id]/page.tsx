@@ -9,7 +9,9 @@ import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
 import Avatar from '@/components/Avatar';
 import MedallaMmr from '@/components/MedallaMmr';
+import ModalDonar from '@/components/ModalDonar';
 import PlayerLinks from '@/components/PlayerLinks';
+import Toast from '@/components/Toast';
 import { etiquetaRol, ICONOS_ROL } from '@/lib/balance';
 import type { RolDota } from '@/lib/types';
 
@@ -176,6 +178,8 @@ function PerfilJugadorContenido() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [noEncontrado, setNoEncontrado] = useState(false);
+  const [donarAbierto, setDonarAbierto] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     let activo = true;
@@ -335,13 +339,23 @@ function PerfilJugadorContenido() {
             <span aria-hidden="true">←</span>
             Volver al inicio
           </Link>
-          {esMiPerfil && (
+          {esMiPerfil ? (
             <Link
               href="/perfil"
               className="inline-flex items-center gap-1.5 rounded-lg border border-prism-500/30 bg-prism-500/10 px-3 py-1.5 text-sm font-semibold text-prism-200 transition hover:bg-prism-500/20"
             >
               Editar mi perfil
             </Link>
+          ) : (
+            user && (
+              <button
+                onClick={() => setDonarAbierto(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-sm font-semibold text-emerald-200 transition hover:bg-emerald-500/20"
+              >
+                <span aria-hidden="true">🎁</span>
+                Donar saldo
+              </button>
+            )
           )}
         </div>
 
@@ -474,6 +488,20 @@ function PerfilJugadorContenido() {
           )}
         </section>
       </main>
+
+      {donarAbierto && (
+        <ModalDonar
+          receptor={{
+            id: perfil.id,
+            nick: perfil.nick,
+            steam_avatar_url: perfil.steam_avatar_url,
+          }}
+          onCerrar={() => setDonarAbierto(false)}
+          onListo={(mensaje) => setToast(mensaje)}
+        />
+      )}
+
+      <Toast mensaje={toast} tipo="success" onClose={() => setToast(null)} />
     </div>
   );
 }

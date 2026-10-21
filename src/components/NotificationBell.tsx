@@ -123,6 +123,7 @@ export default function NotificationBell() {
       verificacion_sala: '🔔',
       verificacion_completa: '✅',
       partida_finalizada: '🏁',
+      donacion_recibida: '🎁',
     };
     return iconos[tipo] ?? '📋';
   }

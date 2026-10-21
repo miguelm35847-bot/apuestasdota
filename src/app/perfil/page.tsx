@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { sincronizarSteam } from '@/lib/steamClient';
 import { useArenaBody } from '@/lib/useArenaBody';
 import { etiquetaRol, ICONOS_ROL, ROLES_DOTA } from '@/lib/balance';
+import { ETIQUETAS_MOVIMIENTO } from '@/lib/actividades';
 import Navbar from '@/components/Navbar';
 import Avatar from '@/components/Avatar';
 import MedallaMmr from '@/components/MedallaMmr';
@@ -1138,8 +1139,8 @@ function PerfilContenido() {
                         {m.monto >= 0 ? '↓' : '↑'}
                       </span>
                       <div className="min-w-0">
-                        <p className="font-semibold capitalize text-white">
-                          {m.tipo.replace(/_/g, ' ')}
+                        <p className="font-semibold text-white">
+                          {ETIQUETAS_MOVIMIENTO[m.tipo] ?? m.tipo.replace(/_/g, ' ')}
                         </p>
                         <p className="truncate text-xs text-slate-400">
                           {m.detalle} · {new Date(m.fecha).toLocaleDateString('es-PE')}

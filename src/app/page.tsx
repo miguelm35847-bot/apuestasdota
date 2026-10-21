@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import SalasPublicas from '@/components/SalasPublicas';
+import ActividadPanel from '@/components/ActividadPanel';
 import HistorialGlobal from '@/components/HistorialGlobal';
 import ChatPanel from '@/components/ChatPanel';
 import HeroArena from '@/components/HeroArena';
@@ -29,6 +30,8 @@ export default function Home() {
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div id="salas" className="scroll-mt-24 space-y-5">
               <SalasPublicas isAuthenticated={!!user} />
+
+              <ActividadPanel />
 
               <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-arena-soft">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
