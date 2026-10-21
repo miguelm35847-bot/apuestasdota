@@ -1535,9 +1535,10 @@ notify pgrst, 'reload schema';
 - `src/app/admin/jugadores/page.tsx` — admin: buscador de jugadores, MMR/roles y edición del MMR (antifraude) mediante `admin_editar_mmr`.
 - `src/components/ConfirmDialog.tsx` — modal reutilizable de confirmación para acciones destructivas.
 - `src/components/Toast.tsx` — aviso flotante con cierre automático y estilo Arena Dark.
-- `src/components/AdminNav.tsx` — sub-navegación segmentada compartida por las pantallas admin (`Panel · Recargas · Retiros · Jugadores · Salas`), con estado activo e íconos.
-- `src/app/admin/page.tsx` — panel: tarjeta de ganancias de la casa, 4 KPI con enlaces (recargas/retiros pendientes, salas activas, jugadores) y grilla 2×2 de acciones rápidas.
-- `src/app/perfil/page.tsx` — perfil, Steam, historial, movimientos, billetera. Cabecera unificada (perfil + saldo), MMR como stat bloqueado, pestañas sticky con íconos y contadores, listas en tarjetas responsivas, estados vacíos con CTA y skeletons. El MMR solo se registra una vez; después solo se editan roles. Incluye medalla de rango y enlace al perfil público.
+- `src/components/AdminNav.tsx` — sub-navegación compartida por las pantallas admin (`Panel · Recargas · Retiros · Jugadores · Salas`), con estado activo e íconos; en móvil usa una grilla de 5 columnas (ícono + etiqueta) y en escritorio segmentos de igual ancho, sin scroll horizontal.
+- `src/components/AdminPageHeader.tsx` — cabecera compartida de admin (kicker KódigoDota, título, descripción, badge y acción opcional), usada por Panel, Recargas, Retiros y Jugadores.
+- `src/app/admin/page.tsx` — panel: tarjeta de ganancias de la casa, 4 KPI con enlaces (recargas/retiros pendientes, salas activas, jugadores; 2×2 en móvil) y grilla 2×2 de acciones rápidas.
+- `src/app/perfil/page.tsx` — perfil, Steam, historial, movimientos, billetera. Cabecera con identidad/estado de MMR/Steam/saldo, accesos Recargar/Retirar/Explorar salas y resumen de Partidas/Solicitudes/Movimientos; MMR como stat bloqueado, pestañas sticky con íconos/contadores y etiquetas cortas en móvil, listas en tarjetas responsivas, estados vacíos con CTA y skeletons. El MMR solo se registra una vez; después solo se editan roles. Incluye medalla de rango y enlace al perfil público.
 - `src/app/jugadores/[id]/page.tsx` — perfil público: avatar/Steam, MMR + medalla, roles, partidas terminadas, victorias, winrate y últimas 10 partidas con resultado, modalidad, duración, marcador y enlace a Dotabuff. Accesible sin sesión; valida UUID y muestra un estado de “no encontrado”.
 - `src/components/MedallaMmr.tsx` — imagen de medalla de rango (Herald a Immortal) con tamaños reutilizables, 1–5 estrellas según el MMR y placeholder “Sin MMR” con `rank_0.png`.
 - `src/lib/mmr.ts` — rangos de MMR, `rangoMmr()` y `estrellasDeMmr()`; las imágenes viven en `public/medallas/rank_0.png` … `rank_8.png` (`rank_0` = sin calibrar, `rank_1` = Herald … `rank_8` = Immortal).
@@ -1755,6 +1756,13 @@ grant select on public.profiles to service_role;
 -- 7) Refrescar la caché de PostgREST para las nuevas RPCs
 notify pgrst, 'reload schema';
 ```
+
+## 8.3 Pulido de perfil y admin (21/10/2026)
+
+- `/perfil`: cabecera con avatar/nick/estado MMR, email, enlace al perfil público, Steam (vincular/actualizar), saldo disponible y accesos rápidos a Recargar, Retirar y Explorar salas. Debajo, una franja de resumen con Partidas, Solicitudes y Movimientos. El perfil competitivo mantiene MMR bloqueado + roles; las pestañas sticky usan `Partidas · Solicitudes · Billetera` en móvil y los nombres completos desde `sm`.
+- Admin: `AdminPageHeader` unifica kicker, título, descripción y badge en Panel/Recargas/Retiros/Jugadores. El panel usa una tarjeta de ganancias más compacta con subtítulo, KPI 2×2 en móvil (4 columnas en `xl`) con icono/flecha y acciones rápidas con hover. Recargas, retiros y jugadores muestran estados vacíos con icono y texto de apoyo.
+- `AdminNav` pasó de scroll horizontal a grilla de 5 columnas en móvil; en escritorio los 5 segmentos se reparten el ancho. Ya no se recorta “Salas” a 390/360 px.
+- Verificación con Chrome headless autenticada (`mik` y admin) en 1366×768, 390×844 y 360×800: `document.scrollWidth === viewport`, pestañas y nav sin recortes, sin errores de consola. Se probó el cambio de pestaña a Movimientos y Billetera. `npx tsc --noEmit`, `npm run lint` y `npm run build` pasan. Sin cambios de SQL ni librerías; landing y salas no se tocaron.
 
 ## 9. Limitaciones conocidas
 

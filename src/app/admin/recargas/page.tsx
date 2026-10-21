@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
 import AdminNav from '@/components/AdminNav';
+import AdminPageHeader from '@/components/AdminPageHeader';
 import Avatar from '@/components/Avatar';
 
 
@@ -190,17 +191,15 @@ export default function AdminRecargasPage() {
       <main className="mx-auto max-w-5xl px-4 py-8">
         <AdminNav />
 
-        <div className="mb-4 mt-6 flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h1 className="font-display text-2xl font-bold text-white">Recargas pendientes</h1>
-            <p className="text-sm text-slate-400">
-              Aprueba o rechaza las solicitudes de recarga de los jugadores.
-            </p>
-          </div>
-          <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
-            {recargas.length} {recargas.length === 1 ? 'pendiente' : 'pendientes'}
-          </span>
-        </div>
+        <AdminPageHeader
+          titulo="Recargas pendientes"
+          descripcion="Aprueba o rechaza las solicitudes de recarga de los jugadores."
+          badge={
+            <span className="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-300">
+              {recargas.length} {recargas.length === 1 ? 'pendiente' : 'pendientes'}
+            </span>
+          }
+        />
 
         {error && (
           <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
@@ -214,8 +213,29 @@ export default function AdminRecargasPage() {
         )}
 
         {recargas.length === 0 ? (
-          <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 text-center shadow-arena-soft">
-            <p className="text-slate-400">No hay recargas pendientes</p>
+          <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] px-6 py-12 text-center shadow-arena-soft">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-300 ring-1 ring-inset ring-emerald-500/20">
+              <svg
+                className="h-6 w-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 3v12" />
+                <path d="M7 10l5 5 5-5" />
+                <path d="M5 21h14" />
+              </svg>
+            </span>
+            <p className="mt-4 font-display text-lg font-bold text-white">
+              No hay recargas pendientes
+            </p>
+            <p className="mt-1 text-sm text-slate-400">
+              Las nuevas solicitudes aparecerán aquí para su revisión.
+            </p>
           </div>
         ) : (
           <div className="space-y-4">

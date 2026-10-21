@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
 import AdminNav from '@/components/AdminNav';
+import AdminPageHeader from '@/components/AdminPageHeader';
 
 type EstadisticasAdmin = {
   recargas: number;
@@ -22,28 +23,41 @@ function KpiCard({
   href,
   tono,
   icono,
+  detalle,
 }: {
   etiqueta: string;
   valor: number | null;
   href: string;
   tono: string;
   icono: ReactNode;
+  detalle: string;
 }) {
   return (
     <Link
       href={href}
-      className="arena-card group flex items-center gap-4 rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-arena-soft transition hover:border-white/20"
+      className="arena-card group relative flex min-h-[148px] flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-[#111827] p-4 shadow-arena-soft transition hover:-translate-y-0.5 hover:border-white/20 hover:shadow-arena focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-500/40 sm:p-5"
     >
-      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tono}`}>
-        {icono}
-      </span>
-      <span className="min-w-0">
-        <span className="block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
-          {etiqueta}
+      <span className="flex items-start justify-between gap-3">
+        <span
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset ring-white/5 ${tono}`}
+        >
+          {icono}
         </span>
-        <span className="mt-1 block font-display text-2xl font-bold tabular-nums text-white">
+        <span
+          aria-hidden="true"
+          className="text-sm text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-slate-300"
+        >
+          →
+        </span>
+      </span>
+      <span className="mt-4 block text-[10px] font-bold uppercase leading-tight tracking-[0.14em] text-slate-400 sm:text-[11px]">
+        {etiqueta}
+      </span>
+      <span className="mt-1 flex items-end justify-between gap-2">
+        <span className="font-display text-3xl font-bold leading-none tabular-nums text-white">
           {valor !== null ? valor : '…'}
         </span>
+        <span className="pb-0.5 text-[10px] text-slate-500">{detalle}</span>
       </span>
     </Link>
   );
@@ -65,7 +79,7 @@ function AccionCard({
   return (
     <Link
       href={href}
-      className="arena-card group flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-arena-soft transition hover:border-white/20"
+      className="arena-card group flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#111827] p-4 shadow-arena-soft transition hover:-translate-y-0.5 hover:border-white/20 hover:shadow-arena focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-500/40 sm:p-5"
     >
       <span className="flex min-w-0 items-center gap-3">
         <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${tono}`}>
@@ -78,7 +92,7 @@ function AccionCard({
       </span>
       <span
         aria-hidden="true"
-        className="shrink-0 text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-slate-300"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/5 text-sm text-slate-400 transition group-hover:translate-x-0.5 group-hover:border-white/20 group-hover:text-slate-200"
       >
         →
       </span>
@@ -133,36 +147,59 @@ function AdminDashboard() {
       <main className="mx-auto max-w-7xl px-4 py-8">
         <AdminNav />
 
-        <div className="mb-6 mt-6">
-          <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-prism-300">
-            KódigoDota · Administración
-          </p>
-          <h1 className="mt-1 font-display text-2xl font-bold text-white">Panel de control</h1>
-        </div>
+        <AdminPageHeader
+          titulo="Panel de control"
+          descripcion="Revisa solicitudes, salas y jugadores desde un solo lugar."
+        />
 
         {/* Ganancias de la casa */}
-        <section className="arena-card rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/10 via-[#111827] to-[#111827] p-6 shadow-arena-soft">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-300/80">
-                Ganancias de la casa
-              </p>
-              <p className="mt-2 font-display text-4xl font-bold tabular-nums text-emerald-300">
-                {ganancias !== null ? `S/ ${(ganancias / 100).toFixed(2)}` : '…'}
-              </p>
+        <section className="arena-card relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/[0.12] via-[#111827] to-[#0b1220] p-5 shadow-arena-soft sm:p-6">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl"
+          />
+          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300 ring-1 ring-inset ring-emerald-500/20">
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 3v18" />
+                  <path d="M17 8.5c0-1.93-2.24-3.5-5-3.5S7 6.57 7 8.5s2.24 3.5 5 3.5 5 1.57 5 3.5-2.24 3.5-5 3.5-5-1.57-5-3.5" />
+                </svg>
+              </span>
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-300/80">
+                  Ganancias de la casa
+                </p>
+                <p className="mt-1 font-display text-3xl font-bold tabular-nums text-emerald-300 sm:text-4xl">
+                  {ganancias !== null ? `S/ ${(ganancias / 100).toFixed(2)}` : '…'}
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  Comisión acumulada de partidas finalizadas.
+                </p>
+              </div>
             </div>
-            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+            <span className="w-fit rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
               Ingresos acumulados
             </span>
           </div>
         </section>
 
         {/* KPIs */}
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
           <KpiCard
             etiqueta="Recargas pendientes"
             valor={stats?.recargas ?? null}
             href="/admin/recargas"
+            detalle="por revisar"
             tono="bg-amber-500/15 text-amber-300"
             icono={
               <svg
@@ -185,6 +222,7 @@ function AdminDashboard() {
             etiqueta="Retiros pendientes"
             valor={stats?.retiros ?? null}
             href="/admin/retiros"
+            detalle="por pagar"
             tono="bg-rose-500/15 text-rose-300"
             icono={
               <svg
@@ -207,6 +245,7 @@ function AdminDashboard() {
             etiqueta="Salas activas"
             valor={stats?.salas ?? null}
             href="/salas"
+            detalle="en curso"
             tono="bg-prism-500/15 text-prism-200"
             icono={
               <svg
@@ -229,6 +268,7 @@ function AdminDashboard() {
             etiqueta="Jugadores"
             valor={stats?.jugadores ?? null}
             href="/admin/jugadores"
+            detalle="registrados"
             tono="bg-sky-500/15 text-sky-300"
             icono={
               <svg
@@ -253,7 +293,10 @@ function AdminDashboard() {
         {/* Acciones rápidas */}
         <div className="mt-8">
           <h2 className="font-display text-lg font-bold text-white">Acciones rápidas</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <p className="mt-0.5 text-sm text-slate-400">
+            Atajos para las tareas más frecuentes de la arena.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 sm:gap-4">
             <AccionCard
               href="/admin/recargas"
               titulo="Revisar recargas"

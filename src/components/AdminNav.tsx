@@ -127,7 +127,7 @@ export default function AdminNav() {
   return (
     <nav
       aria-label="Secciones de administración"
-      className="flex gap-1 overflow-x-auto rounded-xl border border-white/10 bg-white/5 p-1"
+      className="grid grid-cols-5 gap-1 rounded-xl border border-white/10 bg-white/5 p-1 sm:flex"
     >
       {ITEMS.map((item) => {
         const activo = item.href === '/admin' ? pathname === '/admin' : pathname.startsWith(item.href);
@@ -136,14 +136,14 @@ export default function AdminNav() {
             key={item.href}
             href={item.href}
             aria-current={activo ? 'page' : undefined}
-            className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-500/40 ${
+            className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[10px] font-semibold leading-tight transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-500/40 sm:flex-1 sm:flex-row sm:gap-2 sm:px-3.5 sm:py-2 sm:text-sm ${
               activo
                 ? 'bg-prism-500 text-white shadow-arena-glow'
                 : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'
             }`}
           >
             {item.icono}
-            {item.nombre}
+            <span className="max-w-full truncate">{item.nombre}</span>
           </Link>
         );
       })}

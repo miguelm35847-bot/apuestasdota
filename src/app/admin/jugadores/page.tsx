@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
 import AdminNav from '@/components/AdminNav';
+import AdminPageHeader from '@/components/AdminPageHeader';
 import Avatar from '@/components/Avatar';
 import { formatearMmr, resumenRolesConIconos } from '@/lib/balance';
 import type { RolDota } from '@/lib/types';
@@ -151,14 +152,17 @@ export default function AdminJugadoresPage() {
       <main className="mx-auto max-w-5xl px-4 py-8">
         <AdminNav />
 
-        <div className="mb-4 mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="font-display text-2xl font-bold text-white">Jugadores</h1>
-            <p className="text-sm text-slate-400">
-              El MMR de cada jugador solo se registra una vez; como admin puedes corregirlo aquí.
-            </p>
-          </div>
-        </div>
+        <AdminPageHeader
+          titulo="Jugadores"
+          descripcion="El MMR de cada jugador solo se registra una vez; como admin puedes corregirlo aquí."
+          badge={
+            !cargando ? (
+              <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1 text-xs font-semibold text-sky-300">
+                {jugadores.length} {jugadores.length === 1 ? 'registrado' : 'registrados'}
+              </span>
+            ) : undefined
+          }
+        />
 
         {error && (
           <div className="mb-4 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
@@ -184,8 +188,28 @@ export default function AdminJugadoresPage() {
             <p className="text-slate-400">Cargando jugadores...</p>
           </div>
         ) : visibles.length === 0 ? (
-          <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 text-center shadow-arena-soft">
-            <p className="text-slate-400">No se encontraron jugadores</p>
+          <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] px-6 py-12 text-center shadow-arena-soft">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-300 ring-1 ring-inset ring-sky-500/20">
+              <svg
+                className="h-6 w-6"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+            </span>
+            <p className="mt-4 font-display text-lg font-bold text-white">
+              No se encontraron jugadores
+            </p>
+            <p className="mt-1 text-sm text-slate-400">
+              Prueba con otro nick o revisa el MMR ingresado.
+            </p>
           </div>
         ) : (
           <div className="space-y-2">
