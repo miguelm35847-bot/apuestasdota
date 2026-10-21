@@ -26,10 +26,10 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 
 ## Pendientes
 
-- SQL pendiente de aplicar en Supabase: `docs/sql/2026-10-21-verificacion-automatica.sql` (pide la verificación automáticamente cuando la sala se llena y deja la moneda 1v1 para después del “Estoy listo”).
+- SQL aplicado en Supabase: `docs/sql/2026-10-21-multas.sql`, `2026-10-21-verificacion-sala.sql`, `2026-10-21-verificacion-automatica.sql`, `2026-10-21-fin-partida-sonido.sql`, `2026-10-21-realtime-notificaciones.sql`, `2026-10-21-donaciones.sql`, `2026-10-21-tipos-movimiento-donacion.sql`, `2026-10-21-signo-movimiento-donacion.sql` y `2026-10-21-preferencia-lado.sql`. No queda SQL pendiente.
 - Panel de actividades en el landing: hoy se guardan las multas como movimientos `ajuste_admin` con descripción `Multa: <motivo>`; falta el panel público (fines y luego donaciones) con Realtime.
 - Donaciones entre usuarios y panel de actividades: siguiente bloque agreed (recarga → verificación → donaciones/panel → en vivo).
-- Vista en vivo de héroe/kills: sigue pendiente; depende de que Valve apruebe liga/ticket (la API pública solo muestra partidas de liga).
+- Vista en vivo de héroe/kills: mockup listo en `/demo-vivo`; falta conectarlo a la API de Valve (`GetLiveLeagueGames`, ya tenemos `STEAM_API_KEY`), que solo publica partidas de liga/torneo, así que depende de que Valve apruebe liga/ticket.
 
 - QA de backend aplicado (21/10/2026): `qa:probes` queda **22/22** (se sumó la prueba de que un jugador no puede ajustar el saldo de otro), `qa:flows` 1v1 y 5v5 quedan verdes (reparto 5/5, lobby y reembolso) y `qa:cleanup` dejó la base sin perfiles `qa-*` ni salas `QA `. Se conserva `qa_cdp` para el harness visual.
 - Probar el flujo completo de MMR único + fase de picks en la interfaz
