@@ -26,7 +26,7 @@ export default function Home() {
         <HeroArena isAuthenticated={!!user} />
 
         {/* Contenido público */}
-        <main className="mx-auto max-w-[1760px] px-4 py-6 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-[1860px] px-4 py-6 sm:px-6 lg:px-8">
           <div className="grid gap-5 lg:grid-cols-[340px_minmax(0,1fr)_360px] lg:items-start">
             {/* Feed de actividades (izquierda) */}
             <aside className="order-2 lg:order-1 lg:sticky lg:top-20">
@@ -71,7 +71,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="arena-footer mt-8">
-        <div className="mx-auto max-w-[1760px] px-4 py-5 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1860px] px-4 py-5 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
           <p className="font-semibold text-slate-400">
             KódigoDota · Plataforma de salas de juego
           </p>

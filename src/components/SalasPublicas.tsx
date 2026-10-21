@@ -120,6 +120,12 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
             const puedeUnirse = sala.estado === 'abierta' && count < sala.cupo && !estoyDentro;
             const esRadiant = index % 2 === 0;
 
+            // Mismo cálculo que la sala y el hero: pozo menos comisión, dividido
+            // entre los ganadores de cada equipo.
+            const pozo = sala.cuota * sala.cupo;
+            const comision = Math.floor((pozo * (sala.comision_bp ?? 0)) / 10000);
+            const premioPorGanador = Math.floor((pozo - comision) / (sala.cupo === 2 ? 1 : 5));
+
             return (
               <div
                 key={sala.id}
@@ -197,10 +203,10 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                     </div>
                     <div className="rounded-lg border border-white/[0.06] bg-black/25 px-3 py-1.5">
                       <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
-                        Jugadores
+                        Por ganador
                       </p>
-                      <p className="font-display text-sm font-bold text-white">
-                        {count}/{sala.cupo}
+                      <p className="font-display text-sm font-bold text-amber-300">
+                        S/ {(premioPorGanador / 100).toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -249,6 +255,9 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                         />
                       );
                     })}
+                    <span className="ml-1 rounded-full bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-slate-300">
+                      {count}/{sala.cupo}
+                    </span>
                   </div>
                 </div>
 
