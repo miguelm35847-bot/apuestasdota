@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:libre": "node scripts/free-port.mjs 3000 && next dev",
+    "lib:puerto": "node scripts/free-port.mjs 3000",
     "build": "next build",
     "start": "next start",
     "qa:serve": "next start -p 3001",
