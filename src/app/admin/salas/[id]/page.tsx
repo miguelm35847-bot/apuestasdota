@@ -81,7 +81,10 @@ function FilaJugador({
             </span>
           </span>
           {mostrarPreferencia && <PreferenciaLado equipo={p.preferencia_equipo} className="mt-1" />}
-          <ResumenJugador key={p.user_id} userId={p.user_id} compacto className="mt-1" />
+          {/* El resumen de Dota 2 solo aparece en la lista de espera. */}
+          {actual === null && (
+            <ResumenJugador key={p.user_id} userId={p.user_id} compacto className="mt-1" />
+          )}
         </div>
       </Link>
       <div className="flex shrink-0 flex-wrap justify-end gap-1">

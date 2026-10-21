@@ -6,7 +6,7 @@ import type { ResumenDota } from '@/lib/dotaResumen';
 
 type Props = {
   userId: string;
-  /** Muestra solo el héroe y el rol (para espacios pequeños). */
+  /** Versión reducida: solo los 3 héroes y el rol más jugado. */
   compacto?: boolean;
   className?: string;
 };
@@ -14,11 +14,13 @@ type Props = {
 const cache = new Map<string, ResumenDota>();
 
 /**
- * Datos destacados de un jugador dentro de la sala: héroe y rol más jugados
- * y winrate reciente, con enlace a su Dotabuff.
+ * Datos destacados de un jugador dentro de la sala.
  *
- * Viene de la API pública de OpenDota (la fuente de Dotabuff). Si el jugador
- * no tiene partidas públicas, no se muestra nada.
+ * Viene de la API pública de OpenDota (la fuente de Dotabuff): los 3 héroes
+ * más jugados, los 3 roles más jugados con su winrate, los roles de las
+ * últimas partidas y el enlace a su Dotabuff.
+ *
+ * Si el jugador no tiene partidas públicas, no se muestra nada.
  */
 export default function ResumenJugador({ userId, compacto = false, className = '' }: Props) {
   const [resumen, setResumen] = useState<ResumenDota | null>(() => cache.get(userId) ?? null);
@@ -56,44 +58,66 @@ export default function ResumenJugador({ userId, compacto = false, className = '
 
   if (!resumen?.disponible) return null;
 
-  const { heroeFavorito, rolFavorito, winrateReciente, dotabuffUrl, ultimaPartida } = resumen;
+  const { heroes, roles, rolesRecientes, winrateReciente, dotabuffUrl, ultimaPartida } = resumen;
 
-  if (!heroeFavorito && !rolFavorito && !dotabuffUrl) return null;
+  if (heroes.length === 0 && roles.length === 0 && !dotabuffUrl) return null;
 
   return (
-    <div className={`flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-slate-400 ${className}`}>
-      {heroeFavorito && (
-        <span className="inline-flex items-center gap-1" title={`${heroeFavorito.nombre}: ${heroeFavorito.partidas} partidas`}>
-          {/* eslint-disable-next-line @next/next/no-img-element -- icono de héroe del CDN de Valve */}
-          <img
-            src={heroeFavorito.imagen}
-            alt=""
-            width={16}
-            height={16}
-            className="h-4 w-4 shrink-0 rounded-full bg-white/5 object-cover"
-            loading="lazy"
-          />
-          <span className="text-slate-300">{heroeFavorito.nombre}</span>
-        </span>
+    <div className={`flex flex-col gap-1 ${className}`}>
+      {/* 3 héroes más jugados */}
+      {heroes.length > 0 && (
+        <div className="flex items-center gap-1" title={heroes.map((h) => `${h.nombre} (${h.partidas})`).join(' · ')}>
+          {heroes.map((heroe) => (
+            <span key={heroe.id} className="relative inline-block">
+              {/* eslint-disable-next-line @next/next/no-img-element -- icono de héroe del CDN de Valve */}
+              <img
+                src={heroe.imagen}
+                alt={heroe.nombre}
+                width={18}
+                height={18}
+                className="h-[18px] w-[18px] rounded-full bg-white/5 object-cover ring-1 ring-white/10"
+                loading="lazy"
+              />
+            </span>
+          ))}
+          {!compacto && (
+            <span className="truncate text-[10px] text-slate-400">
+              {heroes[0].nombre}
+            </span>
+          )}
+        </div>
       )}
 
-      {rolFavorito && (
-        <span title={`${rolFavorito.partidas} partidas en ese rol`}>
-          {rolFavorito.rol} · {rolFavorito.winrate}%
-        </span>
+      {/* Roles más jugados con su winrate */}
+      {roles.length > 0 && (
+        <p
+          className="truncate text-[10px] text-slate-400"
+          title={roles.map((r) => `${r.rol}: ${r.winrate}% (${r.partidas})`).join(' · ')}
+        >
+          {roles.map((rol) => `${rol.rol} ${rol.winrate}%`).join(' · ')}
+        </p>
+      )}
+
+      {/* Roles de las últimas partidas */}
+      {rolesRecientes.length > 0 && (
+        <p
+          className="truncate text-[10px] text-slate-500"
+          title="Roles de sus últimas partidas"
+        >
+          Últimos: {rolesRecientes.join(' · ')}
+        </p>
       )}
 
       {!compacto && winrateReciente !== null && (
-        <span title="Winrate de las últimas 10 partidas públicas">Últ. 10: {winrateReciente}%</span>
-      )}
-
-      {!compacto && ultimaPartida && (
-        <span
-          className={ultimaPartida.victoria ? 'text-emerald-300' : 'text-rose-300'}
-          title={`Última partida: ${ultimaPartida.heroe}`}
-        >
-          Última: {ultimaPartida.victoria ? 'victoria' : 'derrota'}
-        </span>
+        <p className="truncate text-[10px] text-slate-500">
+          Últimas 10: <span className="text-slate-300">{winrateReciente}%</span>
+          {ultimaPartida && (
+            <span className={ultimaPartida.victoria ? 'text-emerald-300' : 'text-rose-300'}>
+              {' · '}
+              {ultimaPartida.victoria ? 'victoria' : 'derrota'}
+            </span>
+          )}
+        </p>
       )}
 
       {dotabuffUrl && (
@@ -101,7 +125,7 @@ export default function ResumenJugador({ userId, compacto = false, className = '
           href={dotabuffUrl}
           target="_blank"
           rel="noreferrer noopener"
-          className="inline-flex items-center gap-0.5 font-semibold text-prism-300 transition hover:text-prism-200 hover:underline"
+          className="inline-flex w-fit items-center gap-0.5 text-[10px] font-semibold text-prism-300 transition hover:text-prism-200 hover:underline"
           onClick={(event) => event.stopPropagation()}
         >
           Dotabuff

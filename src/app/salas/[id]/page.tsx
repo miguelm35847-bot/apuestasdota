@@ -260,7 +260,7 @@ function Columna({
                 <Link
                   href={`/jugadores/${p.user_id}`}
                   aria-label={`Ver perfil de ${nick}`}
-                  className={`relative flex min-h-10 items-center gap-1.5 rounded-lg border px-1.5 py-0.5 pr-6 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
+                  className={`relative flex min-h-10 items-start gap-1.5 rounded-lg border px-1.5 py-1 pr-6 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
                     esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
                   }`}
                 >
@@ -326,8 +326,7 @@ function Columna({
                       compacto
                       className="mt-1"
                     />
-                  </div>
-                </Link>
+                  </div>                </Link>
               </PerfilHover>
             );
           }
@@ -474,7 +473,7 @@ function TableroPicks({
     participantes.find((p) => p.user_id !== sala.pick_decision_user_id) ?? null
   );
 
-  function Ficha({ p }: { p: Participante }) {
+  function Ficha({ p, conResumen = false }: { p: Participante; conResumen?: boolean }) {
     const perfil = p.profiles;
     return (
       <div
@@ -502,7 +501,7 @@ function TableroPicks({
           {resumenRolesConIconos(perfil?.roles_preferidos)}
         </p>
         <PreferenciaLado equipo={p.preferencia_equipo} className="mt-1" />
-        <ResumenJugador key={p.user_id} userId={p.user_id} className="mt-1" />
+        {conResumen && <ResumenJugador key={p.user_id} userId={p.user_id} className="mt-1" />}
       </div>
     );
   }
@@ -698,7 +697,7 @@ function TableroPicks({
                 {pool.map((p) => (
                   <div key={p.user_id} className="flex items-center gap-2">
                     <div className="min-w-0 flex-1">
-                      <Ficha p={p} />
+                      <Ficha p={p} conResumen />
                     </div>
                     {miTurno && (
                       <button

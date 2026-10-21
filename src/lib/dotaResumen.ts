@@ -33,8 +33,12 @@ export type RolResumen = {
 export type ResumenDota = {
   disponible: boolean;
   dotabuffUrl: string | null;
-  heroeFavorito: HeroResumen | null;
-  rolFavorito: RolResumen | null;
+  /** Los 3 héroes más jugados. */
+  heroes: HeroResumen[];
+  /** Los 3 roles más jugados con su winrate. */
+  roles: RolResumen[];
+  /** Los roles de las últimas partidas, del más reciente al más antiguo. */
+  rolesRecientes: string[];
   winrateReciente: number | null;
   partidasAnalizadas: number;
   ultimaPartida: {
@@ -124,8 +128,9 @@ function sinResumen(dotabuffUrl: string | null): ResumenDota {
   return {
     disponible: false,
     dotabuffUrl,
-    heroeFavorito: null,
-    rolFavorito: null,
+    heroes: [],
+    roles: [],
+    rolesRecientes: [],
     winrateReciente: null,
     partidasAnalizadas: 0,
     ultimaPartida: null,
@@ -188,29 +193,31 @@ export async function obtenerResumenDota(
       }
     }
 
-    const heroeTop = [...porHeroe.entries()].sort((a, b) => b[1].partidas - a[1].partidas)[0];
-    const rolTop = [...porRol.entries()].sort((a, b) => b[1].partidas - a[1].partidas)[0];
+    const heroeTop = [...porHeroe.entries()].sort((a, b) => b[1].partidas - a[1].partidas).slice(0, 3);
+    const rolTop = [...porRol.entries()].sort((a, b) => b[1].partidas - a[1].partidas).slice(0, 3);
 
-    const heroeFavorito = heroeTop
-      ? await infoHeroe(heroeTop[0]).then((info) =>
-          info
-            ? {
-                id: heroeTop[0],
-                nombre: info.nombre,
-                imagen: info.imagen,
-                partidas: heroeTop[1].partidas,
-              }
-            : null
-        )
-      : null;
+    const heroes = (
+      await Promise.all(
+        heroeTop.map(async ([heroId, datos]) => {
+          const info = await infoHeroe(heroId);
+          return info
+            ? { id: heroId, nombre: info.nombre, imagen: info.imagen, partidas: datos.partidas }
+            : null;
+        })
+      )
+    ).filter((h): h is HeroResumen => h !== null);
 
-    const rolFavorito = rolTop
-      ? {
-          rol: ROLES[rolTop[0]],
-          partidas: rolTop[1].partidas,
-          winrate: Math.round((rolTop[1].victorias / rolTop[1].partidas) * 100),
-        }
-      : null;
+    const roles = rolTop.map(([rol, datos]) => ({
+      rol: ROLES[rol],
+      partidas: datos.partidas,
+      winrate: Math.round((datos.victorias / datos.partidas) * 100),
+    }));
+
+    // Los roles de las últimas partidas (del más reciente al más antiguo).
+    const rolesRecientes = partidas
+      .slice(0, 3)
+      .map((partida) => (partida.lane_role ? ROLES[partida.lane_role] : null))
+      .filter((rol): rol is string => Boolean(rol));
 
     const ultimasDiez = partidas.slice(0, 10);
     const victoriasRecientes = ultimasDiez.filter((p) => gano(p)).length;
@@ -224,8 +231,9 @@ export async function obtenerResumenDota(
     const resumen: ResumenDota = {
       disponible: true,
       dotabuffUrl,
-      heroeFavorito,
-      rolFavorito,
+      heroes,
+      roles,
+      rolesRecientes,
       winrateReciente,
       partidasAnalizadas: partidas.length,
       ultimaPartida: infoUltima
