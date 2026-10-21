@@ -32,6 +32,8 @@ type MedallaMmrProps = {
   size?: MedallaSize;
   mostrarNombre?: boolean;
   mostrarEstrellas?: boolean;
+  /** Versión en línea (solo la imagen) para meterla dentro de `<p>` o `<span>`. */
+  inline?: boolean;
   className?: string;
 };
 
@@ -71,10 +73,33 @@ export default function MedallaMmr({
   size = 'md',
   mostrarNombre = true,
   mostrarEstrellas = true,
+  inline = false,
   className = '',
 }: MedallaMmrProps) {
   const rango = rangoMmr(mmr);
   const px = PIXELES[size];
+
+  // Versión en línea: solo la imagen, en un `<span>` para poder usarla dentro
+  // de un `<p>` o de otro `<span>` sin romper el HTML.
+  if (inline) {
+    return (
+      <span
+        className={`inline-flex shrink-0 items-center ${className}`.trim()}
+        title={rango ? `Medalla ${rango.nombre}` : 'Sin MMR'}
+      >
+        <Image
+          src={rango?.icono ?? '/medallas/rank_0.png'}
+          alt=""
+          width={px}
+          height={px}
+          className={`${CLASES_TAMANO[size]} object-contain ${
+            rango ? '' : 'opacity-80'
+          }`}
+          sizes={`${px}px`}
+        />
+      </span>
+    );
+  }
 
   if (!rango) {
     return (

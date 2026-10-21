@@ -43,50 +43,48 @@ function FilaJugador({
   onExpulsar: (p: Participante) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-2 rounded-md border border-white/10 px-2 py-1">
-      <Link
-        href={`/jugadores/${p.user_id}`}
-        title={`Ver perfil de ${p.profiles?.nick ?? 'Usuario'}`}
-        className="flex min-w-0 items-center gap-2 transition hover:bg-white/5"
-      >
-        <Avatar nick={p.profiles?.nick} src={p.profiles?.steam_avatar_url} size="sm" />
-        <div className="relative min-w-0 pr-4">
-          {p.verificado_at && (
-            <span
-              title="Listo para la partida"
-              aria-label="Listo para la partida"
-              className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-[5px] bg-emerald-500/20 text-[10px] font-bold leading-none text-emerald-300 ring-1 ring-inset ring-emerald-400/40"
-            >
-              ✓
+    <div className="rounded-md border border-white/10 px-2 py-1">
+      <div className="flex items-center justify-between gap-2">
+        <Link
+          href={`/jugadores/${p.user_id}`}
+          title={`Ver perfil de ${p.profiles?.nick ?? 'Usuario'}`}
+          className="flex min-w-0 items-center gap-2 transition hover:bg-white/5"
+        >
+          <Avatar nick={p.profiles?.nick} src={p.profiles?.steam_avatar_url} size="sm" />
+          <div className="relative min-w-0 pr-4">
+            {p.verificado_at && (
+              <span
+                title="Listo para la partida"
+                aria-label="Listo para la partida"
+                className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-[5px] bg-emerald-500/20 text-[10px] font-bold leading-none text-emerald-300 ring-1 ring-inset ring-emerald-400/40"
+              >
+                ✓
+              </span>
+            )}
+            <span className="block truncate text-xs font-medium text-slate-100">
+              {p.es_capitan ? '⭐ ' : ''}
+              {p.profiles?.nick ?? 'Usuario'}
             </span>
-          )}
-          <span className="block truncate text-xs font-medium text-slate-100">
-            {p.es_capitan ? '⭐ ' : ''}
-            {p.profiles?.nick ?? 'Usuario'}
-          </span>
-          <span className="block truncate text-[11px] text-slate-400">
-            <span className="inline-flex items-center gap-1 font-bold text-prism-300/90">
-              <MedallaMmr
-                mmr={p.profiles?.mmr}
-                size="xs"
-                mostrarEstrellas={false}
-                mostrarNombre={false}
-                className="shrink-0"
-              />
-              {p.profiles?.mmr != null ? `MMR ${formatearMmr(p.profiles.mmr)}` : 'Sin MMR'}
+            <span className="block truncate text-[11px] text-slate-400">
+              <span className="inline-flex items-center gap-1 font-bold text-prism-300/90">
+                <MedallaMmr
+                  mmr={p.profiles?.mmr}
+                  size="xs"
+                  inline
+                  className="shrink-0"
+                />
+                {p.profiles?.mmr != null ? `MMR ${formatearMmr(p.profiles.mmr)}` : 'Sin MMR'}
+              </span>
+              <span className="text-slate-500">
+                {' · '}
+                {resumenRolesConIconos(p.profiles?.roles_preferidos)}
+              </span>
             </span>
-            <span className="text-slate-500">
-              {' · '}
-              {resumenRolesConIconos(p.profiles?.roles_preferidos)}
-            </span>
-          </span>
-          {mostrarPreferencia && <PreferenciaLado equipo={p.preferencia_equipo} className="mt-1" />}
-          {/* El resumen de Dota 2 solo aparece en la lista de espera. */}
-          {actual === null && (
-            <ResumenJugador key={p.user_id} userId={p.user_id} compacto className="mt-1" />
-          )}
-        </div>
-      </Link>
+            {mostrarPreferencia && (
+              <PreferenciaLado equipo={p.preferencia_equipo} className="mt-1" />
+            )}
+          </div>
+        </Link>
       <div className="flex shrink-0 flex-wrap justify-end gap-1">
         {mostrarMover && estadoSala !== 'en_juego' && actual !== null && (
           <button
@@ -122,7 +120,16 @@ function FilaJugador({
             Sacar
           </button>
         )}
+        </div>
       </div>
+
+      {/* El resumen de Dota 2 va fuera del enlace del perfil para no anidar
+          dos <a> (el de Dotabuff dentro del del perfil). */}
+      {actual === null && (
+        <div className="pl-9">
+          <ResumenJugador userId={p.user_id} compacto className="mt-1" />
+        </div>
+      )}
     </div>
   );
 }

@@ -251,83 +251,88 @@ function Columna({
 
           if (compacta) {
             return (
-              <PerfilHover
+              <div
                 key={p.user_id}
-                usuario={usuarioHover}
-                className="block"
-                abrirConClick
+                className={`relative rounded-lg border px-1.5 py-1 pr-6 transition hover:border-prism-400/40 ${
+                  esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
+                }`}
               >
-                <Link
-                  href={`/jugadores/${p.user_id}`}
-                  aria-label={`Ver perfil de ${nick}`}
-                  className={`relative flex min-h-10 items-start gap-1.5 rounded-lg border px-1.5 py-1 pr-6 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
-                    esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
-                  }`}
+                {p.verificado_at && (
+                  <span
+                    title="Listo para la partida"
+                    aria-label="Listo para la partida"
+                    className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-[5px] bg-emerald-500/20 text-[10px] font-bold leading-none text-emerald-300 ring-1 ring-inset ring-emerald-400/40"
+                  >
+                    ✓
+                  </span>
+                )}
+
+                <PerfilHover
+                  usuario={usuarioHover}
+                  className="block"
+                  abrirConClick
                 >
-                  {p.verificado_at && (
-                    <span
-                      title="Listo para la partida"
-                      aria-label="Listo para la partida"
-                      className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-[5px] bg-emerald-500/20 text-[10px] font-bold leading-none text-emerald-300 ring-1 ring-inset ring-emerald-400/40"
-                    >
-                      ✓
-                    </span>
-                  )}
-                  <Avatar
-                    nick={p.profiles?.nick}
-                    src={p.profiles?.steam_avatar_url}
-                    size="sm"
-                    ringClass="ring-2 ring-white/20"
-                    title={detalle}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-medium text-slate-100">
-                      {p.es_capitan ? '⭐ ' : ''}
-                      {nick}
-                      {esTuyo ? ' (tú)' : ''}
-                    </p>
-                    <div className="flex min-w-0 items-center justify-between gap-1">
-                      <p
-                        className={`flex min-w-0 items-center gap-1 text-[11px] font-bold ${
-                          mmr != null ? 'text-prism-300' : 'text-slate-500'
-                        }`}
-                      >
-                        <MedallaMmr
-                          mmr={mmr}
-                          size="xs"
-                          mostrarEstrellas={false}
-                          mostrarNombre={false}
-                          className="shrink-0"
-                        />
-                        <span className="truncate">
-                          {mmr != null ? `MMR ${formatearMmr(mmr)}` : 'Sin MMR'}
-                        </span>
-                      </p>
-                      {roles.length > 0 && (
-                        <span
-                          className="flex shrink-0 items-center gap-0.5"
-                          aria-label={`Roles: ${roles.map((r) => etiquetaRol(r)).join(', ')}`}
-                        >
-                          {roles.map((rol) => (
-                            <span
-                              key={rol}
-                              title={etiquetaRol(rol)}
-                              className="text-[11px] leading-none"
-                            >
-                              {ICONOS_ROL[rol]}
-                            </span>
-                          ))}
-                        </span>
-                      )}
-                    </div>
-                    <ResumenJugador
-                      key={p.user_id}
-                      userId={p.user_id}
-                      compacto
-                      className="mt-1"
+                  <Link
+                    href={`/jugadores/${p.user_id}`}
+                    aria-label={`Ver perfil de ${nick}`}
+                    className="flex min-h-10 items-start gap-1.5 transition hover:opacity-90"
+                  >
+                    <Avatar
+                      nick={p.profiles?.nick}
+                      src={p.profiles?.steam_avatar_url}
+                      size="sm"
+                      ringClass="ring-2 ring-white/20"
+                      title={detalle}
                     />
-                  </div>                </Link>
-              </PerfilHover>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium text-slate-100">
+                        {p.es_capitan ? '⭐ ' : ''}
+                        {nick}
+                        {esTuyo ? ' (tú)' : ''}
+                      </p>
+                      <div className="flex min-w-0 items-center justify-between gap-1">
+                        <p
+                          className={`flex min-w-0 items-center gap-1 text-[11px] font-bold ${
+                            mmr != null ? 'text-prism-300' : 'text-slate-500'
+                          }`}
+                        >
+                          <MedallaMmr
+                            mmr={mmr}
+                            size="xs"
+                            inline
+                            className="shrink-0"
+                          />
+                          <span className="truncate">
+                            {mmr != null ? `MMR ${formatearMmr(mmr)}` : 'Sin MMR'}
+                          </span>
+                        </p>
+                        {roles.length > 0 && (
+                          <span
+                            className="flex shrink-0 items-center gap-0.5"
+                            aria-label={`Roles: ${roles.map((r) => etiquetaRol(r)).join(', ')}`}
+                          >
+                            {roles.map((rol) => (
+                              <span
+                                key={rol}
+                                title={etiquetaRol(rol)}
+                                className="text-[11px] leading-none"
+                              >
+                                {ICONOS_ROL[rol]}
+                              </span>
+                            ))}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                </PerfilHover>
+
+                {/* El resumen va fuera del enlace del perfil: si no, el enlace a
+                    Dotabuff quedaría anidado dentro de otro <a>. */}
+                <div className="pl-9">
+                  <ResumenJugador userId={p.user_id} compacto className="mt-1" />
+                </div>
+              </div>
             );
           }
 
@@ -369,8 +374,7 @@ function Columna({
                       <MedallaMmr
                         mmr={p.profiles?.mmr}
                         size="xs"
-                        mostrarEstrellas={false}
-                        mostrarNombre={false}
+                        inline
                         className="shrink-0"
                       />
                     </p>
@@ -491,8 +495,7 @@ function TableroPicks({
           <MedallaMmr
             mmr={perfil?.mmr}
             size="xs"
-            mostrarEstrellas={false}
-            mostrarNombre={false}
+            inline
             className="shrink-0"
           />
           {perfil?.mmr != null ? `MMR ${formatearMmr(perfil.mmr)}` : 'Sin MMR'}
