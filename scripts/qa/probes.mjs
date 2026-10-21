@@ -248,6 +248,10 @@ await comprobar('RPC y columnas que usan los flujos existen', async () => {
     'admin_editar_mmr',
     'ajuste_admin',
     'notificar_usuario',
+    'admin_pedir_verificacion',
+    'confirmar_verificacion',
+    'admin_cancelar_verificacion',
+    'notificar_sala_terminada',
     'guardar_roles_preferidos',
     'mi_saldo',
   ];
@@ -255,8 +259,8 @@ await comprobar('RPC y columnas que usan los flujos existen', async () => {
   assert(faltantes.length === 0, `faltan RPCs: ${faltantes.join(', ')}`);
 
   const columnas = {
-    salas: ['picks_estado', 'pick_decision_user_id', 'pick_decision_tipo', 'destacada'],
-    participantes_sala: ['equipo', 'es_capitan', 'pick_orden'],
+    salas: ['picks_estado', 'pick_decision_user_id', 'pick_decision_tipo', 'destacada', 'verificacion_estado', 'verificacion_iniciada_at', 'verificacion_expira_at'],
+    participantes_sala: ['equipo', 'es_capitan', 'pick_orden', 'verificado_at'],
     profiles: ['mmr', 'roles_preferidos'],
     movimientos_billetera: ['tipo', 'monto', 'referencia_id'],
   };

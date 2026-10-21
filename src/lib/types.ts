@@ -45,6 +45,9 @@ export type Sala = {
   pick_primer_user_id?: string | null;
   pick_turno_user_id?: string | null;
   pick_turno_expira_at?: string | null;
+  verificacion_estado?: string;
+  verificacion_iniciada_at?: string | null;
+  verificacion_expira_at?: string | null;
 };
 
 export type Participante = {
@@ -52,6 +55,7 @@ export type Participante = {
   equipo: number | null;
   es_capitan?: boolean;
   pick_orden?: number | null;
+  verificado_at?: string | null;
   profiles: PerfilPublico | null;
   created_at?: string;
 };

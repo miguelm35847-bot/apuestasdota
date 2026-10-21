@@ -256,10 +256,19 @@ function Columna({
                 <Link
                   href={`/jugadores/${p.user_id}`}
                   aria-label={`Ver perfil de ${nick}`}
-                  className={`flex min-h-10 items-center gap-1.5 rounded-lg border px-1.5 py-0.5 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
+                  className={`relative flex min-h-10 items-center gap-1.5 rounded-lg border px-1.5 py-0.5 pr-6 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
                     esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
                   }`}
                 >
+                  {p.verificado_at && (
+                    <span
+                      title="Listo para la partida"
+                      aria-label="Listo para la partida"
+                      className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-[5px] bg-emerald-500/20 text-[10px] font-bold leading-none text-emerald-300 ring-1 ring-inset ring-emerald-400/40"
+                    >
+                      ✓
+                    </span>
+                  )}
                   <Avatar
                     nick={p.profiles?.nick}
                     src={p.profiles?.steam_avatar_url}
@@ -314,10 +323,19 @@ function Columna({
               <Link
                 href={`/jugadores/${p.user_id}`}
                 aria-label={`Ver perfil de ${nick}`}
-                className={`flex min-h-10 items-center gap-2 rounded-lg border px-2 py-0.5 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
+                className={`relative flex min-h-10 items-center gap-2 rounded-lg border px-2 py-0.5 pr-7 transition hover:border-prism-400/40 hover:bg-white/[0.06] ${
                   esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
                 }`}
               >
+                {p.verificado_at && (
+                  <span
+                    title="Listo para la partida"
+                    aria-label="Listo para la partida"
+                    className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-[5px] bg-emerald-500/20 text-[10px] font-bold leading-none text-emerald-300 ring-1 ring-inset ring-emerald-400/40"
+                  >
+                    ✓
+                  </span>
+                )}
                 <Avatar
                   nick={p.profiles?.nick}
                   src={p.profiles?.steam_avatar_url}
@@ -634,6 +652,7 @@ function SalaContenido() {
   const [rolesSala, setRolesSala] = useState<RolDota[]>([]);
   const [guardandoRoles, setGuardandoRoles] = useState(false);
   const [copiado, setCopiado] = useState<string | null>(null);
+  const [confirmandoListo, setConfirmandoListo] = useState(false);
   const [segundosSalida, setSegundosSalida] = useState(5);
   const eraParticipante = useRef(false);
   const autoPickEnviado = useRef(false);
@@ -660,7 +679,7 @@ function SalaContenido() {
     const { data: partData } = await supabase
       .from('participantes_sala')
       .select(
-        'user_id, equipo, es_capitan, pick_orden, profiles(nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos)'
+        'user_id, equipo, es_capitan, pick_orden, verificado_at, profiles(nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos)'
       )
       .eq('sala_id', salaId)
       .order('created_at', { ascending: true });
@@ -941,6 +960,25 @@ function SalaContenido() {
     }
   }
 
+  async function confirmarListo() {
+    setError(null);
+    setSuccess(null);
+    setConfirmandoListo(true);
+
+    const { error: rpcError } = await supabase.rpc('confirmar_verificacion', {
+      p_sala: salaId,
+    });
+
+    if (rpcError) {
+      setError(rpcError.message);
+    } else {
+      setSuccess('Listo. Ahora esperamos a los demás jugadores.');
+      cargarSala();
+    }
+
+    setConfirmandoListo(false);
+  }
+
   async function cambiarEquipo(equipo: number | null) {
     setError(null);
     setSuccess(null);
@@ -1207,6 +1245,13 @@ function SalaContenido() {
     cancelada: 'Cancelada',
   };
 
+  const verificacionEstado = sala.verificacion_estado ?? 'inactiva';
+  const listos = participantes.filter((p) => p.verificado_at).length;
+  const totalEnSala = participantes.length;
+  const yoVerificado = Boolean(
+    participantes.find((p) => p.user_id === user?.id)?.verificado_at
+  );
+
   const columnaProps = {
     esParticipante,
     miEquipo,
@@ -1305,6 +1350,50 @@ function SalaContenido() {
         {!esParticipante && sala.estado === 'llena' && (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
             La sala está llena. Espera a que el admin inicie la partida.
+          </div>
+        )}
+
+        {/* Verificación "Estoy listo" */}
+        {verificacionEstado !== 'inactiva' && (
+          <div
+            className={`rounded-xl border p-3 ${
+              verificacionEstado === 'completa'
+                ? 'border-emerald-500/30 bg-emerald-500/10'
+                : 'border-amber-500/30 bg-amber-500/10'
+            }`}
+          >
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p
+                  className={`text-sm font-semibold ${
+                    verificacionEstado === 'completa' ? 'text-emerald-200' : 'text-amber-200'
+                  }`}
+                >
+                  {verificacionEstado === 'completa'
+                    ? 'Todos los jugadores confirmaron que están listos.'
+                    : 'El administrador pide confirmar que estás listo para la partida.'}
+                </p>
+                <p className="mt-0.5 text-xs text-slate-300">
+                  {listos}/{totalEnSala} listos
+                  {verificacionEstado === 'pendiente' && esParticipante && !yoVerificado
+                    ? ' · pulsa el botón para avisar que estás listo'
+                    : ''}
+                  {verificacionEstado === 'pendiente' && yoVerificado
+                    ? ' · ya confirmaste, esperando a los demás'
+                    : ''}
+                </p>
+              </div>
+
+              {verificacionEstado === 'pendiente' && esParticipante && !yoVerificado && (
+                <button
+                  onClick={confirmarListo}
+                  disabled={confirmandoListo}
+                  className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-amber-950 transition hover:bg-amber-400 disabled:opacity-50"
+                >
+                  {confirmandoListo ? 'Enviando...' : 'Estoy listo'}
+                </button>
+              )}
+            </div>
           </div>
         )}
 

@@ -329,6 +329,15 @@ async function detectarYCerrar(admin: SupabaseClient, salaId: string): Promise<R
       };
     }
 
+    // Avisamos a los jugadores de la sala que terminó la partida: el aviso
+    // dispara el sonido para todos, estén o no dentro de la sala.
+    const { error: notifError } = await admin.rpc('notificar_sala_terminada', {
+      p_sala: salaId,
+    });
+    if (notifError) {
+      console.error('No se pudo avisar el fin de partida:', notifError.message);
+    }
+
     return { cerrada: true, detected: true, match: partida };
   }
 

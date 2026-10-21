@@ -12,6 +12,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import ChatPanel from '@/components/ChatPanel';
 import Avatar from '@/components/Avatar';
 import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
+import { reproducirSonido } from '@/lib/sonidos';
 import { formatearMmr, promedioMmr, resumenRolesConIconos } from '@/lib/balance';
 import type { DotaMatch, Lobby, Participante, Sala } from '@/lib/types';
 
@@ -39,10 +40,19 @@ function FilaJugador({
       <Link
         href={`/jugadores/${p.user_id}`}
         title={`Ver perfil de ${p.profiles?.nick ?? 'Usuario'}`}
-        className="flex min-w-0 items-center gap-2 rounded-md transition hover:bg-white/5"
+        className="flex min-w-0 items-center gap-2 transition hover:bg-white/5"
       >
         <Avatar nick={p.profiles?.nick} src={p.profiles?.steam_avatar_url} size="sm" />
-        <div className="min-w-0">
+        <div className="relative min-w-0 pr-4">
+          {p.verificado_at && (
+            <span
+              title="Listo para la partida"
+              aria-label="Listo para la partida"
+              className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-[5px] bg-emerald-500/20 text-[10px] font-bold leading-none text-emerald-300 ring-1 ring-inset ring-emerald-400/40"
+            >
+              ✓
+            </span>
+          )}
           <span className="block truncate text-xs font-medium text-slate-100">
             {p.es_capitan ? '⭐ ' : ''}
             {p.profiles?.nick ?? 'Usuario'}
@@ -176,6 +186,7 @@ function AdminSalaContenido() {
   const [nombreSala, setNombreSala] = useState('');
   const [guardandoNombre, setGuardandoNombre] = useState(false);
   const [destacando, setDestacando] = useState(false);
+  const [pidiendoVerificacion, setPidiendoVerificacion] = useState(false);
   const cierreAutoEnviado = useRef(false);
 
   const cargarSala = useCallback(async () => {
@@ -192,7 +203,7 @@ function AdminSalaContenido() {
     const { data: partData } = await supabase
       .from('participantes_sala')
       .select(
-        'user_id, equipo, es_capitan, pick_orden, profiles(nick, steam_avatar_url, mmr, roles_preferidos)'
+        'user_id, equipo, es_capitan, pick_orden, verificado_at, profiles(nick, steam_avatar_url, mmr, roles_preferidos)'
       )
       .eq('sala_id', salaId)
       .order('created_at', { ascending: true });
@@ -337,6 +348,9 @@ function AdminSalaContenido() {
       supabase.removeChannel(channel);
     };
   }, [salaId, user, cargarSala]);
+
+  // El fin de partida se avisa por notificación (suena para todos los jugadores
+  // de la sala, estén o no dentro de ella), así que aquí no se duplica el tono.
 
   // Auto-pick si el turno venció (por si el capitán no está conectado)
   useEffect(() => {
@@ -520,6 +534,45 @@ function AdminSalaContenido() {
     setProcesandoPicks(false);
   }
 
+  async function pedirVerificacion() {
+    setError(null);
+    setSuccess(null);
+    setPidiendoVerificacion(true);
+
+    const { error: rpcError } = await supabase.rpc('admin_pedir_verificacion', {
+      p_sala: salaId,
+    });
+
+    if (rpcError) {
+      setError('No se pudo pedir la verificación: ' + rpcError.message);
+    } else {
+      setSuccess('Verificación enviada. Los jugadores reciben una notificación y un aviso sonoro.');
+      reproducirSonido('verificacion');
+      cargarSala();
+    }
+
+    setPidiendoVerificacion(false);
+  }
+
+  async function cancelarVerificacion() {
+    setError(null);
+    setSuccess(null);
+    setPidiendoVerificacion(true);
+
+    const { error: rpcError } = await supabase.rpc('admin_cancelar_verificacion', {
+      p_sala: salaId,
+    });
+
+    if (rpcError) {
+      setError('No se pudo cancelar la verificación: ' + rpcError.message);
+    } else {
+      setSuccess('Verificación cancelada.');
+      cargarSala();
+    }
+
+    setPidiendoVerificacion(false);
+  }
+
   async function expulsarJugador(userId: string) {
     setError(null);
     setSuccess(null);
@@ -650,6 +703,14 @@ function AdminSalaContenido() {
     setVerificando(false);
   }
 
+  /** Avisa a los jugadores de la sala que la partida terminó (suena el aviso). */
+  async function avisarFinDePartida() {
+    const { error: notifError } = await supabase.rpc('notificar_sala_terminada', {
+      p_sala: salaId,
+    });
+    if (notifError) console.error('No se pudo avisar el fin de partida:', notifError.message);
+  }
+
   async function terminarPartida() {
     setError(null);
     setSuccess(null);
@@ -694,6 +755,7 @@ function AdminSalaContenido() {
         setDotaMatchId('');
         setEquipoGanador('');
         setDatosPartida(null);
+        void avisarFinDePartida();
         cargarSala();
       }
       return;
@@ -708,6 +770,7 @@ function AdminSalaContenido() {
       setDotaMatchId('');
       setEquipoGanador('');
       setDatosPartida(null);
+      void avisarFinDePartida();
       cargarSala();
     }
   }
@@ -860,6 +923,9 @@ function AdminSalaContenido() {
         nick: p.profiles?.nick,
       }),
   };
+
+  const verificacionEstado = sala.verificacion_estado ?? 'inactiva';
+  const listos = participantes.filter((p) => p.verificado_at).length;
 
   return (
     <div className="arena-shell min-h-screen bg-[#0a0e17] text-slate-100">
@@ -1212,6 +1278,79 @@ function AdminSalaContenido() {
           </div>
 
           <div className="space-y-4">
+            <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-4 shadow-arena-soft">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="font-display text-base font-bold text-white">Verificación</h2>
+                  <p className="mt-0.5 text-xs text-slate-400">
+                    Avisa a todos que están listos. Solo informa: no bloquea el inicio.
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-white/5 px-2.5 py-1 text-[11px] font-bold tabular-nums text-slate-300 ring-1 ring-inset ring-white/10">
+                  {listos}/{participantes.length}
+                </span>
+              </div>
+
+              {verificacionEstado === 'inactiva' && (
+                <>
+                  <button
+                    onClick={pedirVerificacion}
+                    disabled={pidiendoVerificacion || participantes.length < sala.cupo}
+                    className="mt-3 w-full rounded-lg bg-amber-500 py-2 text-sm font-semibold text-amber-950 transition hover:bg-amber-400 disabled:opacity-50"
+                  >
+                    {pidiendoVerificacion ? 'Enviando...' : 'Pedir verificación'}
+                  </button>
+                  {participantes.length < sala.cupo && (
+                    <p className="mt-1.5 text-[11px] text-amber-300">
+                      La sala debe estar completa ({participantes.length}/{sala.cupo}) para pedir la
+                      verificación.
+                    </p>
+                  )}
+                </>
+              )}
+
+              {verificacionEstado === 'pendiente' && (
+                <>
+                  <p className="mt-2 text-xs text-amber-200">
+                    Esperando confirmaciones: <strong>{listos}</strong> de {participantes.length}{' '}
+                    listos. Los que confirmaron tienen ✓ en su slot.
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={pedirVerificacion}
+                      disabled={pidiendoVerificacion}
+                      className="flex-1 rounded-lg border border-amber-500/30 bg-amber-500/10 py-2 text-xs font-semibold text-amber-200 transition hover:bg-amber-500/20 disabled:opacity-50"
+                    >
+                      Volver a pedir
+                    </button>
+                    <button
+                      onClick={cancelarVerificacion}
+                      disabled={pidiendoVerificacion}
+                      className="flex-1 rounded-lg border border-white/10 bg-white/5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10 disabled:opacity-50"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {verificacionEstado === 'completa' && (
+                <>
+                  <p className="mt-2 text-xs text-emerald-200">
+                    Todos los jugadores confirmaron que están listos ({listos}/
+                    {participantes.length}).
+                  </p>
+                  <button
+                    onClick={pedirVerificacion}
+                    disabled={pidiendoVerificacion}
+                    className="mt-3 w-full rounded-lg border border-white/10 bg-white/5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-white/10 disabled:opacity-50"
+                  >
+                    Pedir de nuevo
+                  </button>
+                </>
+              )}
+            </div>
+
             <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-4 shadow-arena-soft">
               <h2 className="font-display text-base font-bold text-white">Lobby</h2>
               <p className="mt-0.5 text-xs text-slate-400">

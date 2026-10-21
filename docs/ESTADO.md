@@ -12,15 +12,18 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 - `/jugadores/[id]` público con medalla, stats y últimas partidas; enlaces icon-only a Steam/Dotabuff sin exponer `steam_id`.
 - Salas 1v1/5v5 con equipos, picks, lobby, cierre automático/manual, panel admin y endurecimiento de RPCs.
 - Admin → Jugadores: MMR, **recarga manual** (sin motivo) y **multas** por faltas a las reglas, con saldo por jugador y notificación.
+- Verificación de sala "Estoy listo": el admin la pide cuando la sala está completa, cada jugador confirma desde la sala (aviso sonoro dentro de la sala + notificación) y los slots marcan con ✓ a los que confirmaron. No bloquea el inicio de la partida.
+- Sonidos de la arena (Web Audio, sin archivos ni botón de volumen): aviso de verificación (solo dentro de la sala) y fin de partida (suena para todos los jugadores de la sala, estén o no dentro).
 - Guía pública `/como-jugar` con pasos y reglas.
 - QA automatizado: harness visual por CDP (`npm run qa`) y QA de datos (`qa:seed`, `qa:probes`, `qa:flows`, `qa:cleanup`) con 10 actores API + admin efímero.
 - Tema **Arena Dark** en todas las pantallas; responsive verificado en 1366, 390 y 360 px.
 
 ## Pendientes
 
-- SQL pendiente de aplicar en Supabase: `docs/sql/2026-10-21-multas.sql` (habilita el tipo de notificación `multa`). Sin ese SQL la multa se aplica y se descuenta igual, pero el jugador no recibe la notificación.
+- SQL aplicado en Supabase: `docs/sql/2026-10-21-multas.sql` (tipo `multa`), `docs/sql/2026-10-21-verificacion-sala.sql` (columnas + RPCs de la verificación) y `docs/sql/2026-10-21-fin-partida-sonido.sql` (tipo `partida_finalizada` + RPC `notificar_sala_terminada`). Si se editan las funciones, re-aplicar el archivo correspondiente.
 - Panel de actividades en el landing: hoy se guardan las multas como movimientos `ajuste_admin` con descripción `Multa: <motivo>`; falta el panel público (fines y luego donaciones) con Realtime.
-- Verificación con sonido (check-in) y vista en vivo de héroe/kills: siguen pendientes, en el orden acordado (verificación → donaciones/panel → en vivo cuando Valve apruebe liga/ticket).
+- Donaciones entre usuarios y panel de actividades: siguiente bloque agreed (recarga → verificación → donaciones/panel → en vivo).
+- Vista en vivo de héroe/kills: sigue pendiente; depende de que Valve apruebe liga/ticket (la API pública solo muestra partidas de liga).
 
 - QA de backend aplicado (21/10/2026): `qa:probes` queda **22/22** (se sumó la prueba de que un jugador no puede ajustar el saldo de otro), `qa:flows` 1v1 y 5v5 quedan verdes (reparto 5/5, lobby y reembolso) y `qa:cleanup` dejó la base sin perfiles `qa-*` ni salas `QA `. Se conserva `qa_cdp` para el harness visual.
 - Probar el flujo completo de MMR único + fase de picks en la interfaz

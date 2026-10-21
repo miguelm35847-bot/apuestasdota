@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { prepararSonido, reproducirSonido } from '@/lib/sonidos';
 import type { Notificacion } from '@/lib/types';
 
 export default function NotificationBell() {
@@ -11,12 +12,27 @@ export default function NotificationBell() {
 
   useEffect(() => {
     cargarNotificaciones();
+    prepararSonido();
 
     const channel = supabase
       .channel('notificaciones_realtime')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificaciones' }, () => {
-        cargarNotificaciones();
-      })
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notificaciones' },
+        (event) => {
+          cargarNotificaciones();
+          const tipo = (event.new as { tipo?: string } | undefined)?.tipo;
+          // El aviso de "Estoy listo" lo reciben solo los jugadores de esa sala,
+          // así que suena para ellos estén o no dentro de la sala.
+          if (tipo === 'verificacion_sala') {
+            reproducirSonido('verificacion');
+          }
+          // El fin de partida suena para todos los jugadores de la sala.
+          if (tipo === 'partida_finalizada') {
+            reproducirSonido('fin');
+          }
+        }
+      )
       .subscribe();
 
     return () => {
@@ -61,6 +77,9 @@ export default function NotificationBell() {
       partida_iniciada: '🎮',
       expulsado_sala: '🚪',
       multa: '⚠️',
+      verificacion_sala: '🔔',
+      verificacion_completa: '✅',
+      partida_finalizada: '🏁',
     };
     return iconos[tipo] ?? '📋';
   }
