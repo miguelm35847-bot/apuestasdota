@@ -1,44 +1,85 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { prepararSonido, reproducirSonido } from '@/lib/sonidos';
 import type { Notificacion } from '@/lib/types';
+
+/** Los avisos de verificación no se muestran en la campana (solo suenan). */
+const TIPOS_OCULTOS = ['verificacion_sala'];
 
 export default function NotificationBell() {
   const [noLeidas, setNoLeidas] = useState(0);
   const [show, setShow] = useState(false);
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
+  const pedidosVistos = useRef<Record<string, string>>({});
 
   useEffect(() => {
     cargarNotificaciones();
     prepararSonido();
 
-    const channel = supabase
+    // Canal 1: notificaciones del usuario (campana en vivo + fin de partida).
+    const canalNotificaciones = supabase
       .channel('notificaciones_realtime')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notificaciones' },
         (event) => {
           cargarNotificaciones();
-          const tipo = (event.new as { tipo?: string } | undefined)?.tipo;
-          // El aviso de "Estoy listo" lo reciben solo los jugadores de esa sala,
-          // así que suena para ellos estén o no dentro de la sala.
-          if (tipo === 'verificacion_sala') {
-            reproducirSonido('verificacion');
-          }
           // El fin de partida suena para todos los jugadores de la sala.
-          if (tipo === 'partida_finalizada') {
+          if ((event.new as { tipo?: string } | undefined)?.tipo === 'partida_finalizada') {
             reproducirSonido('fin');
           }
         }
       )
       .subscribe();
 
+    // Canal 2 (aparte): aviso de verificación. Se separa para que un fallo en
+    // un canal no se lleve el sonido del otro.
+    const canalSalas = supabase
+      .channel('verificacion_salas_realtime')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'salas' },
+        (event) => {
+          const sala = event.new as {
+            id?: string;
+            verificacion_estado?: string;
+            verificacion_iniciada_at?: string | null;
+          };
+          if (!sala.id || sala.verificacion_estado !== 'pendiente') return;
+
+          const clave = sala.verificacion_iniciada_at ?? '';
+          if (pedidosVistos.current[sala.id] === clave) return;
+          pedidosVistos.current[sala.id] = clave;
+
+          void avisarSiSoyDeLaSala(sala.id);
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(canalNotificaciones);
+      supabase.removeChannel(canalSalas);
     };
   }, []);
+
+  /** Suena el aviso solo si el usuario es jugador de esa sala. */
+  async function avisarSiSoyDeLaSala(salaId: string) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('participantes_sala')
+      .select('user_id')
+      .eq('sala_id', salaId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (data) reproducirSonido('verificacion');
+  }
 
   async function cargarNotificaciones() {
     const { data: { user } } = await supabase.auth.getUser();
@@ -49,10 +90,12 @@ export default function NotificationBell() {
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
-      .limit(20);
+      .limit(30);
 
     if (data) {
-      const filas = data as unknown as Notificacion[];
+      const filas = (data as unknown as Notificacion[]).filter(
+        (n) => !TIPOS_OCULTOS.includes(n.tipo)
+      );
       setNotificaciones(filas);
       setNoLeidas(filas.filter((n) => !n.leida).length);
     }
