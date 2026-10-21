@@ -256,88 +256,26 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
       className="arena-hero relative isolate overflow-hidden border-b border-white/[0.04] bg-[#05070c]"
     >
       <Image
-        src="/arena-rift.svg"
+        src="/hero-arena.jpg"
         alt=""
         fill
         priority
         sizes="100vw"
         aria-hidden="true"
-        className="pointer-events-none -z-20 object-cover object-center opacity-80"
+        className="pointer-events-none -z-20 object-cover object-top brightness-[1.8] contrast-[1.03]"
       />
-
       <div
-        className="pointer-events-none absolute inset-y-0 left-0 -z-20 hidden w-[min(24vw,340px)] overflow-hidden xl:block"
-        aria-hidden="true"
-      >
-        <Image
-          src="/hero-shadow-fiend.png"
-          alt=""
-          width={280}
-          height={508}
-          sizes="340px"
-          className="absolute bottom-0 left-0 h-[94%] w-auto max-w-none opacity-85"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#05070c]/10 to-[#05070c]" />
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#05070c] to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#05070c] to-transparent" />
-      </div>
-
-      <div
-        className="pointer-events-none absolute inset-y-0 right-0 -z-20 hidden w-[min(26vw,360px)] overflow-hidden xl:block"
-        aria-hidden="true"
-      >
-        <Image
-          src="/hero-phantom-assassin.png"
-          alt=""
-          width={285}
-          height={508}
-          sizes="360px"
-          className="absolute bottom-0 right-0 h-[94%] w-auto max-w-none opacity-85"
-        />
-        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-[#05070c]/10 to-[#05070c]" />
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#05070c] to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#05070c] to-transparent" />
-      </div>
-
-      <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_0%_36%,rgba(239,68,68,0.2),transparent_48%),radial-gradient(circle_at_100%_58%,rgba(59,130,246,0.2),transparent_48%)] sm:hidden"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,7,12,0.62)_0%,rgba(5,7,12,0.25)_46%,rgba(5,7,12,0.06)_100%)]"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_58%_62%_at_50%_44%,rgba(5,7,12,0.48),transparent_78%)]"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_54%_60%_at_50%_42%,rgba(5,7,12,0.24),transparent_78%)]"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,7,12,0.58)_0%,rgba(5,7,12,0.24)_44%,rgba(5,7,12,0)_100%)]"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(5,7,12,0.55)_0%,transparent_28%,transparent_62%,#070a10_100%)]"
         aria-hidden="true"
       />
-      <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(5,7,12,0.5)_0%,transparent_26%,transparent_68%,#070a10_100%)]"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute left-1/2 top-[5%] -z-10 hidden -translate-x-1/2 xl:block"
-        aria-hidden="true"
-      >
-        <div className="absolute -inset-10 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(5,7,12,0.94),rgba(5,7,12,0.55)_48%,transparent_74%)] blur-md" />
-        <div className="absolute left-1/2 top-1/2 h-52 w-52 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-500/15 blur-3xl" />
-        <div className="relative h-36 w-[72px] 2xl:h-44 2xl:w-[88px]">
-          <div className="absolute -right-1 -top-2 h-[108%] w-[2px] rounded-full bg-gradient-to-b from-white/60 via-white/15 to-transparent" />
-          <div className="absolute -right-1.5 -top-2 h-2 w-2 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.45)]" />
-          <div className="absolute inset-0 overflow-hidden border border-white/10 shadow-[0_24px_50px_-20px_rgba(0,0,0,0.95)] [clip-path:polygon(0_0,100%_0,100%_100%,50%_94%,0_100%)]">
-            <Image
-              src="/hero-dota-flag.png"
-              alt=""
-              width={70}
-              height={140}
-              sizes="110px"
-              className="h-full w-full object-cover brightness-150 contrast-110 saturate-125"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#05070c]/70" />
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-          </div>
-        </div>
-      </div>
       <div className="arena-spotlight -z-10" aria-hidden="true" />
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         {PARTICULAS.map((p, i) => (
@@ -356,29 +294,30 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
       </div>
 
       <div className="relative mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8 xl:max-w-[1040px] 2xl:max-w-[1200px]">
-        <div className="grid min-w-0 items-center gap-6 py-8 sm:gap-8 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(400px,440px)] lg:gap-10 lg:py-16 xl:grid-cols-[minmax(0,1fr)_minmax(440px,460px)] xl:gap-12 2xl:grid-cols-[minmax(0,1fr)_minmax(500px,560px)] 2xl:gap-14">
+        <div className="grid min-w-0 items-center gap-5 py-4 sm:gap-8 sm:py-10 lg:grid-cols-[minmax(0,1fr)_minmax(400px,440px)] lg:gap-10 lg:py-12 xl:grid-cols-[minmax(0,1fr)_minmax(440px,460px)] xl:gap-12 xl:py-10 2xl:grid-cols-[minmax(0,1fr)_minmax(500px,560px)] 2xl:gap-14">
           <div className="text-center lg:text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/35 px-3.5 py-1.5 text-[11px] font-semibold text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md sm:text-xs">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60 motion-reduce:animate-none" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
               </span>
-              Salas 1v1 y 5v5 · Pagos con Yape o Plin
+              Salas 1v1 y 5v5 · Yape / Plin
             </span>
 
-            <div className="mt-5 flex items-center justify-center gap-3 lg:justify-start lg:gap-4">
+            <div className="mt-4 flex items-center justify-center gap-3 lg:justify-start lg:gap-4">
               <IconDota className="h-10 w-10 shrink-0 drop-shadow-[0_0_22px_rgba(255,255,255,0.28)] sm:h-12 sm:w-12 lg:h-14 lg:w-14 xl:h-12 xl:w-12 2xl:h-14 2xl:w-14" />
               <h1 className="font-display bg-gradient-to-b from-white via-white to-slate-300 bg-clip-text text-[1.95rem] font-extrabold leading-[0.95] tracking-[-0.055em] text-transparent drop-shadow-[0_3px_22px_rgba(0,0,0,0.72)] min-[380px]:text-[2.2rem] sm:text-6xl lg:text-6xl xl:text-[3.5rem] 2xl:text-[4.25rem]">
                 KódigoDota 2
               </h1>
             </div>
 
-            <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-slate-300/90 sm:text-base lg:mx-0">
-              Salas de juego con premios en efectivo. Elige tu modalidad, arma tu equipo y
-              juega.
+            <p className="mx-auto mt-3 max-w-xl font-display text-xs font-bold uppercase tracking-[0.12em] text-white min-[380px]:text-[13px] sm:text-base sm:tracking-[0.2em] lg:mx-0">
+              Juega <span className="text-slate-500">·</span> Compite{' '}
+              <span className="text-slate-500">·</span> Gana{' '}
+              <span className="text-rose-300">· Compártelo</span>
             </p>
 
-            <div className="mt-6 flex flex-wrap justify-center gap-3 lg:justify-start">
+            <div className="mt-4 flex flex-wrap justify-center gap-3 sm:mt-5 lg:justify-start">
               {isAuthenticated ? (
                 <Link
                   href="#salas"
@@ -403,25 +342,6 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                 </>
               )}
             </div>
-
-            <div className="mt-5 flex flex-wrap justify-center gap-x-5 gap-y-2 text-[11px] font-medium text-slate-300/80 sm:text-xs lg:justify-start">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                Radiant
-              </span>
-              <span className="hidden h-3 w-px bg-white/15 sm:block" />
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
-                Dire
-              </span>
-              <span className="hidden h-3 w-px bg-white/15 sm:block" />
-              <span>MMR y roles en vivo</span>
-              <span className="hidden h-3 w-px bg-white/15 sm:block" />
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#fbbf24]" />
-                Premios en efectivo
-              </span>
-            </div>
           </div>
 
           <aside className="relative mx-auto w-full min-w-0 max-w-[560px] lg:mx-0 lg:max-w-none">
@@ -429,7 +349,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
               className="pointer-events-none absolute -inset-6 rounded-[2.5rem] bg-[radial-gradient(circle_at_55%_40%,rgba(99,102,241,0.26),transparent_68%)] blur-2xl"
               aria-hidden="true"
             />
-            <div className="relative overflow-hidden rounded-[1.65rem] border border-white/15 bg-[#080d15]/88 p-4 shadow-[0_34px_90px_-34px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl sm:p-6">
+            <div className="relative overflow-hidden rounded-[1.65rem] border border-white/15 bg-[#080d15]/88 p-4 shadow-[0_34px_90px_-34px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl sm:p-5">
               <div
                 className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.055] via-transparent to-white/[0.02]"
                 aria-hidden="true"
@@ -477,7 +397,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                       {jugadoresDestacada}/{cupoDestacada} jugadores
                     </p>
 
-                    <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div className="mt-3 grid grid-cols-2 gap-3 sm:mt-4">
                       <div className="rounded-xl border border-white/[0.06] bg-black/25 px-3.5 py-2.5">
                         <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
                           Cuota
@@ -496,7 +416,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                       </div>
                     </div>
 
-                    <div className="mt-4">
+                    <div className="mt-3 sm:mt-4">
                       <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                         <span>Jugadores</span>
                         <span className="tabular-nums text-slate-300">
@@ -556,14 +476,11 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
 
                     <Link
                       href={isAuthenticated ? `/salas/${destacada.id}` : '/login'}
-                      className="mt-5 flex items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-3 text-sm font-bold text-[#070a10] shadow-[0_0_38px_-16px_rgba(255,255,255,0.8)] transition hover:bg-slate-200"
+                      className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-3 text-sm font-bold text-[#070a10] shadow-[0_0_38px_-16px_rgba(255,255,255,0.8)] transition hover:bg-slate-200 sm:mt-5"
                     >
                       {isAuthenticated ? 'Entrar a la sala' : 'Inicia sesión para entrar'}
                       <span aria-hidden="true">→</span>
                     </Link>
-                    <p className="mt-2.5 hidden text-center text-[10px] text-slate-500 sm:block">
-                      Pago por Yape o Plin · Retiros con aprobación
-                    </p>
                   </>
                 ) : (
                   <div className="py-10 text-center">
@@ -597,7 +514,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"
         />
         <div className="relative mx-auto grid max-w-[1500px] grid-cols-2 px-2 sm:grid-cols-4 sm:px-6">
-          <div className="flex items-center gap-3 px-4 py-4 sm:px-5 sm:py-5">
+          <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
             <IconDota className="h-5 w-5 shrink-0 opacity-65" />
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
@@ -608,7 +525,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 px-4 py-4 sm:px-5 sm:py-5">
+          <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
             <IconUsers className="h-5 w-5 shrink-0 text-slate-400" />
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
@@ -619,7 +536,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 px-4 py-4 sm:px-5 sm:py-5">
+          <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
             <IconCoin className="h-5 w-5 shrink-0 text-amber-300" />
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
@@ -630,7 +547,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 px-4 py-4 sm:px-5 sm:py-5">
+          <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
             <IconWallet className="h-5 w-5 shrink-0 text-slate-400" />
             <div>
               <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
