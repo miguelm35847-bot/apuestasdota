@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Avatar from '@/components/Avatar';
-import DotabuffLink from '@/components/DotabuffLink';
 import MedallaMmr from '@/components/MedallaMmr';
+import PlayerLinks from '@/components/PlayerLinks';
 import { etiquetaRol, ICONOS_ROL } from '@/lib/balance';
 import type { RolDota } from '@/lib/types';
 
@@ -283,19 +283,16 @@ export default function PerfilHover({
               )}
             </div>
 
-            <Link
-              href={`/jugadores/${usuario.id}`}
-              className="mt-3 flex items-center justify-center gap-1 rounded-lg bg-prism-500/15 px-3 py-1.5 text-xs font-semibold text-prism-200 ring-1 ring-inset ring-prism-500/30 transition hover:bg-prism-500/25 hover:text-prism-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400"
-            >
-              Ver perfil público
-              <span aria-hidden="true">→</span>
-            </Link>
-
-            <DotabuffLink
-              userId={usuario.id}
-              compact
-              className="mt-1.5 w-full justify-center"
-            />
+            <div className="mt-3 flex items-center gap-1.5">
+              <Link
+                href={`/jugadores/${usuario.id}`}
+                className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-lg bg-prism-500/15 px-3 py-1.5 text-xs font-semibold text-prism-200 ring-1 ring-inset ring-prism-500/30 transition hover:bg-prism-500/25 hover:text-prism-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400"
+              >
+                Ver perfil público
+                <span aria-hidden="true">→</span>
+              </Link>
+              <PlayerLinks userId={usuario.id} />
+            </div>
           </div>,
           document.body
         )}

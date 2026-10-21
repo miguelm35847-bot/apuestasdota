@@ -10,8 +10,9 @@ import { useArenaBody } from '@/lib/useArenaBody';
 import { etiquetaRol, ICONOS_ROL, ROLES_DOTA } from '@/lib/balance';
 import Navbar from '@/components/Navbar';
 import Avatar from '@/components/Avatar';
-import DotabuffLink from '@/components/DotabuffLink';
 import MedallaMmr from '@/components/MedallaMmr';
+import PlayerLinks from '@/components/PlayerLinks';
+import SteamIcon from '@/components/SteamIcon';
 import type { RolDota } from '@/lib/types';
 
 type Pestaña = 'historial' | 'movimientos' | 'billetera';
@@ -676,31 +677,12 @@ function PerfilContenido() {
                         : 'border-white/10 bg-white/5 text-slate-300'
                     }`}
                   >
-                    <svg
-                      className="h-3.5 w-3.5 shrink-0"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      {steamId ? (
-                        <>
-                          <circle cx="12" cy="12" r="9" />
-                          <path d="m8.5 12.5 2.5 2.5 4.5-5" />
-                        </>
-                      ) : (
-                        <>
-                          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                        </>
-                      )}
-                    </svg>
+                    <SteamIcon className="h-3.5 w-3.5 shrink-0 text-[#66c0f4]" />
                     <span className="max-w-[170px] truncate">
                       {steamId
-                        ? steamNombre || 'Steam vinculado'
+                        ? steamNombre
+                          ? `Steam: ${steamNombre}`
+                          : 'Steam vinculado'
                         : 'Steam sin vincular'}
                     </span>
                   </span>
@@ -711,30 +693,19 @@ function PerfilContenido() {
                       className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label="Actualizar datos de Steam"
                     >
+                      <SteamIcon className="h-3.5 w-3.5 text-[#66c0f4]" />
                       {actualizandoSteam ? 'Actualizando...' : 'Actualizar'}
                     </button>
                   ) : (
                     <button
                       onClick={handleVincularSteam}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-prism-500 px-2.5 py-1 font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-500/40"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-[#1b2838] px-3 py-1 font-semibold text-white ring-1 ring-inset ring-[#66c0f4]/40 shadow-[0_6px_18px_-10px_rgba(102,192,244,0.9)] transition hover:bg-[#2a475e] hover:ring-[#66c0f4]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#66c0f4]/50"
                     >
-                      <svg
-                        className="h-3.5 w-3.5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                      </svg>
-                      Vincular Steam
+                      <SteamIcon className="h-3.5 w-3.5 text-[#66c0f4]" />
+                      Vincular con Steam
                     </button>
                   )}
-                  <DotabuffLink steamId={steamId} compact />
+                  <PlayerLinks steamId={steamId} tamano="md" />
                 </div>
               </div>
             </div>

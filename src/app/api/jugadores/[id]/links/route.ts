@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { dotabuffPlayerUrl } from '@/lib/dotabuff';
+import { playerLinksFromSteamId } from '@/lib/playerLinks';
 import { limitarPorClave } from '@/lib/rateLimit';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -30,10 +30,13 @@ export async function GET(
     const { id } = await context.params;
 
     if (!UUID_RE.test(id)) {
-      return NextResponse.json({ url: null }, { status: 400 });
+      return NextResponse.json(
+        { steamUrl: null, dotabuffUrl: null },
+        { status: 400 }
+      );
     }
 
-    if (!limitarPorClave(`dotabuff:${ipDe(request)}`, 120, 60_000)) {
+    if (!limitarPorClave(`player-links:${ipDe(request)}`, 120, 60_000)) {
       return NextResponse.json(
         { error: 'Demasiadas consultas. Espera un momento.' },
         { status: 429 }
@@ -47,14 +50,19 @@ export async function GET(
       .maybeSingle();
 
     if (error) {
-      return NextResponse.json({ url: null }, { status: 500 });
+      return NextResponse.json(
+        { steamUrl: null, dotabuffUrl: null },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json(
-      { url: dotabuffPlayerUrl(data?.steam_id) },
-      { headers: CACHE_HEADERS }
-    );
+    return NextResponse.json(playerLinksFromSteamId(data?.steam_id), {
+      headers: CACHE_HEADERS,
+    });
   } catch {
-    return NextResponse.json({ url: null }, { status: 500 });
+    return NextResponse.json(
+      { steamUrl: null, dotabuffUrl: null },
+      { status: 500 }
+    );
   }
 }

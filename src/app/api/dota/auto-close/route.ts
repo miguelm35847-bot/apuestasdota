@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { steam64ToAccountId } from '@/lib/dotabuff';
+import { steam64ToAccountId } from '@/lib/playerLinks';
 import { limitarPorClave } from '@/lib/rateLimit';
 
 const STEAM_API_KEY = process.env.STEAM_API_KEY || '';

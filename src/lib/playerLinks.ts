@@ -1,5 +1,11 @@
 const STEAM64_BASE = BigInt('76561197960265728');
 const MAX_DOTA_ACCOUNT_ID = BigInt('4294967295');
+const STEAM64_RE = /^\d{17}$/;
+
+export type PlayerLinks = {
+  steamUrl: string | null;
+  dotabuffUrl: string | null;
+};
 
 /**
  * Convierte un SteamID64 al account_id de 32 bits que usa Dota 2 / Dotabuff.
@@ -27,4 +33,23 @@ export function dotabuffPlayerUrl(steamId: string | null | undefined): string | 
   if (accountId === null) return null;
 
   return `https://www.dotabuff.com/players/${accountId}`;
+}
+
+/** URL pública del perfil de Steam para un SteamID64. */
+export function steamProfileUrl(steamId: string | null | undefined): string | null {
+  const id = steamId?.trim();
+  if (!id || !STEAM64_RE.test(id)) return null;
+
+  return `https://steamcommunity.com/profiles/${id}`;
+}
+
+/**
+ * URLs públicas de Steam y Dotabuff para un SteamID64.
+ * Nunca devuelve el SteamID: solo enlaces derivados.
+ */
+export function playerLinksFromSteamId(steamId: string | null | undefined): PlayerLinks {
+  return {
+    steamUrl: steamProfileUrl(steamId),
+    dotabuffUrl: dotabuffPlayerUrl(steamId),
+  };
 }
