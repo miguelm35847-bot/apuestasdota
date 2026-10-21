@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -18,6 +19,7 @@ type Aviso = { salaId: string; nombre: string };
  */
 export default function AvisoVerificacion() {
   const { user } = useAuth();
+  const router = useRouter();
   const [aviso, setAviso] = useState<Aviso | null>(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -37,11 +39,12 @@ export default function AvisoVerificacion() {
 
       const { data: sala } = await supabase
         .from('salas')
-        .select('id, nombre, verificacion_estado')
+        .select('id, nombre, estado, verificacion_estado')
         .eq('id', salaId)
         .maybeSingle();
 
       if (!sala || sala.verificacion_estado !== 'pendiente') return;
+      if (sala.estado === 'terminada' || sala.estado === 'cancelada') return;
 
       setAviso({ salaId: sala.id, nombre: sala.nombre });
     },
@@ -71,6 +74,7 @@ export default function AvisoVerificacion() {
         .select('id, nombre')
         .in('id', candidatas)
         .eq('verificacion_estado', 'pendiente')
+        .in('estado', ['abierta', 'llena', 'en_juego'])
         .limit(1);
 
       const primera = (salas ?? [])[0];
@@ -111,7 +115,11 @@ export default function AvisoVerificacion() {
     const { error } = await supabase.rpc('confirmar_verificacion', { p_sala: aviso.salaId });
     setEnviando(false);
 
-    if (!error) setAviso(null);
+    if (!error) {
+      setAviso(null);
+      // Al confirmar lo llevamos a su sala, que es donde se decide el lado.
+      router.push(`/salas/${aviso.salaId}`);
+    }
   }
 
   if (!aviso) return null;

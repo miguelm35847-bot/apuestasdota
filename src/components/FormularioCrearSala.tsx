@@ -23,7 +23,7 @@ export default function FormularioCrearSala({
   const [nombre, setNombre] = useState('');
   const [cuota, setCuota] = useState('');
   const [modalidad, setModalidad] = useState<'1v1' | '5v5'>('5v5');
-  const [comision, setComision] = useState('1500');
+  const [comision, setComision] = useState('15');
   const [creando, setCreando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,9 +44,9 @@ export default function FormularioCrearSala({
       return;
     }
 
-    const comisionNum = parseInt(comision);
-    if (isNaN(comisionNum) || comisionNum < 0 || comisionNum > 5000) {
-      setError('La comisión debe estar entre 0 y 5000 (0-50%)');
+    const comisionPct = parseFloat(comision);
+    if (isNaN(comisionPct) || comisionPct < 0 || comisionPct > 50) {
+      setError('La comisión debe estar entre 0 y 50 %');
       return;
     }
 
@@ -56,7 +56,7 @@ export default function FormularioCrearSala({
       p_nombre: nombre.trim(),
       p_cuota: Math.round(cuotaNum * 100),
       p_cupo: modalidad === '1v1' ? 2 : 10,
-      p_comision_bp: comisionNum,
+      p_comision_bp: Math.round(comisionPct * 100),
     });
 
     if (rpcError) {
@@ -150,8 +150,9 @@ export default function FormularioCrearSala({
             type="number"
             min="0"
             max="50"
-            value={Math.round(parseInt(comision) / 100)}
-            onChange={(e) => setComision(String(parseInt(e.target.value) * 100))}
+            step="1"
+            value={comision}
+            onChange={(e) => setComision(e.target.value)}
             className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
           />
         </div>

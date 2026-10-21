@@ -13,6 +13,8 @@ export default function NotificationBell() {
   const [show, setShow] = useState(false);
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const pedidosVistos = useRef<Record<string, string>>({});
+  const sorteosVistos = useRef<Record<string, string>>({});
+  const userIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     cargarNotificaciones();
@@ -34,8 +36,8 @@ export default function NotificationBell() {
       )
       .subscribe();
 
-    // Canal 2 (aparte): aviso de verificación. Se separa para que un fallo en
-    // un canal no se lleve el sonido del otro.
+    // Canal 2 (aparte): avisos de sala. Se separa para que un fallo en un
+    // canal no se lleve el sonido del otro.
     const canalSalas = supabase
       .channel('verificacion_salas_realtime')
       .on(
@@ -46,14 +48,28 @@ export default function NotificationBell() {
             id?: string;
             verificacion_estado?: string;
             verificacion_iniciada_at?: string | null;
+            picks_estado?: string;
+            creado_por?: string | null;
           };
-          if (!sala.id || sala.verificacion_estado !== 'pendiente') return;
+          if (!sala.id) return;
 
-          const clave = sala.verificacion_iniciada_at ?? '';
-          if (pedidosVistos.current[sala.id] === clave) return;
-          pedidosVistos.current[sala.id] = clave;
+          // Se pidió la verificación: suena a los jugadores de esa sala.
+          if (sala.verificacion_estado === 'pendiente') {
+            const clave = sala.verificacion_iniciada_at ?? '';
+            if (pedidosVistos.current[sala.id] !== clave) {
+              pedidosVistos.current[sala.id] = clave;
+              void avisarSiSoyDeLaSala(sala.id);
+            }
+          }
 
-          void avisarSiSoyDeLaSala(sala.id);
+          // Se lanzó la moneda: el admin que creó la sala recibe el aviso
+          // para crear el lobby en Dota y poner la sala en juego.
+          if (sala.picks_estado === 'eleccion' && sala.creado_por === userIdRef.current) {
+            if (sorteosVistos.current[sala.id] !== 'eleccion') {
+              sorteosVistos.current[sala.id] = 'eleccion';
+              reproducirSonido('moneda');
+            }
+          }
         }
       )
       .subscribe();
@@ -70,6 +86,7 @@ export default function NotificationBell() {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
+    userIdRef.current = user.id;
 
     const { data } = await supabase
       .from('participantes_sala')
@@ -84,6 +101,7 @@ export default function NotificationBell() {
   async function cargarNotificaciones() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+    userIdRef.current = user.id;
 
     const { data } = await supabase
       .from('notificaciones')
