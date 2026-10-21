@@ -6,6 +6,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import type { MensajeChat } from '@/lib/types';
 import Avatar from '@/components/Avatar';
+import MedallaMmr from '@/components/MedallaMmr';
 import PerfilHover from '@/components/PerfilHover';
 
 function formatearHora(fecha: string) {
@@ -140,7 +141,10 @@ export default function ChatPanel({
             const propio = m.user_id === user?.id;
 
             return (
-              <div key={m.id} className={`flex gap-2 ${propio ? 'justify-end' : 'justify-start'}`}>
+              <div
+                key={m.id}
+                className={`flex items-start gap-2 ${propio ? 'justify-end' : 'justify-start'}`}
+              >
                 {!propio && (
                   <PerfilHover
                     usuario={{
@@ -151,7 +155,7 @@ export default function ChatPanel({
                       mmr: m.profiles?.mmr,
                       roles_preferidos: m.profiles?.roles_preferidos,
                     }}
-                    className="shrink-0"
+                    className="shrink-0 self-start"
                   >
                     <Link
                       href={`/jugadores/${m.user_id}`}
@@ -167,24 +171,42 @@ export default function ChatPanel({
                   </PerfilHover>
                 )}
                 <div
-                  className={`max-w-[80%] rounded-2xl px-3 py-2 shadow-sm ${
-                    propio
-                      ? 'rounded-br-md bg-prism-500 text-white'
-                      : 'rounded-bl-md border border-white/10 bg-white/5 text-slate-100'
+                  className={`min-w-0 ${
+                    propio ? 'max-w-[80%]' : 'w-fit max-w-[calc(100%-2.25rem)]'
                   }`}
                 >
                   {!propio && (
-                    <Link
-                      href={`/jugadores/${m.user_id}`}
-                      className="text-[11px] font-semibold text-prism-300 transition hover:text-prism-200 hover:underline"
-                    >
-                      {m.profiles?.nick ?? 'Usuario'}
-                    </Link>
+                    <div className="mb-1 flex min-w-0 items-center gap-1.5 px-1">
+                      <Link
+                        href={`/jugadores/${m.user_id}`}
+                        className="min-w-0 truncate text-[11px] font-semibold text-prism-300 transition hover:text-prism-200 hover:underline"
+                      >
+                        {m.profiles?.nick?.trim() || 'Usuario'}
+                      </Link>
+                      <MedallaMmr
+                        mmr={m.profiles?.mmr}
+                        size="xs"
+                        mostrarNombre={false}
+                        className="shrink-0 gap-0"
+                      />
+                    </div>
                   )}
-                  <p className="whitespace-pre-wrap break-words text-sm">{m.mensaje}</p>
-                  <p className={`mt-1 text-[10px] ${propio ? 'text-prism-100/70' : 'text-slate-500'}`}>
-                    {formatearHora(m.created_at)}
-                  </p>
+                  <div
+                    className={`rounded-2xl px-3 py-2 shadow-sm ${
+                      propio
+                        ? 'rounded-br-md bg-prism-500 text-white'
+                        : 'rounded-bl-md border border-white/10 bg-white/5 text-slate-100'
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap break-words text-sm">{m.mensaje}</p>
+                    <p
+                      className={`mt-1 text-[10px] ${
+                        propio ? 'text-prism-100/70' : 'text-slate-500'
+                      }`}
+                    >
+                      {formatearHora(m.created_at)}
+                    </p>
+                  </div>
                 </div>
               </div>
             );

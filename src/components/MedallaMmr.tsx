@@ -1,9 +1,10 @@
 import Image from 'next/image';
 import { estrellasDeMmr, rangoMmr } from '@/lib/mmr';
 
-type MedallaSize = 'sm' | 'md' | 'lg' | 'xl';
+type MedallaSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 const PIXELES: Record<MedallaSize, number> = {
+  xs: 20,
   sm: 32,
   md: 56,
   lg: 112,
@@ -11,6 +12,7 @@ const PIXELES: Record<MedallaSize, number> = {
 };
 
 const CLASES_TAMANO: Record<MedallaSize, string> = {
+  xs: 'h-5 w-5',
   sm: 'h-8 w-8',
   md: 'h-14 w-14',
   lg: 'h-28 w-28',
@@ -18,6 +20,7 @@ const CLASES_TAMANO: Record<MedallaSize, string> = {
 };
 
 const CLASES_ESTRELLAS: Record<MedallaSize, string> = {
+  xs: 'gap-0 text-[6px]',
   sm: 'gap-0 text-[8px]',
   md: 'gap-0.5 text-xs',
   lg: 'gap-0.5 text-sm',
