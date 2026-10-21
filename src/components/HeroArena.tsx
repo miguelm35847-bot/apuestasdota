@@ -253,7 +253,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
               )}
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-semibold text-slate-300 lg:justify-start">
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-semibold text-slate-300 lg:hidden">
               <Link
                 href="/como-jugar"
                 className="inline-flex items-center gap-1.5 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"

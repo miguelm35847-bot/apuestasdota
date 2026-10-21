@@ -25,6 +25,14 @@ export default function Navbar({ titulo }: { titulo?: string }) {
   const [steamAvatar, setSteamAvatar] = useState<string | null>(null);
   const [menuAbierto, setMenuAbierto] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [hash, setHash] = useState('');
+
+  useEffect(() => {
+    const syncHash = () => setHash(window.location.hash);
+    syncHash();
+    window.addEventListener('hashchange', syncHash);
+    return () => window.removeEventListener('hashchange', syncHash);
+  }, [pathname]);
 
   const cargarSaldo = useCallback(async () => {
     const { data, error } = await supabase.rpc('mi_saldo');
@@ -125,6 +133,8 @@ export default function Navbar({ titulo }: { titulo?: string }) {
     user?.email?.split('@')[0] ||
     'Jugador';
   const enHistorial = pathname === '/salas/historial';
+  const enReglas = pathname === '/como-jugar' && hash === '#reglas';
+  const enComoJugar = pathname === '/como-jugar' && !enReglas;
 
   return (
     <nav className="arena-nav sticky top-0 z-40 border-b border-white/10 bg-[#05070c]/95 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.04)]">
@@ -145,16 +155,44 @@ export default function Navbar({ titulo }: { titulo?: string }) {
           </Link>
         </div>
 
-        <Link
-          href="/salas/historial"
-          className={`absolute left-1/2 hidden -translate-x-1/2 rounded-full px-4 py-2 text-sm font-semibold transition md:block ${
-            enHistorial
-              ? 'bg-white/10 text-white ring-1 ring-inset ring-white/10'
-              : 'text-slate-200 hover:bg-white/5 hover:text-white'
-          }`}
+        <nav
+          aria-label="Enlaces de la arena"
+          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 md:flex"
         >
-          Historial
-        </Link>
+          <Link
+            href="/como-jugar"
+            aria-current={enComoJugar ? 'page' : undefined}
+            className={`hidden rounded-full px-3 py-2 text-sm font-semibold transition lg:inline-flex ${
+              enComoJugar
+                ? 'bg-white/10 text-white ring-1 ring-inset ring-white/10'
+                : 'text-slate-300 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            Cómo jugar
+          </Link>
+          <Link
+            href="/como-jugar#reglas"
+            aria-current={enReglas ? 'page' : undefined}
+            className={`hidden rounded-full px-3 py-2 text-sm font-semibold transition lg:inline-flex ${
+              enReglas
+                ? 'bg-white/10 text-white ring-1 ring-inset ring-white/10'
+                : 'text-slate-300 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            Reglas
+          </Link>
+          <Link
+            href="/salas/historial"
+            aria-current={enHistorial ? 'page' : undefined}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              enHistorial
+                ? 'bg-white/10 text-white ring-1 ring-inset ring-white/10'
+                : 'text-slate-200 hover:bg-white/5 hover:text-white'
+            }`}
+          >
+            Historial
+          </Link>
+        </nav>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {user ? (

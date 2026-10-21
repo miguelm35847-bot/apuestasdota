@@ -204,7 +204,7 @@ const PASOS: { titulo: string; texto: string; nota?: string; icono: IconoNombre 
     titulo: 'Entra al lobby y juega',
     texto:
       'El nombre y la clave del lobby se comparten en la sala. Ingresa a Dota 2 con tu cuenta de Steam y juega con tu equipo.',
-    nota: 'Respeta las pausas, los tiempos y las indicaciones del Tío Apuestas.',
+    nota: 'Respeta las pausas, los tiempos y las indicaciones de KódigoDota o de un administrador.',
     icono: 'game',
   },
   {
@@ -244,9 +244,9 @@ const REGLAS: {
     icono: 'pause',
   },
   {
-    titulo: 'Pausas del Tío Apuestas',
-    texto: 'El Tío Apuestas puede hacer pausas ilimitadas si justifica hacerlo.',
-    detalle: 'El Tío Apuestas es el anfitrión/admin de la sala.',
+    titulo: 'Pausas de KódigoDota o un administrador',
+    texto: 'KódigoDota o un administrador pueden hacer pausas ilimitadas si justifican hacerlo.',
+    detalle: 'KódigoDota o un administrador cumplen el rol de anfitrión/admin de la sala.',
     icono: 'flag',
   },
   {
@@ -303,7 +303,7 @@ const RESUMEN = [
   { etiqueta: 'Desconexión antes de 10 min', valor: 'Casada completa' },
   { etiqueta: 'Pausa en TF sin desconexión', valor: '10%' },
   { etiqueta: 'MMR falso', valor: 'Toda la apuesta' },
-  { etiqueta: 'Pausas del Tío Apuestas', valor: 'Ilimitadas' },
+  { etiqueta: 'Pausas de KódigoDota o un administrador', valor: 'Ilimitadas' },
 ];
 
 const CHIPS = ['Salas 1v1 y 5v5', 'Yape / Plin', 'MMR real', 'Premios'];
@@ -547,7 +547,7 @@ export default function ComoJugarPage() {
                   ))}
                 </dl>
                 <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
-                  El Tío Apuestas debe justificar cada pausa. Las penalidades se aplican
+                  KódigoDota o un administrador deben justificar cada pausa. Las penalidades se aplican
                   según la regla correspondiente.
                 </p>
               </div>
@@ -558,12 +558,12 @@ export default function ComoJugarPage() {
                     <Icono nombre="flag" className="h-4 w-4" />
                   </span>
                   <p className="font-display text-base font-bold text-amber-200">
-                    El Tío Apuestas
+                    KódigoDota o un administrador
                   </p>
                 </div>
                 <p className="mt-2 text-xs leading-relaxed text-amber-100/70">
-                  Es el anfitrión/admin de la sala. Puede hacer pausas ilimitadas si
-                  justifica el motivo y vela por el cumplimiento de estas reglas.
+                  Actúan como anfitriones/administradores de la sala. Pueden hacer pausas
+                  ilimitadas si justifican el motivo y velan por el cumplimiento de estas reglas.
                 </p>
               </div>
             </aside>
