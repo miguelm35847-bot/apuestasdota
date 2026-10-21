@@ -358,6 +358,11 @@ export async function limpiarDatosQa() {
         'falta aplicar docs/sql/2026-10-21-qa-hallazgos.sql (función qa_cleanup) antes de limpiar',
       );
     }
+    if (/movimientos.*no se pueden modificar ni borrar/i.test(error.message)) {
+      throw new Error(
+        'qa_cleanup está desactualizada: vuelve a aplicar la función de docs/sql/2026-10-21-qa-hallazgos.sql (deshabilita el trigger de movimientos durante la limpieza)',
+      );
+    }
     throw error;
   }
 }

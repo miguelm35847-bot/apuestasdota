@@ -214,14 +214,27 @@ begin
 
   v_salas_n := coalesce(array_length(v_salas, 1), 0);
 
+  -- Los movimientos son inmutables por trigger; la limpieza QA es la única
+  -- excepción y se ejecuta como owner dentro de esta transacción. Se
+  -- desactivan solo los triggers USER para no tocar los de integridad.
+  alter table public.movimientos_billetera disable trigger user;
   delete from public.movimientos_billetera
   where user_id = any(v_ids) or creado_por = any(v_ids);
+  alter table public.movimientos_billetera enable trigger user;
 
   delete from public.notificaciones where user_id = any(v_ids);
   delete from public.recargas where user_id = any(v_ids);
   delete from public.retiros where user_id = any(v_ids);
   delete from public.mensajes_chat where user_id = any(v_ids) or sala_id = any(v_salas);
+
+  update public.salas
+  set picks_estado = 'inactivo'
+  where id = any(v_salas) and picks_estado = 'en_curso';
+
+  alter table public.participantes_sala disable trigger user;
   delete from public.participantes_sala where user_id = any(v_ids) or sala_id = any(v_salas);
+  alter table public.participantes_sala enable trigger user;
+
   delete from public.lobbies where sala_id = any(v_salas);
   delete from public.partidas where sala_id = any(v_salas);
   delete from public.salas where id = any(v_salas);
