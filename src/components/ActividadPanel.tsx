@@ -7,15 +7,17 @@ import Avatar from '@/components/Avatar';
 import PerfilHover from '@/components/PerfilHover';
 import {
   Actividad,
+  PerfilActividad,
   formatoSoles,
   nombreDe,
   tiempoRelativo,
 } from '@/lib/actividades';
+import type { RolDota } from '@/lib/types';
 
 const SELECT_EMBED =
   'id, tipo, emisor_id, receptor_id, monto, descripcion, creado_en, ' +
-  'emisor:profiles!actividades_emisor_id_fkey(nick, steam_avatar_url), ' +
-  'receptor:profiles!actividades_receptor_id_fkey(nick, steam_avatar_url)';
+  'emisor:profiles!actividades_emisor_id_fkey(nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos), ' +
+  'receptor:profiles!actividades_receptor_id_fkey(nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos)';
 
 /**
  * Avatar del feed con la tarjeta de jugador (y el botón de donar) al pasar el
@@ -25,10 +27,12 @@ function TarjetaActividad({
   id,
   nick,
   avatar,
+  perfil,
 }: {
   id: string | null;
   nick: string;
   avatar: string | null;
+  perfil?: PerfilActividad | null;
 }) {
   if (!id) {
     return <Avatar nick={nick} src={avatar} size="xs" />;
@@ -36,7 +40,14 @@ function TarjetaActividad({
 
   return (
     <PerfilHover
-      usuario={{ id, nick, steam_avatar_url: avatar }}
+      usuario={{
+        id,
+        nick,
+        steam_avatar_url: avatar,
+        steam_nombre: perfil?.steam_nombre ?? null,
+        mmr: perfil?.mmr ?? null,
+        roles_preferidos: perfil?.roles_preferidos ?? null,
+      }}
       className="inline-block shrink-0"
     >
       <Link
@@ -94,16 +105,28 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
       ),
     ];
 
-    const perfiles: Record<string, { nick: string | null; steam_avatar_url: string | null }> = {};
+    const perfiles: Record<
+      string,
+      {
+        nick: string | null;
+        steam_avatar_url: string | null;
+        steam_nombre?: string | null;
+        mmr?: number | null;
+        roles_preferidos?: RolDota[] | null;
+      }
+    > = {};
     if (ids.length > 0) {
       const res = await supabase
         .from('profiles')
-        .select('id, nick, steam_avatar_url')
+        .select('id, nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos')
         .in('id', ids);
       for (const perfil of res.data ?? []) {
         perfiles[perfil.id] = {
           nick: perfil.nick,
           steam_avatar_url: perfil.steam_avatar_url,
+          steam_nombre: perfil.steam_nombre,
+          mmr: perfil.mmr,
+          roles_preferidos: perfil.roles_preferidos,
         };
       }
     }
@@ -199,6 +222,7 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
                       id={actividad.receptor_id}
                       nick={receptor}
                       avatar={actividad.receptor?.steam_avatar_url ?? null}
+                      perfil={actividad.receptor}
                     />
                   ) : (
                     <>
@@ -206,11 +230,13 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
                         id={actividad.emisor_id}
                         nick={donante}
                         avatar={actividad.emisor?.steam_avatar_url ?? null}
+                        perfil={actividad.emisor}
                       />
                       <TarjetaActividad
                         id={actividad.receptor_id}
                         nick={receptor}
                         avatar={actividad.receptor?.steam_avatar_url ?? null}
+                        perfil={actividad.receptor}
                       />
                     </>
                   )}

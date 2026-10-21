@@ -13,7 +13,7 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 - Salas 1v1/5v5 con equipos, picks, lobby, cierre automático/manual, panel admin y endurecimiento de RPCs. En 1v1, cuando los dos confirman “Estoy listo” gira una moneda con los avatares de ambos y el ganador elige Radiant o Dire (el admin no asigna los equipos a mano); en 5v5 el reparto sale de los picks.
 - Admin → Jugadores: MMR, **recarga manual** (sin motivo) y **multas** por faltas a las reglas, con saldo por jugador y notificación.
 - Gestión de salas **desde el landing**: el admin ve el botón “+ Crear sala” y, en cada tarjeta, “☆ Destacar” y “Gestionar →” (equipos, lobby, verificación y cierre) sin pasar por el panel admin.
-- Verificación de sala "Estoy listo": el admin la pide cuando la sala está completa, cada jugador confirma desde la sala (aviso sonoro dentro de la sala + notificación) y los slots marcan con ✓ a los que confirmaron. No bloquea el inicio de la partida.
+- Verificación de sala "Estoy listo": se pide **automáticamente** cuando la sala se llena (el admin puede volver a pedirla o cancelarla). Cada jugador confirma desde la sala o desde un **aviso central** que le aparece en cualquier página (con “Estoy listo” e “Ir a mi sala”) y desaparece al confirmar. Los slots marcan con un cuadrito verde con ✓ a los que confirmaron. No bloquea el inicio de la partida.
 - Donaciones entre usuarios: botón "Donar saldo" en el perfil público **y en la tarjeta flotante de cada jugador** (landing, chat y salas), con mensaje opcional; todo el movimiento ocurre en la RPC `donar_saldo` (atómico, con control de saldo y sin donarse a uno mismo).
 - Panel público de actividades en el landing: muestra en vivo las donaciones ("Perfil 1 donó S/ 2.00 a Perfil 2", con avatares) y las multas aplicadas por el admin. Va en la **columna izquierda** del landing (340 px), con las salas al centro y el chat a la derecha (360 px); cada tarjeta de sala muestra la cuota y el **premio por ganador**.
 - Sonidos de la arena (Web Audio, sin archivos ni botón de volumen): aviso de verificación (suena a los jugadores de la sala, estén donde estén) y fin de partida (suena para todos los jugadores de la sala). Los avisos de verificación **no** aparecen en la campana.
@@ -23,7 +23,7 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 
 ## Pendientes
 
-- SQL pendiente de aplicar en Supabase: **re-aplicar** `docs/sql/2026-10-21-donaciones.sql` (corrige el formato de los montos en los mensajes —`S/ ###.##` en vez de `S/ 9999.99`—, deja las claves foráneas de `actividades` en `on delete cascade` y limpia las filas huérfanas que dejaron las pruebas).
+- SQL pendiente de aplicar en Supabase: `docs/sql/2026-10-21-verificacion-automatica.sql` (pide la verificación automáticamente cuando la sala se llena y deja la moneda 1v1 para después del “Estoy listo”).
 - Panel de actividades en el landing: hoy se guardan las multas como movimientos `ajuste_admin` con descripción `Multa: <motivo>`; falta el panel público (fines y luego donaciones) con Realtime.
 - Donaciones entre usuarios y panel de actividades: siguiente bloque agreed (recarga → verificación → donaciones/panel → en vivo).
 - Vista en vivo de héroe/kills: sigue pendiente; depende de que Valve apruebe liga/ticket (la API pública solo muestra partidas de liga).

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope, Sora, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
+import AvisoVerificacion from "@/components/AvisoVerificacion";
 import { DonarProvider } from "@/components/DonarProvider";
 
 const manrope = Manrope({
@@ -34,7 +35,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col font-sans">
         <AuthProvider>
-          <DonarProvider>{children}</DonarProvider>
+          <DonarProvider>
+            <AvisoVerificacion />
+            {children}
+          </DonarProvider>
         </AuthProvider>
       </body>
     </html>

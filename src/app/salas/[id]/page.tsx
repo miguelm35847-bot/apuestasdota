@@ -1284,6 +1284,8 @@ function SalaContenido() {
   const puedeMoverse =
     esParticipante &&
     picksEstado === 'inactivo' &&
+    // En 1v1 los equipos los decide la moneda, no los jugadores.
+    sala.cupo !== 2 &&
     (sala.estado === 'abierta' || sala.estado === 'llena');
   const puedeUnirse = !esParticipante && sala.estado === 'abierta' && participantes.length < sala.cupo;
   const puedeEditarRoles =
@@ -1425,7 +1427,7 @@ function SalaContenido() {
                 >
                   {verificacionEstado === 'completa'
                     ? 'Todos los jugadores confirmaron que están listos.'
-                    : 'El administrador pide confirmar que estás listo para la partida.'}
+                    : 'La sala está completa: confirma que estás listo para la partida.'}
                 </p>
                 <p className="mt-0.5 text-xs text-slate-300">
                   {listos}/{totalEnSala} listos

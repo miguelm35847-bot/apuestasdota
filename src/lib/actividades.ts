@@ -5,11 +5,16 @@
  * muestra nicks, avatares, monto y motivo. Nunca se expone `steam_id`.
  */
 
+import type { RolDota } from '@/lib/types';
+
 export type ActividadTipo = 'donacion' | 'multa';
 
 export type PerfilActividad = {
   nick: string | null;
   steam_avatar_url: string | null;
+  steam_nombre?: string | null;
+  mmr?: number | null;
+  roles_preferidos?: RolDota[] | null;
 };
 
 export type Actividad = {
