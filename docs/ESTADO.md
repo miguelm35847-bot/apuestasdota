@@ -45,7 +45,7 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 - `npx tsc --noEmit` (feedback rápido de tipos).
 - `npm run lint`.
 - `npm run build` (también corre TypeScript; es la verificación final).
-- QA visual con Chrome CDP: `npm run qa -- --base http://127.0.0.1:3001 --url / --hover "a[aria-label^='Ver perfil de']"`. Requiere Chrome con `--remote-debugging-port=9222` y un servidor de QA (`npm run qa:serve`) para no tocar el :3000 que usa el usuario.
+- QA visual con Chrome CDP: `npm run qa -- --base http://127.0.0.1:3001 --url / --hover "a[aria-label^='Ver perfil de']"`. Requiere Chrome con `--remote-debugging-port=9222` y un servidor de QA (`npm run qa:serve`) para no tocar el :3000 que usa el usuario. Añade `--login` para flujos con sesión (cuenta QA `qa_cdp`; credenciales en `.env.local`, nunca en el repo).
 - SQL pendiente, si hay, en `docs/TRASPASO.md`.
 
 ## Documentación

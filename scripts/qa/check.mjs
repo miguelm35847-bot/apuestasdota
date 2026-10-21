@@ -30,6 +30,9 @@ const AYUDA = `Uso: node scripts/qa/check.mjs [opciones]
   --scroll <selector>    Desplaza ese elemento al centro antes de medir
   --hover <selector>     Selector del disparador de la tarjeta
   --hover-index <n|last> Elemento a usar cuando hay varios (def. 0)
+  --login                Inicia sesión con QA_EMAIL y QA_PASSWORD antes de revisar
+  --expect <texto>       Texto que debe aparecer; repetible
+  --reject <texto>       Texto que no debe aparecer; repetible
   --shot <dir>           Guarda una captura por URL y viewport
   --json                 Salida JSON
   --help                 Muestra esta ayuda
@@ -57,6 +60,9 @@ function opciones(argv) {
     scroll: null,
     hover: null,
     hoverIndex: '0',
+    login: false,
+    expect: [],
+    reject: [],
     shot: null,
     json: false,
   };
@@ -97,6 +103,15 @@ function opciones(argv) {
         break;
       case '--hover-index':
         opts.hoverIndex = valor();
+        break;
+      case '--login':
+        opts.login = true;
+        break;
+      case '--expect':
+        opts.expect.push(valor());
+        break;
+      case '--reject':
+        opts.reject.push(valor());
         break;
       case '--shot':
         opts.shot = valor();
@@ -181,6 +196,68 @@ function resumenEvento(evento) {
   return null;
 }
 
+function crearEvaluador(send) {
+  return async (expression) => {
+    const r = await send('Runtime.evaluate', {
+      expression,
+      returnByValue: true,
+      awaitPromise: true,
+    });
+    if (r.exceptionDetails) {
+      throw new Error(r.exceptionDetails.exception?.description ?? r.exceptionDetails.text);
+    }
+    return r.result.value;
+  };
+}
+
+async function iniciarSesion(send, opts) {
+  const email = process.env.QA_EMAIL;
+  const password = process.env.QA_PASSWORD;
+  if (!email || !password) {
+    throw new Error(
+      '--login necesita QA_EMAIL y QA_PASSWORD (añádelos a .env.local; npm run qa los carga)'
+    );
+  }
+
+  await send('Emulation.setDeviceMetricsOverride', {
+    width: 1366,
+    height: 768,
+    deviceScaleFactor: 1,
+    mobile: false,
+  });
+  await send('Page.navigate', { url: `${opts.base}/login` });
+  await sleep(opts.settle);
+
+  const evaluar = crearEvaluador(send);
+  const enfocar = (selector) =>
+    evaluar(`(() => {
+      const el = document.querySelector(${JSON.stringify(selector)});
+      if (!el) return false;
+      el.focus();
+      return true;
+    })()`);
+
+  if (!(await enfocar('#email'))) throw new Error('no se encontró el campo #email en /login');
+  await send('Input.insertText', { text: email });
+  if (!(await enfocar('#password'))) throw new Error('no se encontró el campo #password en /login');
+  await send('Input.insertText', { text: password });
+  await evaluar(`document.querySelector('form button[type="submit"]')?.click() ?? false`);
+
+  for (let intento = 0; intento < 40; intento++) {
+    await sleep(250);
+    const estado = await evaluar(`(() => ({
+      path: location.pathname,
+      sesion: Object.keys(localStorage).some(
+        (k) => k.startsWith('sb-') && k.includes('auth-token')
+      ),
+    }))()`);
+    if (estado.sesion && estado.path !== '/login') return estado;
+  }
+
+  const texto = await evaluar(`document.body.innerText.replace(/\\s+/g, ' ').slice(0, 200)`);
+  throw new Error(`el login no completó; la página muestra: ${texto}`);
+}
+
 async function revisar(send, eventos, opts, ruta, [width, height]) {
   const base = opts.base + (ruta.startsWith('/') ? ruta : `/${ruta}`);
   eventos.length = 0;
@@ -196,27 +273,24 @@ async function revisar(send, eventos, opts, ruta, [width, height]) {
   if (navegacion.errorText) throw new Error(`no cargó ${base}: ${navegacion.errorText}`);
   await sleep(opts.settle);
 
-  const evaluar = async (expression) => {
-    const r = await send('Runtime.evaluate', {
-      expression,
-      returnByValue: true,
-      awaitPromise: true,
-    });
-    if (r.exceptionDetails) {
-      throw new Error(r.exceptionDetails.exception?.description ?? r.exceptionDetails.text);
-    }
-    return r.result.value;
-  };
+  const evaluar = crearEvaluador(send);
 
   const base_ = await evaluar(`(() => ({
     titulo: document.title,
     overflowX: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     visible: document.visibilityState,
+    texto: document.body.innerText,
   }))()`);
 
   const problemas = [];
   if (base_.overflowX > 0) {
     problemas.push(`overflow horizontal de ${base_.overflowX}px`);
+  }
+  for (const esperado of opts.expect) {
+    if (!base_.texto.includes(esperado)) problemas.push(`falta el texto "${esperado}"`);
+  }
+  for (const rechazado of opts.reject) {
+    if (base_.texto.includes(rechazado)) problemas.push(`no debería aparecer "${rechazado}"`);
   }
 
   if (opts.scroll) {
@@ -326,6 +400,18 @@ try {
   await conexion.send('Page.enable');
   await conexion.send('Runtime.enable');
   await conexion.send('Log.enable');
+
+  // Cada ejecución arranca sin sesión: evita que una corrida con --login
+  // contamine las siguientes en el mismo perfil de Chrome.
+  await conexion.send('Storage.clearDataForOrigin', {
+    origin: new URL(opts.base).origin,
+    storageTypes: 'all',
+  });
+
+  if (opts.login) {
+    const sesion = await iniciarSesion(conexion.send, opts);
+    if (!opts.json) console.log(`[ok] sesión QA iniciada · ${sesion.path}`);
+  }
 
   for (const ruta of opts.urls) {
     for (const viewport of opts.viewports) {
