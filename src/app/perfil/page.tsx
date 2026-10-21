@@ -244,6 +244,22 @@ function PanelTab({
   );
 }
 
+async function obtenerMiSteamId(): Promise<string | null> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return null;
+
+  const res = await fetch('/api/perfil/steam', {
+    headers: { Authorization: `Bearer ${session.access_token}` },
+    cache: 'no-store',
+  });
+  if (!res.ok) return null;
+
+  const data = (await res.json()) as { steamId?: string | null };
+  return data.steamId ?? null;
+}
+
 function PerfilContenido() {
   useArenaBody();
   const { user } = useAuth();
@@ -279,18 +295,21 @@ function PerfilContenido() {
     if (!user) return;
     const { data } = await supabase
       .from('profiles')
-      .select('nick, steam_id, steam_avatar_url, steam_nombre, mmr, roles_preferidos')
+      .select('nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos')
       .eq('id', user.id)
       .single();
     if (data) {
       setNick(data.nick);
-      setSteamId(data.steam_id);
       setSteamAvatar(data.steam_avatar_url);
       setSteamNombre(data.steam_nombre);
       setMmr(data.mmr?.toString() ?? '');
       setMmrGuardado(data.mmr !== null && data.mmr !== undefined);
       setRolesPreferidos((data.roles_preferidos ?? []) as RolDota[]);
     }
+
+    // El SteamID ya no se lee directo de profiles: el servidor lo devuelve
+    // solo al usuario autenticado.
+    setSteamId(await obtenerMiSteamId());
 
     const { data: saldoData } = await supabase.rpc('mi_saldo');
     if (saldoData !== null) setSaldo(saldoData);
@@ -454,18 +473,20 @@ function PerfilContenido() {
     if (successParam === 'linked') {
       setSuccess('Cuenta de Steam vinculada correctamente');
       if (user) {
-        supabase
-          .from('profiles')
-          .select('steam_id, steam_avatar_url, steam_nombre')
-          .eq('id', user.id)
-          .single()
-          .then(({ data }) => {
-            if (data) {
-              setSteamId(data.steam_id);
-              setSteamAvatar(data.steam_avatar_url);
-              setSteamNombre(data.steam_nombre);
-            }
-          });
+        Promise.all([
+          supabase
+            .from('profiles')
+            .select('steam_avatar_url, steam_nombre')
+            .eq('id', user.id)
+            .single(),
+          obtenerMiSteamId(),
+        ]).then(([{ data }, miSteamId]) => {
+          if (data) {
+            setSteamAvatar(data.steam_avatar_url);
+            setSteamNombre(data.steam_nombre);
+          }
+          setSteamId(miSteamId);
+        });
       }
     }
   }, [searchParams, user]);

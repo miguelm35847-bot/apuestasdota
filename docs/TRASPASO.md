@@ -1781,6 +1781,18 @@ notify pgrst, 'reload schema';
 - `AdminNav` pasó de scroll horizontal a grilla de 5 columnas en móvil; en escritorio los 5 segmentos se reparten el ancho. Ya no se recorta “Salas” a 390/360 px.
 - Verificación con Chrome headless autenticada (`mik` y admin) en 1366×768, 390×844 y 360×800: `document.scrollWidth === viewport`, pestañas y nav sin recortes, sin errores de consola. Se probó el cambio de pestaña a Movimientos y Billetera. `npx tsc --noEmit`, `npm run lint` y `npm run build` pasan. Sin cambios de SQL ni librerías; landing y salas no se tocaron.
 
+## 8.4 QA de datos y flujos (21/10/2026)
+
+- `scripts/qa/lib.mjs`: utilidades REST/auth/RPC, lectura de salas y helpers de limpieza. `service_role` solo tiene grants de lectura en `salas`, `participantes_sala` y `profiles`; no puede insertar movimientos, leer `recargas` ni ejecutar RPCs de jugador.
+- `scripts/qa/probes.mjs`: 21 comprobaciones de RLS/grants (`anon` y sesión), CSP/X-Frame/nosniff, endpoints `/api/steam/sync`, `/api/dota/match`, `/api/perfil/steam` y `/api/jugadores/[id]/links`, y existencia de RPCs/columnas vía OpenAPI con `service_role`.
+- `scripts/qa/seed.mjs`: crea `qa-admin` y `qa-p1..qa-p10` (MMR 4500, roles variados) y acredita S/ 100 con `crear_recarga` + `aprobar_recarga`. Los perfiles QA llevan un `steam_id` ficticio para que `unirse_a_sala` los acepte. `--cleanup` llama a `qa_cleanup()` (security definer) porque `service_role` no tiene DELETE/UPDATE en movimientos, notificaciones, recargas, retiros ni participantes.
+- `scripts/qa/flows.mjs`: 1v1 (sorteo, lado, lobby, notificación, cancelación y reembolso) y 5v5 (10 uniones, `iniciar_picks`, moneda, lado, picks, auto-pick, lobby y reembolso). Limpia cada sala en `finally`.
+- Hallazgos:
+  - `pickear_jugador` y `auto_pickear_si_vencido` calculan el siguiente capitán con el rival del turno actual en vez del rival fijo del primer pick; el draft se desbalancea desde el tercer pick (3/7). El SQL corregido está en `docs/sql/2026-10-21-qa-hallazgos.sql`.
+  - `authenticated` puede leer `profiles.steam_id` de otros por REST. El mismo SQL deja a `authenticated` solo las columnas públicas; Navbar y `/perfil` ya no piden `steam_id` directo y el propio lo obtiene de `GET /api/perfil/steam`.
+  - El trigger de sorteo 1v1 sí está aplicado: el flujo 1v1 pasa completo.
+- Verificación: `npm run qa:probes` (20/21 con el SQL pendiente), `npm run qa:flows -- 1v1` (verde) y `npm run qa:flows -- 5v5` (falla el reparto y repara equipos para seguir con lobby/cancelación). Tras aplicar el SQL deben quedar verdes.
+
 ## 9. Limitaciones conocidas
 
 - **Dota 2 no tiene API pública** para crear lobbies ni enviar invitaciones. Eso lo hace el admin desde el cliente del juego.

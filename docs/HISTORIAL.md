@@ -143,3 +143,12 @@ El estado vigente está en `docs/ESTADO.md` y la referencia técnica en `docs/TR
 - src/lib/types.ts - Tipos de dominio compartidos (salas, participantes, recargas, retiros, movimientos, notificaciones)
 - src/lib/steam.ts - Verificación OpenID de Steam
 - src/lib/balance.ts - Roles Dota, formato/promedio de MMR y orden serpiente de picks
+
+## QA de datos y flujos (21/10/2026)
+
+- **Fase 0 (probes)**: `scripts/qa/probes.mjs` comprueba RLS con `anon` y con sesión real, inserts directos bloqueados, RPCs admin inaccesibles, cabeceras CSP/X-Frame/nosniff, `/api/steam/sync` y `/api/dota/match` sin sesión, `/api/jugadores/[id]/links` sin `steam_id` y la existencia de 14 RPCs + columnas de 4 tablas vía OpenAPI con `service_role`. Salida `[ok]/[FALLA]` y código 1 si algo falla.
+- **Fase 1 (actores)**: `scripts/qa/lib.mjs`, `seed.mjs` y `flows.mjs`. `seed` crea `qa-admin` + `qa-p1..qa-p10`, MMR 4500, roles variados y saldo de S/ 100 usando el flujo real `crear_recarga` + `aprobar_recarga` (el `service_role` no tiene INSERT en movimientos). Los QA llevan un `steam_id` ficticio para que `unirse_a_sala` acepte la entrada.
+- **Flujos**: `npm run qa:flows -- 1v1` pasa completo (sorteo `sorteo_1v1_sync`, elección de lado, lobby, notificación, cancelación y reembolso). `npm run qa:flows -- 5v5` completa 10 uniones, moneda, lado, dos picks manuales, auto-pick, lobby y reembolso, pero reporta un fallo real: el reparto queda **3/7**.
+- **Hallazgo de picks**: `pickear_jugador` y `auto_pickear_si_vencido` calculan `v_otro` como el rival del turno actual y lo pasan a `capitan_de_pick`, que espera el rival fijo del primer pick. Desde el tercer pick el orden deja de ser serpiente. El escenario repara los equipos con `cancelar_picks` + `asignar_equipo` para seguir verificando lobby/cancelación.
+- **Hallazgo de privacidad**: un usuario autenticado puede leer `profiles.steam_id` de otros por REST (la protección actual solo revoca columnas a `anon`). `qa:probes` lo marca como `[FALLA]`; el SQL de grants está en `docs/sql/2026-10-21-qa-hallazgos.sql`; Navbar/perfil ya dejaron de pedir `steam_id` directo y usan `/api/perfil/steam`.
+- **Verificación**: `npx tsc --noEmit`, `npm run lint` y `npm run build` pasan. Las cuentas QA se limpian con `npm run qa:cleanup`; `qa_cdp` se conserva para el harness visual.

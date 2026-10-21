@@ -8,6 +8,10 @@
     "start": "next start",
     "qa:serve": "next start -p 3001",
     "qa": "node --env-file-if-exists=.env.local scripts/qa/check.mjs",
+    "qa:probes": "node --env-file-if-exists=.env.local scripts/qa/probes.mjs",
+    "qa:seed": "node --env-file-if-exists=.env.local scripts/qa/seed.mjs",
+    "qa:cleanup": "node --env-file-if-exists=.env.local scripts/qa/seed.mjs --cleanup",
+    "qa:flows": "node --env-file-if-exists=.env.local scripts/qa/flows.mjs",
     "lint": "eslint"
   },
   "dependencies": {

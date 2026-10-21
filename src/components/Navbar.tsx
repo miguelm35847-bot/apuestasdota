@@ -44,7 +44,7 @@ export default function Navbar({ titulo }: { titulo?: string }) {
 
     const { data } = await supabase
       .from('profiles')
-      .select('nick, steam_id, steam_avatar_url')
+      .select('nick, steam_nombre, steam_avatar_url')
       .eq('id', user.id)
       .single();
 
@@ -54,7 +54,7 @@ export default function Navbar({ titulo }: { titulo?: string }) {
     setSteamAvatar(data.steam_avatar_url ?? null);
 
     // Sincroniza una sola vez las cuentas antiguas que aún no tienen avatar
-    if (data.steam_id && !data.steam_avatar_url) {
+    if (data.steam_nombre && !data.steam_avatar_url) {
       const resumen = await sincronizarSteam();
       if (resumen) {
         setSteamAvatar(resumen.avatarUrl);
