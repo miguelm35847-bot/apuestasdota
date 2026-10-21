@@ -178,6 +178,18 @@ if (token) {
   await denegado('un jugador no ejecuta RPC de admin', () =>
     auth('rpc/admin_editar_mmr', { method: 'POST', body: {} }),
   );
+  await comprobar('un jugador no ajusta el saldo de otro', async () => {
+    const res = await auth('rpc/ajuste_admin', {
+      method: 'POST',
+      body: { p_user: userId, p_monto: 100, p_motivo: 'intento no autorizado' },
+    });
+    assert(!res.ok, `esperaba error, recibió HTTP ${res.status}`);
+    assert(
+      /solo administradores/i.test(res.data?.message ?? ''),
+      `mensaje inesperado: ${res.data?.message ?? ''}`,
+    );
+    return `HTTP ${res.status}`;
+  });
   await denegado('un jugador no inserta movimientos', () =>
     auth('movimientos_billetera', { method: 'POST', body: {}, prefer: 'return=minimal' }),
   );
@@ -234,6 +246,8 @@ await comprobar('RPC y columnas que usan los flujos existen', async () => {
     'cancelar_sala',
     'cerrar_partida_auto',
     'admin_editar_mmr',
+    'ajuste_admin',
+    'notificar_usuario',
     'guardar_roles_preferidos',
     'mi_saldo',
   ];

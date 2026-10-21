@@ -11,13 +11,18 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 - `/perfil` con identidad, Steam, saldo, Recargar/Retirar, resumen y perfil competitivo (MMR único + roles). Sin acceso directo a `/salas` desde la cabecera.
 - `/jugadores/[id]` público con medalla, stats y últimas partidas; enlaces icon-only a Steam/Dotabuff sin exponer `steam_id`.
 - Salas 1v1/5v5 con equipos, picks, lobby, cierre automático/manual, panel admin y endurecimiento de RPCs.
+- Admin → Jugadores: MMR, **recarga manual** (sin motivo) y **multas** por faltas a las reglas, con saldo por jugador y notificación.
 - Guía pública `/como-jugar` con pasos y reglas.
 - QA automatizado: harness visual por CDP (`npm run qa`) y QA de datos (`qa:seed`, `qa:probes`, `qa:flows`, `qa:cleanup`) con 10 actores API + admin efímero.
 - Tema **Arena Dark** en todas las pantallas; responsive verificado en 1366, 390 y 360 px.
 
 ## Pendientes
 
-- QA de backend aplicado (21/10/2026): `qa:probes` queda **21/21**, `qa:flows` 1v1 y 5v5 quedan verdes (reparto 5/5, lobby y reembolso) y `qa:cleanup` dejó la base sin perfiles `qa-*` ni salas `QA `. Se conserva `qa_cdp` para el harness visual.
+- SQL pendiente de aplicar en Supabase: `docs/sql/2026-10-21-multas.sql` (habilita el tipo de notificación `multa`). Sin ese SQL la multa se aplica y se descuenta igual, pero el jugador no recibe la notificación.
+- Panel de actividades en el landing: hoy se guardan las multas como movimientos `ajuste_admin` con descripción `Multa: <motivo>`; falta el panel público (fines y luego donaciones) con Realtime.
+- Verificación con sonido (check-in) y vista en vivo de héroe/kills: siguen pendientes, en el orden acordado (verificación → donaciones/panel → en vivo cuando Valve apruebe liga/ticket).
+
+- QA de backend aplicado (21/10/2026): `qa:probes` queda **22/22** (se sumó la prueba de que un jugador no puede ajustar el saldo de otro), `qa:flows` 1v1 y 5v5 quedan verdes (reparto 5/5, lobby y reembolso) y `qa:cleanup` dejó la base sin perfiles `qa-*` ni salas `QA `. Se conserva `qa_cdp` para el harness visual.
 - Probar el flujo completo de MMR único + fase de picks en la interfaz
 - Probar la vinculación de Steam con el nuevo flujo (state HMAC + cookie HttpOnly) y confirmar que el access token no aparece en la URL
 - Probar el cierre automático con un lobby de torneo con ticket y cuentas con Steam vinculado

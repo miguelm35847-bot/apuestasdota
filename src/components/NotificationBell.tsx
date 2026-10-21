@@ -60,6 +60,7 @@ export default function NotificationBell() {
       retiro_rechazado: '❌',
       partida_iniciada: '🎮',
       expulsado_sala: '🚪',
+      multa: '⚠️',
     };
     return iconos[tipo] ?? '📋';
   }
