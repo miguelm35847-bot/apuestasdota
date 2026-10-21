@@ -1,8 +1,9 @@
-# Traspaso del proyecto — KódigoDota
+# Referencia técnica — KódigoDota
 
-Documento para continuar el trabajo en un chat nuevo sin perder contexto.
+Documento de referencia del proyecto: esquema SQL, archivos, flujos y verificaciones detalladas. Ya no es un documento de traspaso entre chats.
 
-> Estado actual y punto exacto de reanudación: ver `docs/ESTADO.md`, sección “Punto de reanudación”.
+> Estado vigente y pendientes: `docs/ESTADO.md`. Bitácora: `docs/HISTORIAL.md`.
+> Las verificaciones nuevas se anotan en el historial, no aquí.
 
 ## 0. Landing cinematográfico, rebrand KódigoDota y hero de imagen única (20–21/10/2026)
 
@@ -1547,7 +1548,7 @@ notify pgrst, 'reload schema';
 - `src/components/AdminNav.tsx` — sub-navegación compartida por las pantallas admin (`Panel · Recargas · Retiros · Jugadores · Salas`), con estado activo e íconos; en móvil usa una grilla de 5 columnas (ícono + etiqueta) y en escritorio segmentos de igual ancho, sin scroll horizontal.
 - `src/components/AdminPageHeader.tsx` — cabecera compartida de admin (kicker KódigoDota, título, descripción, badge y acción opcional), usada por Panel, Recargas, Retiros y Jugadores.
 - `src/app/admin/page.tsx` — panel: tarjeta de ganancias de la casa, 4 KPI con enlaces (recargas/retiros pendientes, salas activas, jugadores; 2×2 en móvil) y grilla 2×2 de acciones rápidas.
-- `src/app/perfil/page.tsx` — perfil, Steam, historial, movimientos, billetera. Cabecera con identidad/estado de MMR/Steam/saldo, accesos Recargar/Retirar/Explorar salas y resumen de Partidas/Solicitudes/Movimientos; MMR como stat bloqueado, pestañas sticky con íconos/contadores y etiquetas cortas en móvil, listas en tarjetas responsivas, estados vacíos con CTA y skeletons. El MMR solo se registra una vez; después solo se editan roles. Incluye medalla de rango, enlace al perfil público y enlaces icon-only a Steam/Dotabuff si hay Steam; la píldora de estado y “Vincular con Steam” usan el logo oficial de Steam.
+- `src/app/perfil/page.tsx` — perfil, Steam, historial, movimientos, billetera. Cabecera con identidad/estado de MMR/Steam/saldo, accesos Recargar/Retirar y resumen de Partidas/Solicitudes/Movimientos; MMR como stat bloqueado, pestañas sticky con íconos/contadores y etiquetas cortas en móvil, listas en tarjetas responsivas, estados vacíos con CTA y skeletons. El MMR solo se registra una vez; después solo se editan roles. Incluye medalla de rango, enlace al perfil público y enlaces icon-only a Steam/Dotabuff si hay Steam; la píldora de estado y “Vincular con Steam” usan el logo oficial de Steam.
 - `src/app/jugadores/[id]/page.tsx` — perfil público: avatar/Steam, iconos enlazados a Steam y Dotabuff si hay Steam, MMR + medalla, roles, partidas terminadas, victorias, winrate y últimas 10 partidas con resultado, modalidad, duración, marcador y enlace a Dotabuff por partida. Accesible sin sesión; valida UUID y muestra un estado de “no encontrado”.
 - `src/components/PerfilHover.tsx` — tarjeta de jugador en portal con avatar, nick, Steam, equipo, MMR/medalla, roles, “Ver perfil público” y, a su lado, iconos de Steam/Dotabuff si hay Steam; se abre al pasar el cursor, enfocar o fijar con clic en la sala.
 - `src/lib/playerLinks.ts` — convierte SteamID64 a `account_id` de 32 bits, genera `https://steamcommunity.com/profiles/{steam_id}` y `https://www.dotabuff.com/players/{account_id}`, y devuelve ambos enlaces juntos; también lo usa `/api/dota/auto-close`.
@@ -1558,7 +1559,7 @@ notify pgrst, 'reload schema';
 - `src/app/admin/recargas/page.tsx`, `src/app/admin/retiros/page.tsx` — aprobaciones.
 - `src/components/Navbar.tsx` — menú único sticky con estilo **Arena Dark** (logo, saldo, campana y desplegable de perfil con perfil, recargar, retirar, historial, admin y cerrar sesión). En escritorio incluye los accesos `Cómo jugar · Reglas · Historial`; en tablet/móvil la guía se enlaza desde el hero.
 - `src/components/Avatar.tsx` — avatar reutilizable con imagen de Steam y fallback a inicial.
-- `src/components/ChatPanel.tsx` — chat reutilizable con estilo Arena Dark: general (landing) y privado por sala.
+- `src/components/ChatPanel.tsx` — chat reutilizable con estilo Arena Dark: general (landing) y privado por sala. Cada mensaje ajeno separa avatar, cabecera (nick + medalla) y burbuja; la tarjeta de jugador se ancla al avatar (`self-start`) para no abrirse debajo de todo el mensaje.
 - `src/components/NotificationBell.tsx` — campana en tiempo real con desplegable Arena Dark.
 - `src/components/HistorialGlobal.tsx` — historial de partidas con tarjetas y badges Arena Dark.
 - `src/lib/steamServer.ts` — resolución de vanity URL y consulta de avatar/nombre a Steam (solo servidor).
@@ -1603,6 +1604,7 @@ notify pgrst, 'reload schema';
 - Enlaces externos del jugador: `GET /api/jugadores/[id]/links` lee `steam_id` con service role, lo convierte con `src/lib/playerLinks.ts` y devuelve solo `{ steamUrl, dotabuffUrl }`; el SteamID nunca se envía al cliente. La tarjeta y el perfil público consultan al abrirse, y el perfil propio los genera directo con su `steamId` ya cargado. Rate limit de 120/min por IP y caché de 5 min en navegador / 1 h en CDN. Ambos enlaces se ocultan si no hay Steam.
 - Sin SQL nuevo: usa las políticas de lectura pública de `profiles`, `salas`, `participantes_sala` y `partidas` ya aplicadas. El endpoint de enlaces no cambia los grants anónimos ni expone `steam_id`.
 - Verificación (21/10/2026): con Chrome headless se probó `mik` (MMR 4500 → Ancient 5★, 6 partidas, 2 victorias, 33%, 6 enlaces a Dotabuff), un perfil sin partidas (0/0/— y estado vacío) y un UUID inválido/inexistente (“Jugador no encontrado”), en 1366×768, 390×844 y 360×800, sin overflow ni errores de consola. Los enlaces del hero, tarjetas de salas, chat, historial global, página de historial, sala autenticada (clic fija la tarjeta; “Ver perfil público” navega) y panel admin abren el perfil correcto. El perfil propio muestra “Tú” y “Editar mi perfil”. Los enlaces icon-only de Steam y Dotabuff se comprobaron en el perfil propio, el perfil público y la tarjeta (`mik` → `https://steamcommunity.com/profiles/76561198158655731` y `https://www.dotabuff.com/players/198390003`, `target="_blank"`, `rel="noopener noreferrer"`); un perfil sin Steam no muestra ninguno. La API devolvió 200 con ambas URLs, 200 con `null` sin Steam y 400 para UUID inválido. No requirió SQL.
+- Verificación del chat general (21/10/2026): con Chrome headless se revisaron las 5 filas reales del chat en 1366×768, 390×844 y 360×800: avatar de 28 px, cabecera con nick y medalla `xs` de 20 px en la misma línea, nombre siempre encima de la burbuja y sin overflow horizontal. Al pasar el cursor por el avatar, la tarjeta se abre 8 px debajo de él, queda dentro del viewport y no tapa la cabecera del chat. Sin errores de consola. `npx tsc --noEmit`, `npm run lint` y `npm run build` pasan.
 
 ## 8.2 Endurecimiento de seguridad (20/10/2026)
 
@@ -1774,7 +1776,7 @@ notify pgrst, 'reload schema';
 
 ## 8.3 Pulido de perfil y admin (21/10/2026)
 
-- `/perfil`: cabecera con avatar/nick/estado MMR, email, enlace al perfil público, Steam (vincular/actualizar), saldo disponible y accesos rápidos a Recargar, Retirar y Explorar salas. Debajo, una franja de resumen con Partidas, Solicitudes y Movimientos. El perfil competitivo mantiene MMR bloqueado + roles; las pestañas sticky usan `Partidas · Solicitudes · Billetera` en móvil y los nombres completos desde `sm`.
+- `/perfil`: cabecera con avatar/nick/estado MMR, email, enlace al perfil público, Steam (vincular/actualizar), saldo disponible y accesos rápidos a Recargar y Retirar. Debajo, una franja de resumen con Partidas, Solicitudes y Movimientos. El perfil competitivo mantiene MMR bloqueado + roles; las pestañas sticky usan `Partidas · Solicitudes · Billetera` en móvil y los nombres completos desde `sm`.
 - Admin: `AdminPageHeader` unifica kicker, título, descripción y badge en Panel/Recargas/Retiros/Jugadores. El panel usa una tarjeta de ganancias más compacta con subtítulo, KPI 2×2 en móvil (4 columnas en `xl`) con icono/flecha y acciones rápidas con hover. Recargas, retiros y jugadores muestran estados vacíos con icono y texto de apoyo.
 - `AdminNav` pasó de scroll horizontal a grilla de 5 columnas en móvil; en escritorio los 5 segmentos se reparten el ancho. Ya no se recorta “Salas” a 390/360 px.
 - Verificación con Chrome headless autenticada (`mik` y admin) en 1366×768, 390×844 y 360×800: `document.scrollWidth === viewport`, pestañas y nav sin recortes, sin errores de consola. Se probó el cambio de pestaña a Movimientos y Billetera. `npx tsc --noEmit`, `npm run lint` y `npm run build` pasan. Sin cambios de SQL ni librerías; landing y salas no se tocaron.

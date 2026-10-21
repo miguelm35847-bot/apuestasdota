@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "qa:serve": "next start -p 3001",
+    "qa": "node scripts/qa/check.mjs",
     "lint": "eslint"
   },
   "dependencies": {

@@ -13,6 +13,9 @@
 # testing
 /coverage
 
+# QA visual
+/qa-artifacts
+
 # next.js
 /.next/
 /out/

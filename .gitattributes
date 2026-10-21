@@ -1,0 +1,11 @@
+# Normaliza a LF en el repositorio y evita el aviso de CRLF en cada diff.
+* text=auto eol=lf
+
+# Binarios que no deben tratarse como texto.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
