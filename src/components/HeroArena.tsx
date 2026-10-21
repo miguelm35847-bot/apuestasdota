@@ -262,7 +262,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
         priority
         sizes="100vw"
         aria-hidden="true"
-        className="pointer-events-none -z-20 object-cover object-top brightness-[1.8] contrast-[1.03]"
+        className="pointer-events-none -z-20 object-cover object-[center_25%] brightness-[1.8] contrast-[1.03]"
       />
       <div
         className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,7,12,0.62)_0%,rgba(5,7,12,0.25)_46%,rgba(5,7,12,0.06)_100%)]"
@@ -313,8 +313,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
 
             <p className="mx-auto mt-3 max-w-xl font-display text-xs font-bold uppercase tracking-[0.12em] text-white min-[380px]:text-[13px] sm:text-base sm:tracking-[0.2em] lg:mx-0">
               Juega <span className="text-slate-500">·</span> Compite{' '}
-              <span className="text-slate-500">·</span> Gana{' '}
-              <span className="text-rose-300">· Compártelo</span>
+              <span className="text-slate-500">·</span> Gana
             </p>
 
             <div className="mt-4 flex flex-wrap justify-center gap-3 sm:mt-5 lg:justify-start">
