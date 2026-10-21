@@ -56,7 +56,7 @@ export default function LoginPage() {
               className="h-8 w-auto"
             />
             <h1 className="text-center font-display text-3xl font-bold text-white">
-              Kódigodota
+              KódigoDota
             </h1>
           </div>
           <p className="mt-2 text-center text-sm text-slate-400">

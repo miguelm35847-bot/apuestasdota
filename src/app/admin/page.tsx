@@ -135,7 +135,7 @@ function AdminDashboard() {
 
         <div className="mb-6 mt-6">
           <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-prism-300">
-            Kódigodota · Administración
+            KódigoDota · Administración
           </p>
           <h1 className="mt-1 font-display text-2xl font-bold text-white">Panel de control</h1>
         </div>

@@ -1,18 +1,20 @@
-# Traspaso del proyecto — Kódigodota
+# Traspaso del proyecto — KódigoDota
 
 Documento para continuar el trabajo en un chat nuevo sin perder contexto.
 
 > Estado actual y punto exacto de reanudación: ver `docs/ESTADO.md`, sección “Punto de reanudación”.
 
-## 0. Landing cinematográfico y rebrand Kódigodota (20/10/2026)
+## 0. Landing cinematográfico, rebrand KódigoDota y hero con arte generado (20–21/10/2026)
 
 - El landing se rediseñó tomando como referencia la composición cinematográfica que mostró el usuario: hero full-bleed, wordmark blanco, tarjeta de sala destacada en vidrio, barra de stats a todo el ancho y tarjetas de salas con arte de facción.
-- **La marca Kódigodota y su símbolo K son del usuario**; se incorporó `public/kodigodota-mark.svg` para el navbar. No se copiaron los personajes de Dota 2 de la captura: el fondo sigue siendo arte original en `public/arena-rift.svg` (glow Radiant/Dire, siluetas abstractas y grieta central). Si el usuario entrega arte de héroes con licencia, se puede reemplazar ese archivo sin cambiar el layout.
-- Archivos principales: `src/components/HeroArena.tsx`, `src/components/SalasPublicas.tsx`, `src/components/DotaTile.tsx`, `src/components/Navbar.tsx`, `src/app/page.tsx`, `src/app/globals.css`, `public/kodigodota-mark.svg` y `public/arena-rift.svg`.
+- **La marca KódigoDota y su símbolo K son del usuario**; se incorporó `public/kodigodota-mark.svg` para el navbar. La marca visible usa **KódigoDota** con D mayúscula.
+- El usuario aportó el arte de fondo generado (indicó que no tiene autor): Shadow Fiend a la izquierda, Phantom Assassin a la derecha y la bandera de Dota al centro. Se integró como tres recortes (`public/hero-shadow-fiend.png`, `public/hero-phantom-assassin.png`, `public/hero-dota-flag.png`) sobre `public/arena-rift.svg`; no se copió la interfaz de la captura de referencia.
+- El logo Dota volvió al tratamiento previo: glifo blanco `IconDota` en la sala destacada y glifo rojo `public/dota2.svg` en las tarjetas de `SalasPublicas`. El componente `DotaTile` (ficha roja degradada) se eliminó.
+- Archivos principales: `src/components/HeroArena.tsx`, `src/components/SalasPublicas.tsx`, `src/components/Navbar.tsx`, `src/app/page.tsx`, `src/app/globals.css`, `public/kodigodota-mark.svg`, `public/arena-rift.svg` y los tres `public/hero-*.png`.
 - Paleta y acciones: CTAs principales blancos con texto oscuro, “Ir a mi sala” en emerald, acentos de sala destacada en dorado, Navbar casi negro con la marca K en blanco y saldo en pill neutro con acento ámbar.
-- Las tarjetas de sala usan `DotaTile`: ficha roja con degradado y glifo de Dota 2 oscuro, como en la referencia. La barra de stats del hero es full-width, con celdas translúcidas y bordes difuminados en lugar de cajas sólidas.
-- Layout: Navbar, hero y contenido comparten un máximo de 1500 px; el CTA autenticado “Ver salas activas” navega a `#salas` (`scroll-mt-24`).
-- Responsive: 586 px de hero en 1366×768, 881 px en 390×844 y 906 px en 360×800; sin overflow horizontal. Las partículas y el glow respetan `prefers-reduced-motion`.
+- Layout: Navbar, contenido y barra de stats comparten un máximo de 1500 px; el hero se centra a 1040 px en `xl` y 1200 px en `2xl` para dejar espacio a los personajes. El CTA autenticado “Ver salas activas” navega a `#salas` (`scroll-mt-24`).
+- Los recortes de los personajes y la bandera solo se muestran desde `xl`; en móvil/tablet el hero mantiene el layout centrado y legible. Las máscaras, viñetas y degradados respetan `prefers-reduced-motion` (las animaciones se desactivan).
+- Verificado con Chrome headless: 593 px de hero en 1366×768, 1440×1000, 1280×800 y 1600×900; 895 px en 390×844 y 920 px en 360×800; sin overflow horizontal ni errores de consola. `prefers-reduced-motion: reduce` deja todas las animaciones en `none` y las partículas en opacidad 0.3.
 - **Sin SQL nuevo** para el rediseño. Toda la funcionalidad de salas, unirse, admin y sala destacada se conserva.
 
 ## 1. Qué es

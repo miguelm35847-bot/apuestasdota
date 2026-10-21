@@ -8,7 +8,6 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/AuthProvider';
 import Toast from '@/components/Toast';
 import Avatar from '@/components/Avatar';
-import DotaTile from '@/components/DotaTile';
 import PerfilHover from '@/components/PerfilHover';
 import type { RolDota } from '@/lib/types';
 
@@ -256,7 +255,14 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                 <div className="relative flex-1">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      <DotaTile className="h-6 w-6" />
+                      <Image
+                        src="/dota2.svg"
+                        alt=""
+                        width={16}
+                        height={16}
+                        aria-hidden="true"
+                        className="h-4 w-4 shrink-0"
+                      />
                       <h3 className="font-display text-lg font-bold tracking-tight text-white sm:text-xl">
                         {sala.nombre}
                       </h3>

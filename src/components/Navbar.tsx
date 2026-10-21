@@ -140,7 +140,7 @@ export default function Navbar({ titulo }: { titulo?: string }) {
               className="h-7 w-auto shrink-0 drop-shadow-[0_0_10px_rgba(255,255,255,0.12)] sm:h-8"
             />
             <span className="font-display truncate text-[15px] font-extrabold tracking-[-0.03em] text-white sm:text-lg md:max-w-[280px] xl:max-w-[420px]">
-              {titulo ?? 'Kódigodota'}
+              {titulo ?? 'KódigoDota'}
             </span>
           </Link>
         </div>
