@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Avatar from '@/components/Avatar';
 import MedallaMmr from '@/components/MedallaMmr';
 import PlayerLinks from '@/components/PlayerLinks';
+import { useAuth } from '@/components/AuthProvider';
+import { useDonar } from '@/components/DonarProvider';
 import { etiquetaRol, ICONOS_ROL } from '@/lib/balance';
 import type { RolDota } from '@/lib/types';
 
@@ -39,6 +41,8 @@ export default function PerfilHover({
   className = '',
   abrirConClick = false,
 }: PerfilHoverProps) {
+  const { user } = useAuth();
+  const { abrirDonar } = useDonar();
   const triggerRef = useRef<HTMLDivElement | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -48,6 +52,7 @@ export default function PerfilHover({
 
   const nick = usuario.nick?.trim() || 'Usuario';
   const roles = usuario.roles_preferidos ?? [];
+  const puedeDonar = Boolean(user) && user?.id !== usuario.id;
   const equipo =
     usuario.equipo === 1
       ? { texto: 'Radiant', clase: 'bg-emerald-500/10 text-emerald-300 ring-emerald-500/30' }
@@ -293,6 +298,23 @@ export default function PerfilHover({
               </Link>
               <PlayerLinks userId={usuario.id} />
             </div>
+
+            {puedeDonar && (
+              <button
+                type="button"
+                onClick={() =>
+                  abrirDonar({
+                    id: usuario.id,
+                    nick: usuario.nick ?? null,
+                    steam_avatar_url: usuario.steam_avatar_url ?? null,
+                  })
+                }
+                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-inset ring-emerald-500/25 transition hover:bg-emerald-500/20"
+              >
+                <span aria-hidden="true">🎁</span>
+                Donar saldo
+              </button>
+            )}
           </div>,
           document.body
         )}

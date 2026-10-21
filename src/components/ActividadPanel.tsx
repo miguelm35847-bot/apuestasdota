@@ -21,16 +21,17 @@ const SELECT_EMBED =
  * Muestra las donaciones y las multas más recientes. Se actualiza solo con
  * Realtime y tiene un refresco de respaldo por si el socket se cae.
  */
-export default function ActividadPanel() {
+export default function ActividadPanel({ compacto = false }: { compacto?: boolean }) {
   const [actividades, setActividades] = useState<Actividad[]>([]);
   const [cargando, setCargando] = useState(true);
+  const limite = compacto ? 8 : 12;
 
   const cargar = useCallback(async () => {
     const { data, error } = await supabase
       .from('actividades')
       .select(SELECT_EMBED)
       .order('creado_en', { ascending: false })
-      .limit(12);
+      .limit(limite);
 
     if (!error && data) {
       setActividades(data as unknown as Actividad[]);
@@ -43,7 +44,7 @@ export default function ActividadPanel() {
       .from('actividades')
       .select('id, tipo, emisor_id, receptor_id, monto, descripcion, creado_en')
       .order('creado_en', { ascending: false })
-      .limit(12);
+      .limit(limite);
 
     if (simple.error) {
       setCargando(false);
@@ -80,7 +81,7 @@ export default function ActividadPanel() {
       })) as Actividad[]
     );
     setCargando(false);
-  }, []);
+  }, [limite]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial desde Supabase
@@ -107,15 +108,25 @@ export default function ActividadPanel() {
   }, [cargar]);
 
   return (
-    <section className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-arena-soft">
+    <section
+      className={`arena-card rounded-2xl border border-white/10 bg-[#111827] shadow-arena-soft ${
+        compacto ? 'p-4' : 'p-5'
+      }`}
+    >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="font-display text-base font-bold tracking-tight text-white">
+          <h2
+            className={`font-display font-bold tracking-tight text-white ${
+              compacto ? 'text-sm' : 'text-base'
+            }`}
+          >
             Actividad reciente
           </h2>
-          <p className="mt-0.5 text-sm text-slate-400">
-            Donaciones y multas de la comunidad, en vivo.
-          </p>
+          {!compacto && (
+            <p className="mt-0.5 text-sm text-slate-400">
+              Donaciones y multas de la comunidad, en vivo.
+            </p>
+          )}
         </div>
         <span className="rounded-full bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-400 ring-1 ring-inset ring-white/10">
           En vivo
@@ -139,7 +150,7 @@ export default function ActividadPanel() {
           </p>
         </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className={`space-y-2 ${compacto ? 'max-h-[calc(100vh-19rem)] overflow-y-auto pr-1' : ''}`}>
           {actividades.map((actividad) => {
             const esMulta = actividad.tipo === 'multa';
             const donante = nombreDe(actividad.emisor);
@@ -148,21 +159,35 @@ export default function ActividadPanel() {
             return (
               <li
                 key={actividad.id}
-                className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5"
+                className={`flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] ${
+                  compacto ? 'px-2.5 py-2' : 'px-3 py-2.5'
+                }`}
               >
                 <div className="flex -space-x-2">
                   {esMulta ? (
-                    <Avatar nick={receptor} src={actividad.receptor?.steam_avatar_url ?? null} size="sm" />
+                    <Avatar
+                      nick={receptor}
+                      src={actividad.receptor?.steam_avatar_url ?? null}
+                      size={compacto ? 'xs' : 'sm'}
+                    />
                   ) : (
                     <>
-                      <Avatar nick={donante} src={actividad.emisor?.steam_avatar_url ?? null} size="sm" />
-                      <Avatar nick={receptor} src={actividad.receptor?.steam_avatar_url ?? null} size="sm" />
+                      <Avatar
+                        nick={donante}
+                        src={actividad.emisor?.steam_avatar_url ?? null}
+                        size={compacto ? 'xs' : 'sm'}
+                      />
+                      <Avatar
+                        nick={receptor}
+                        src={actividad.receptor?.steam_avatar_url ?? null}
+                        size={compacto ? 'xs' : 'sm'}
+                      />
                     </>
                   )}
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-slate-200">
+                  <p className={`truncate ${compacto ? 'text-[11px]' : 'text-sm'} text-slate-200`}>
                     {esMulta ? (
                       <>
                         <span className="font-semibold text-white">{receptor}</span>
@@ -190,7 +215,7 @@ export default function ActividadPanel() {
                   )}
                 </div>
 
-                <span className="shrink-0 text-[11px] text-slate-500">
+                <span className="shrink-0 text-[10px] text-slate-500">
                   {tiempoRelativo(actividad.creado_en)}
                 </span>
               </li>

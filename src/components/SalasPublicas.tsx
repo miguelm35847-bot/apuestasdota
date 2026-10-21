@@ -123,7 +123,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
             return (
               <div
                 key={sala.id}
-                className={`arena-card group relative flex flex-col overflow-hidden rounded-2xl border bg-[#0a0f17] p-5 shadow-arena-soft transition hover:-translate-y-0.5 hover:border-white/20 hover:shadow-arena sm:p-6 ${
+                className={`arena-card group relative flex flex-col overflow-hidden rounded-2xl border bg-[#0a0f17] p-4 shadow-arena-soft transition hover:-translate-y-0.5 hover:border-white/20 hover:shadow-arena ${
                   sala.destacada ? 'border-amber-400/25' : 'border-white/10'
                 }`}
               >
@@ -166,7 +166,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                         aria-hidden="true"
                         className="h-4 w-4 shrink-0"
                       />
-                      <h3 className="font-display text-lg font-bold tracking-tight text-white sm:text-xl">
+                      <h3 className="font-display text-base font-bold tracking-tight text-white sm:text-lg">
                         {sala.nombre}
                       </h3>
                       <span className="rounded-full bg-prism-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-prism-300 ring-1 ring-inset ring-prism-500/30">
@@ -186,26 +186,26 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                     </span>
                   </div>
 
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-xl border border-white/[0.06] bg-black/25 px-3.5 py-2.5">
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div className="rounded-lg border border-white/[0.06] bg-black/25 px-3 py-1.5">
+                      <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
                         Cuota
                       </p>
-                      <p className="mt-1 font-display text-base font-bold text-white">
+                      <p className="font-display text-sm font-bold text-white">
                         S/ {(sala.cuota / 100).toFixed(2)}
                       </p>
                     </div>
-                    <div className="rounded-xl border border-white/[0.06] bg-black/25 px-3.5 py-2.5">
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    <div className="rounded-lg border border-white/[0.06] bg-black/25 px-3 py-1.5">
+                      <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
                         Jugadores
                       </p>
-                      <p className="mt-1 font-display text-base font-bold text-white">
+                      <p className="font-display text-sm font-bold text-white">
                         {count}/{sala.cupo}
                       </p>
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                  <div className="mt-3 flex flex-wrap items-center gap-1">
                     {Array.from({ length: sala.cupo }).map((_, i) => {
                       const p = parts[i];
 
@@ -231,6 +231,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                             <Avatar
                               nick={p.profiles?.nick ?? '?'}
                               src={p.profiles?.steam_avatar_url}
+                              size="xs"
                               ringClass={ringEquipo(p.equipo)}
                               title={`${p.profiles?.nick ?? 'Usuario'}${
                                 p.profiles?.mmr != null ? ` · MMR ${p.profiles.mmr}` : ''
@@ -243,29 +244,26 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                       ) : (
                         <div
                           key={`libre-${i}`}
-                          className="h-8 w-8 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]"
+                          className="h-6 w-6 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]"
                           title="Slot libre"
                         />
                       );
                     })}
-                    <span className="ml-1 rounded-full bg-white/5 px-2 py-0.5 text-[11px] font-semibold text-slate-300">
-                      {count}/{sala.cupo}
-                    </span>
                   </div>
                 </div>
 
-                <div className="relative mt-5">
+                <div className="relative mt-3">
                   {!isAuthenticated ? (
                     <Link
                       href="/login"
-                      className="block w-full rounded-xl bg-white py-3 text-center text-sm font-bold text-[#070a10] shadow-[0_0_32px_-16px_rgba(255,255,255,0.7)] transition hover:bg-slate-200"
+                      className="block w-full rounded-xl bg-white py-2.5 text-center text-sm font-bold text-[#070a10] shadow-[0_0_32px_-16px_rgba(255,255,255,0.7)] transition hover:bg-slate-200"
                     >
                       Inicia sesión para unirte
                     </Link>
                   ) : estoyDentro ? (
                     <Link
                       href={`/salas/${sala.id}`}
-                      className="block w-full rounded-xl bg-emerald-500 py-3 text-center text-sm font-bold text-[#04120c] shadow-[0_12px_30px_-16px_rgba(16,185,129,0.8)] transition hover:bg-emerald-400"
+                      className="block w-full rounded-xl bg-emerald-500 py-2.5 text-center text-sm font-bold text-[#04120c] shadow-[0_12px_30px_-16px_rgba(16,185,129,0.8)] transition hover:bg-emerald-400"
                     >
                       Ir a mi sala
                     </Link>
@@ -273,14 +271,14 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                     <button
                       onClick={() => unirseASala(sala.id)}
                       disabled={procesando === sala.id}
-                      className="w-full rounded-xl bg-white py-3 text-sm font-bold text-[#070a10] shadow-[0_0_32px_-16px_rgba(255,255,255,0.7)] transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="w-full rounded-xl bg-white py-2.5 text-sm font-bold text-[#070a10] shadow-[0_0_32px_-16px_rgba(255,255,255,0.7)] transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {procesando === sala.id ? 'Uniéndose...' : 'Unirse'}
                     </button>
                   ) : (
                     <Link
                       href={`/salas/${sala.id}`}
-                      className="block w-full rounded-xl border border-white/15 bg-white/5 py-3 text-center text-sm font-semibold text-slate-100 transition hover:bg-white/10"
+                      className="block w-full rounded-xl border border-white/15 bg-white/5 py-2.5 text-center text-sm font-semibold text-slate-100 transition hover:bg-white/10"
                     >
                       Ver sala
                     </Link>

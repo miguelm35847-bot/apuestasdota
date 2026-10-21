@@ -27,11 +27,15 @@ export default function Home() {
 
         {/* Contenido público */}
         <main className="mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8">
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <div id="salas" className="scroll-mt-24 space-y-5">
-              <SalasPublicas isAuthenticated={!!user} />
+          <div className="grid gap-5 lg:grid-cols-[290px_minmax(0,1fr)_320px] lg:items-start">
+            {/* Feed de actividades (izquierda) */}
+            <aside className="order-2 lg:order-1 lg:sticky lg:top-20">
+              <ActividadPanel compacto />
+            </aside>
 
-              <ActividadPanel />
+            {/* Salas (centro) */}
+            <div id="salas" className="order-1 scroll-mt-24 space-y-5 lg:order-2">
+              <SalasPublicas isAuthenticated={!!user} />
 
               <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-arena-soft">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -53,11 +57,12 @@ export default function Home() {
               </div>
             </div>
 
-            <aside className="h-fit lg:sticky lg:top-20">
+            {/* Chat (derecha) */}
+            <aside className="order-3 lg:sticky lg:top-20">
               <ChatPanel
                 titulo="Chat general"
                 descripcion="Habla con la comunidad"
-                altura="h-[320px] lg:h-[calc(100vh-36rem)] lg:min-h-[120px]"
+                altura="h-[320px] lg:h-[calc(100vh-30rem)] lg:min-h-[120px]"
               />
             </aside>
           </div>
