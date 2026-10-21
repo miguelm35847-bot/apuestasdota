@@ -5,6 +5,7 @@ import SalasPublicas from '@/components/SalasPublicas';
 import HistorialGlobal from '@/components/HistorialGlobal';
 import ChatPanel from '@/components/ChatPanel';
 import HeroArena from '@/components/HeroArena';
+import { SalasProvider } from '@/components/SalasProvider';
 import { useAuth } from '@/components/AuthProvider';
 import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
@@ -18,44 +19,46 @@ export default function Home() {
     <div className="arena-shell min-h-screen bg-[#0a0e17] text-slate-100">
       <Navbar />
 
-      {/* Hero */}
-      <HeroArena isAuthenticated={!!user} />
+      <SalasProvider>
+        {/* Hero */}
+        <HeroArena isAuthenticated={!!user} />
 
-      {/* Contenido público */}
-      <main className="mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8">
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div id="salas" className="scroll-mt-24 space-y-5">
-            <SalasPublicas isAuthenticated={!!user} />
+        {/* Contenido público */}
+        <main className="mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+            <div id="salas" className="scroll-mt-24 space-y-5">
+              <SalasPublicas isAuthenticated={!!user} />
 
-            <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-arena-soft">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="font-display text-base font-bold tracking-tight text-white">
-                    Historial global
-                  </h2>
-                  <p className="mt-1 text-sm text-slate-400">
-                    Revisa las últimas partidas terminadas, ganadores y pozos.
-                  </p>
+              <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-arena-soft">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="font-display text-base font-bold tracking-tight text-white">
+                      Historial global
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-400">
+                      Revisa las últimas partidas terminadas, ganadores y pozos.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowHistorial(true)}
+                    className="shrink-0 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#070a10] shadow-[0_0_32px_-16px_rgba(255,255,255,0.7)] transition hover:bg-slate-200"
+                  >
+                    Ver historial global
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowHistorial(true)}
-                  className="shrink-0 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#070a10] shadow-[0_0_32px_-16px_rgba(255,255,255,0.7)] transition hover:bg-slate-200"
-                >
-                  Ver historial global
-                </button>
               </div>
             </div>
-          </div>
 
-          <aside className="h-fit lg:sticky lg:top-20">
-            <ChatPanel
-              titulo="Chat general"
-              descripcion="Habla con la comunidad"
-              altura="h-[320px] lg:h-[calc(100vh-36rem)] lg:min-h-[120px]"
-            />
-          </aside>
-        </div>
-      </main>
+            <aside className="h-fit lg:sticky lg:top-20">
+              <ChatPanel
+                titulo="Chat general"
+                descripcion="Habla con la comunidad"
+                altura="h-[320px] lg:h-[calc(100vh-36rem)] lg:min-h-[120px]"
+              />
+            </aside>
+          </div>
+        </main>
+      </SalasProvider>
 
       {/* Footer */}
       <footer className="arena-footer mt-8">

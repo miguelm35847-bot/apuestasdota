@@ -1,39 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
 import Avatar from '@/components/Avatar';
 import PerfilHover from '@/components/PerfilHover';
-import type { RolDota } from '@/lib/types';
-
-type SalaHero = {
-  id: string;
-  nombre: string;
-  cuota: number;
-  cupo: number;
-  comision_bp: number | null;
-  estado: string;
-  modalidad: string | null;
-  destacada?: boolean | null;
-  participantes_sala: { count: number }[];
-};
-
-type ParticipanteHero = {
-  sala_id: string;
-  user_id: string;
-  equipo: number | null;
-  profiles: {
-    nick: string;
-    steam_avatar_url?: string | null;
-    steam_nombre?: string | null;
-    mmr?: number | null;
-    roles_preferidos?: RolDota[] | null;
-  } | null;
-};
-
-const ESTADOS_ACTIVOS = ['abierta', 'llena', 'en_juego'];
+import { useSalas } from '@/components/SalasProvider';
+import type { SalaPublica } from '@/lib/salas';
 
 const PARTICULAS = [
   { left: '8%', size: 3, delay: -1, duracion: 13 },
@@ -50,11 +23,11 @@ function soles(centimos: number) {
   return `S/ ${(centimos / 100).toFixed(2)}`;
 }
 
-function jugadoresDe(sala: SalaHero) {
+function jugadoresDe(sala: SalaPublica) {
   return sala.participantes_sala?.[0]?.count ?? 0;
 }
 
-function premioDe(sala: SalaHero) {
+function premioDe(sala: SalaPublica) {
   const comision = sala.comision_bp ?? 0;
   return Math.round(sala.cuota * sala.cupo * (1 - comision / 10000));
 }
@@ -155,69 +128,7 @@ function IconWallet({ className = '' }: { className?: string }) {
 }
 
 export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolean }) {
-  const [salas, setSalas] = useState<SalaHero[]>([]);
-  const [participantes, setParticipantes] = useState<Record<string, ParticipanteHero[]>>({});
-  const [cargando, setCargando] = useState(true);
-  const refresco = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const cargar = useCallback(async () => {
-    const { data } = await supabase
-      .from('salas')
-      .select('*, participantes_sala(count)')
-      .in('estado', ESTADOS_ACTIVOS)
-      .order('created_at', { ascending: false });
-
-    const filas = (data ?? []) as unknown as SalaHero[];
-    setSalas(filas);
-
-    const ids = filas.map((s) => s.id);
-    if (ids.length === 0) {
-      setParticipantes({});
-      setCargando(false);
-      return;
-    }
-
-    const { data: parts } = await supabase
-      .from('participantes_sala')
-      .select(
-        'sala_id, user_id, equipo, profiles(nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos)'
-      )
-      .in('sala_id', ids)
-      .order('created_at', { ascending: true });
-
-    const mapa: Record<string, ParticipanteHero[]> = {};
-    ((parts ?? []) as unknown as ParticipanteHero[]).forEach((p) => {
-      if (!mapa[p.sala_id]) mapa[p.sala_id] = [];
-      mapa[p.sala_id].push(p);
-    });
-    setParticipantes(mapa);
-    setCargando(false);
-  }, []);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial desde Supabase
-    cargar();
-
-    const refrescar = () => {
-      if (refresco.current) clearTimeout(refresco.current);
-      refresco.current = setTimeout(() => cargar(), 300);
-    };
-
-    const channel = supabase
-      .channel('hero-salas')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'salas' }, refrescar)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'participantes_sala' },
-        refrescar
-      )
-      .subscribe();
-
-    return () => {
-      if (refresco.current) clearTimeout(refresco.current);
-      supabase.removeChannel(channel);
-    };
-  }, [cargar]);
+  const { salas, participantes, loading: cargando } = useSalas();
 
   const totalJugadores = useMemo(
     () => salas.reduce((total, sala) => total + jugadoresDe(sala), 0),

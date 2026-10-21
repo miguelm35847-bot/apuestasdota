@@ -1,41 +1,15 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/components/AuthProvider';
+import { useSalas } from '@/components/SalasProvider';
 import Toast from '@/components/Toast';
 import Avatar from '@/components/Avatar';
 import PerfilHover from '@/components/PerfilHover';
-import type { RolDota } from '@/lib/types';
-
-type Sala = {
-  id: string;
-  nombre: string;
-  cuota: number;
-  cupo: number;
-  estado: string;
-  modalidad?: string;
-  destacada?: boolean;
-  participantes_sala: {
-    count: number;
-  }[];
-};
-
-type Participante = {
-  sala_id: string;
-  user_id: string;
-  equipo: number | null;
-  profiles: {
-    nick: string;
-    steam_avatar_url?: string | null;
-    steam_nombre?: string | null;
-    mmr?: number | null;
-    roles_preferidos?: RolDota[] | null;
-  } | null;
-};
 
 function ringEquipo(equipo: number | null) {
   return equipo === 1
@@ -63,81 +37,10 @@ function estadoTexto(estado: string) {
 export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: boolean }) {
   const { user } = useAuth();
   const router = useRouter();
-  const [salas, setSalas] = useState<Sala[]>([]);
-  const [participantes, setParticipantes] = useState<Record<string, Participante[]>>({});
-  const [loading, setLoading] = useState(true);
+  const { salas: todasLasSalas, participantes, loading } = useSalas();
+  const salas = todasLasSalas.slice(0, 10);
   const [procesando, setProcesando] = useState<string | null>(null);
   const [aviso, setAviso] = useState<{ mensaje: string; tipo: 'success' | 'error' } | null>(null);
-
-  const cargarSalas = useCallback(async () => {
-    const { data } = await supabase
-      .from('salas')
-      .select('*, participantes_sala(count)')
-      .in('estado', ['abierta', 'llena', 'en_juego'])
-      .order('created_at', { ascending: false })
-      .limit(10);
-
-    if (data) {
-      const filas = data as unknown as Sala[];
-      setSalas(filas);
-
-      // Cargar participantes de cada sala (para los avatares y saber si ya estoy dentro)
-      const salaIds = filas.map((s) => s.id);
-      if (salaIds.length === 0) {
-        setParticipantes({});
-        setLoading(false);
-        return;
-      }
-
-      const { data: parts } = await supabase
-        .from('participantes_sala')
-        .select('sala_id, user_id, equipo, profiles(nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos)')
-        .in('sala_id', salaIds)
-        .order('created_at', { ascending: true });
-
-      if (parts) {
-        const map: Record<string, Participante[]> = {};
-        (parts as unknown as Participante[]).forEach((p) => {
-          if (!map[p.sala_id]) map[p.sala_id] = [];
-          map[p.sala_id].push(p);
-        });
-        setParticipantes(map);
-      }
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial desde Supabase
-    cargarSalas();
-  }, [cargarSalas]);
-
-  // Entradas, salidas y movimientos en vivo
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const refrescar = () => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => cargarSalas(), 300);
-    };
-
-    const channel = supabase
-      .channel('salas-publicas')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'salas' }, refrescar)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'participantes_sala' },
-        refrescar
-      )
-      .subscribe();
-
-    const interval = setInterval(() => cargarSalas(), 5000);
-
-    return () => {
-      if (timer) clearTimeout(timer);
-      clearInterval(interval);
-      supabase.removeChannel(channel);
-    };
-  }, [cargarSalas]);
 
   async function unirseASala(salaId: string) {
     if (!user) return;
