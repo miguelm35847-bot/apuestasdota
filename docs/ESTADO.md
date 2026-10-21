@@ -21,7 +21,7 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 - Sonidos de la arena (Web Audio, sin archivos ni botón de volumen): aviso de verificación (suena a los jugadores de la sala, estén donde estén) y fin de partida (suena para todos los jugadores de la sala). Los avisos de verificación **no** aparecen en la campana.
 - Guía pública `/como-jugar` con pasos y reglas.
 - QA automatizado: harness visual por CDP (`npm run qa`) y QA de datos (`qa:seed`, `qa:probes`, `qa:flows`, `qa:cleanup`) con 10 actores API + admin efímero.
-- Vista previa de la **partida en vivo** en `/demo-vivo` (mockup con datos de ejemplo): marcador, reloj, héroes y K/D/A en la sala destacada y dentro de la sala. Falta conectarla a la API de Valve (necesita el `league_id` de la liga/torneo).
+- Vista de partida en vivo **montada en la web real**: en la sala destacada del hero (franja compacta con score, reloj y los 10 héroes con sus kills) y dentro de la sala (marcador completo + héroe y K/D/A en cada slot). Ahora mismo usa **datos de ejemplo** (`src/lib/vivoMock.ts`); falta conectar la API de Valve (`GetLiveLeagueGames`, ya tenemos `STEAM_API_KEY`), que solo publica partidas de liga/torneo, así que depende de que Valve apruebe liga/ticket.
 - Tema **Arena Dark** en todas las pantallas; responsive verificado en 1366, 390 y 360 px.
 
 ## Pendientes

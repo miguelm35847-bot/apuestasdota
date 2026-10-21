@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, Suspense, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, Suspense, type ReactNode } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
@@ -14,6 +14,10 @@ import MonedaSorteo from '@/components/MonedaSorteo';
 import PerfilHover from '@/components/PerfilHover';
 import PreferenciaLado from '@/components/PreferenciaLado';
 import ResumenJugador from '@/components/ResumenJugador';
+import VivoJugador from '@/components/VivoJugador';
+import VivoMarcador from '@/components/VivoMarcador';
+import { partidaVivaMock } from '@/lib/vivoMock';
+import type { JugadorVivo } from '@/lib/vivo';
 import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
 import {
   etiquetaRol,
@@ -159,6 +163,7 @@ function Columna({
   userId,
   puedeMoverse,
   cambiandoEquipo,
+  vivoPorNick,
   onCambiarEquipo,
 }: {
   equipo: number | null;
@@ -176,6 +181,7 @@ function Columna({
   userId: string;
   puedeMoverse: boolean;
   cambiandoEquipo: boolean;
+  vivoPorNick?: Map<string, JugadorVivo>;
   onCambiarEquipo: (equipo: number | null) => void;
 }) {
   const esMiEquipo = esParticipante && miEquipo === equipo;
@@ -330,6 +336,10 @@ function Columna({
                 {/* El resumen va fuera del enlace del perfil: si no, el enlace a
                     Dotabuff quedaría anidado dentro de otro <a>. */}
                 <div className="pl-9">
+                  <VivoJugador
+                    jugador={vivoPorNick?.get(nick) ?? null}
+                    className="mt-1"
+                  />
                   <ResumenJugador userId={p.user_id} compacto className="mt-1" />
                 </div>
               </div>
@@ -1313,6 +1323,20 @@ function SalaContenido() {
     }
   }
 
+  // Partida en vivo de la sala (MOCK hasta que llegue el league_id de Valve).
+  const partidaViva = useMemo(
+    () => (sala?.estado === 'en_juego' ? partidaVivaMock(participantes) : null),
+    [sala?.estado, participantes]
+  );
+  const vivoPorNick = useMemo(() => {
+    const mapa = new Map<string, JugadorVivo>();
+    if (!partidaViva) return mapa;
+    for (const jugador of [...partidaViva.radiant.jugadores, ...partidaViva.dire.jugadores]) {
+      mapa.set(jugador.nick, jugador);
+    }
+    return mapa;
+  }, [partidaViva]);
+
   if (authLoading || loading) {
     return (
       <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
@@ -1430,6 +1454,7 @@ function SalaContenido() {
     userId,
     puedeMoverse,
     cambiandoEquipo,
+    vivoPorNick,
     onCambiarEquipo: cambiarEquipo,
   };
 
@@ -1522,6 +1547,13 @@ function SalaContenido() {
         {!esParticipante && sala.estado === 'llena' && (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-200">
             La sala está llena. Espera a que el admin inicie la partida.
+          </div>
+        )}
+
+        {/* Marcador en vivo de la partida */}
+        {partidaViva && (
+          <div className="mb-3">
+            <VivoMarcador partida={partidaViva} />
           </div>
         )}
 

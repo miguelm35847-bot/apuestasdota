@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Avatar from '@/components/Avatar';
 import PerfilHover from '@/components/PerfilHover';
 import { useSalas } from '@/components/SalasProvider';
+import VivoMarcador from '@/components/VivoMarcador';
+import { partidaVivaMock } from '@/lib/vivoMock';
 import type { SalaPublica } from '@/lib/salas';
 
 const PARTICULAS = [
@@ -153,9 +155,18 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
     )[0];
   }, [salas]);
 
-  const roster = destacada ? participantes[destacada.id] ?? [] : [];
+  const roster = useMemo(
+    () => (destacada ? participantes[destacada.id] ?? [] : []),
+    [destacada, participantes]
+  );
   const cupoDestacada = destacada?.cupo ?? 0;
   const jugadoresDestacada = destacada ? jugadoresDe(destacada) : 0;
+
+  // Partida en vivo de la sala destacada (MOCK hasta que llegue el league_id).
+  const partidaViva = useMemo(
+    () => (destacada?.estado === 'en_juego' ? partidaVivaMock(roster) : null),
+    [destacada?.estado, roster]
+  );
 
   const alMoverCursor = (event: React.PointerEvent<HTMLElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -426,6 +437,12 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                         <p className="mt-2 text-[11px] text-slate-500">Sé el primero en unirte</p>
                       )}
                     </div>
+
+                    {partidaViva && (
+                      <div className="mt-3">
+                        <VivoMarcador partida={partidaViva} compacto />
+                      </div>
+                    )}
 
                     <Link
                       href={isAuthenticated ? `/salas/${destacada.id}` : '/login'}

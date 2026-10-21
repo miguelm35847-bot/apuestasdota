@@ -1908,11 +1908,14 @@ Opciones para continuar (elegir una):
 
 ## 15. Vista de partida en vivo (mockup) y arreglo de HTML anidado (21/10/2026)
 
-- **Mockup**: `src/app/demo-vivo/page.tsx` (ruta `/demo-vivo`) muestra el diseño con datos de ejemplo:
-  - `src/components/VivoMarcador.tsx`: franja con el score (Radiant/Dire), el reloj de la partida y los 10 héroes con sus K/D/A. En versión **compacta** (para la sala destacada del hero: score + reloj + los 10 iconos de héroe con las kills) y en versión **completa** (para dentro de la sala: las dos listas con héroe y K/D/A).
+- **Vista de partida en vivo**: ya está montada en la web real (aún con **datos de ejemplo**):
+  - `src/components/VivoMarcador.tsx`: franja con el score (Radiant/Dire), el reloj de la partida y los 10 héroes con sus K/D/A. En versión **compacta** (sala destacada del hero: score + reloj + los 10 iconos de héroe con las kills) y en versión **completa** (dentro de la sala: las dos listas con héroe y K/D/A).
   - `src/components/VivoJugador.tsx`: en cada slot de la sala, el icono del héroe del jugador y su K/D/A.
   - `src/lib/vivo.ts`: tipos (`PartidaViva`, `JugadorVivo`) y helpers (reloj `23:41`, URL del icono del héroe en el CDN de Valve, K/D/A).
-  - Falta conectarlo a la API real: `GetLiveLeagueGames` de Valve solo publica partidas de **liga/torneo** (no lobbies custom), así que hace falta el `league_id`. El plan es un endpoint de servidor que consulta esa API con caché (15–30 s), cruza los `account_id` con los perfiles de la sala (nunca exponiendo el `steam_id`) y devuelve el marcador ya normalizado.
+  - `src/lib/vivoMock.ts`: **MOCK** que arma una partida de ejemplo con los jugadores reales de la sala. Aparece solo cuando la sala está `en_juego`.
+  - Puntos de montaje: `HeroArena` (franja compacta en la sala destacada) y `src/app/salas/[id]/page.tsx` (marcador completo arriba + chip de héroe/K-D-A en cada slot).
+  - Para conectarlo de verdad: un endpoint de servidor que consulte `GetLiveLeagueGames` de Valve con caché (15–30 s), cruce los `account_id` con los perfiles de la sala (nunca exponiendo el `steam_id`) y devuelva el marcador normalizado; entonces `partidaVivaMock` se sustituye por ese endpoint y la interfaz no cambia. Hace falta el `league_id` de la liga/torneo: Valve solo publica ese tipo de partidas.
+  - La ruta `/demo-vivo` queda como vista previa aislada de ambos diseños.
 - **HTML anidado (errores de hidratación)**: se corrigieron 4 casos:
   1. `MedallaMmr` renderizaba un `<div>` dentro de un `<p>` (el MMR de los slots). Se añadió la prop `inline`, que devuelve solo la imagen en un `<span>` para poder incrustarla en `<p>`/`<span>`.
   2. El `<div>` de la medalla dentro del `<p>` del MMR (sala del jugador).

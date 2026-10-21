@@ -70,7 +70,8 @@ function TarjetaActividad({
 export default function ActividadPanel({ compacto = false }: { compacto?: boolean }) {
   const [actividades, setActividades] = useState<Actividad[]>([]);
   const [cargando, setCargando] = useState(true);
-  const limite = compacto ? 6 : 12;
+  const [limite, setLimite] = useState(compacto ? 8 : 12);
+  const [hayMas, setHayMas] = useState(false);
 
   const cargar = useCallback(async () => {
     const { data, error } = await supabase
@@ -80,7 +81,9 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
       .limit(limite);
 
     if (!error && data) {
-      setActividades(data as unknown as Actividad[]);
+      const filas = data as unknown as Actividad[];
+      setActividades(filas);
+      setHayMas(filas.length >= limite);
       setCargando(false);
       return;
     }
@@ -138,6 +141,7 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
         receptor: a.receptor_id ? (perfiles[a.receptor_id] ?? null) : null,
       })) as Actividad[]
     );
+    setHayMas((simple.data ?? []).length >= limite);
     setCargando(false);
   }, [limite]);
 
@@ -277,6 +281,15 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
             );
           })}
         </ul>
+      )}
+
+      {hayMas && (
+        <button
+          onClick={() => setLimite((actual) => actual + 8)}
+          className="mt-3 w-full rounded-lg border border-white/10 bg-white/5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10"
+        >
+          Ver más actividad
+        </button>
       )}
     </section>
   );
