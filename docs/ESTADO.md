@@ -22,7 +22,7 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 
 ## Pendientes
 
-- SQL pendiente de aplicar en Supabase: `docs/sql/2026-10-21-tipos-movimiento-donacion.sql` (agrega `donacion_enviada` y `donacion_recibida` al check `movimientos_billetera_tipo_check`; sin esto la RPC `donar_saldo` falla con "violates check constraint").
+- SQL pendiente de aplicar en Supabase: `docs/sql/2026-10-21-signo-movimiento-donacion.sql` (agrega los dos tipos de donación al check `signo_correcto`, que valida que el signo del monto corresponda al tipo; sin esto la RPC `donar_saldo` falla con "violates check constraint \"signo_correcto\"").
 - Panel de actividades en el landing: hoy se guardan las multas como movimientos `ajuste_admin` con descripción `Multa: <motivo>`; falta el panel público (fines y luego donaciones) con Realtime.
 - Donaciones entre usuarios y panel de actividades: siguiente bloque agreed (recarga → verificación → donaciones/panel → en vivo).
 - Vista en vivo de héroe/kills: sigue pendiente; depende de que Valve apruebe liga/ticket (la API pública solo muestra partidas de liga).

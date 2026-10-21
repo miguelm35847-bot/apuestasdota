@@ -112,7 +112,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 2xl:grid-cols-2">
           {salas.map((sala, index) => {
             const count = sala.participantes_sala?.[0]?.count ?? 0;
             const parts = participantes[sala.id] ?? [];

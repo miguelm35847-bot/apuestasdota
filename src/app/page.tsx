@@ -26,8 +26,8 @@ export default function Home() {
         <HeroArena isAuthenticated={!!user} />
 
         {/* Contenido público */}
-        <main className="mx-auto max-w-[1500px] px-4 py-6 sm:px-6 lg:px-8">
-          <div className="grid gap-5 lg:grid-cols-[290px_minmax(0,1fr)_320px] lg:items-start">
+        <main className="mx-auto max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8">
+          <div className="grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)_340px] lg:items-start">
             {/* Feed de actividades (izquierda) */}
             <aside className="order-2 lg:order-1 lg:sticky lg:top-20">
               <ActividadPanel compacto />
@@ -71,7 +71,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="arena-footer mt-8">
-        <div className="mx-auto max-w-[1500px] px-4 py-5 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1680px] px-4 py-5 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
           <p className="font-semibold text-slate-400">
             KódigoDota · Plataforma de salas de juego
           </p>
