@@ -56,6 +56,8 @@ export type Participante = {
   es_capitan?: boolean;
   pick_orden?: number | null;
   verificado_at?: string | null;
+  /** Preferencia informativa de lado durante los picks: 1 = Radiant, 2 = Dire. */
+  preferencia_equipo?: number | null;
   profiles: PerfilPublico | null;
   created_at?: string;
 };

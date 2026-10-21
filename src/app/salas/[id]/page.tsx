@@ -9,8 +9,10 @@ import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
 import ChatPanel from '@/components/ChatPanel';
 import Avatar from '@/components/Avatar';
+import MedallaMmr from '@/components/MedallaMmr';
 import MonedaSorteo from '@/components/MonedaSorteo';
 import PerfilHover from '@/components/PerfilHover';
+import PreferenciaLado from '@/components/PreferenciaLado';
 import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
 import {
   etiquetaRol,
@@ -285,11 +287,20 @@ function Columna({
                     </p>
                     <div className="flex min-w-0 items-center justify-between gap-1">
                       <p
-                        className={`truncate text-[11px] font-bold ${
+                        className={`flex min-w-0 items-center gap-1 text-[11px] font-bold ${
                           mmr != null ? 'text-prism-300' : 'text-slate-500'
                         }`}
                       >
-                        {mmr != null ? `MMR ${formatearMmr(mmr)}` : 'Sin MMR'}
+                        <MedallaMmr
+                          mmr={mmr}
+                          size="xs"
+                          mostrarEstrellas={false}
+                          mostrarNombre={false}
+                          className="shrink-0"
+                        />
+                        <span className="truncate">
+                          {mmr != null ? `MMR ${formatearMmr(mmr)}` : 'Sin MMR'}
+                        </span>
                       </p>
                       {roles.length > 0 && (
                         <span
@@ -345,10 +356,17 @@ function Columna({
                 />
                 <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-slate-100">
+                    <p className="flex items-center gap-1.5 truncate text-sm font-medium text-slate-100">
                       {p.es_capitan ? '⭐ ' : ''}
                       {nick}
                       {esTuyo ? ' (tú)' : ''}
+                      <MedallaMmr
+                        mmr={p.profiles?.mmr}
+                        size="xs"
+                        mostrarEstrellas={false}
+                        mostrarNombre={false}
+                        className="shrink-0"
+                      />
                     </p>
                     <p className="truncate text-[10px] text-slate-500">
                       {resumenRolesConIconos(roles)}
@@ -401,6 +419,8 @@ function TableroPicks({
   userId,
   segundosTurno,
   procesando,
+  miPreferencia,
+  onPreferencia,
   onElegirMoneda,
   onElegirLado,
   onPickear,
@@ -410,6 +430,8 @@ function TableroPicks({
   userId: string;
   segundosTurno: number | null;
   procesando: boolean;
+  miPreferencia: number | null;
+  onPreferencia: (equipo: number | null) => void;
   onElegirMoneda: (opcion: 'pickear_primero' | 'lado') => void;
   onElegirLado: (equipo: number) => void;
   onPickear: (userId: string) => void;
@@ -459,12 +481,20 @@ function TableroPicks({
           {p.es_capitan ? '⭐ ' : ''}
           {perfil?.nick ?? 'Usuario'}
         </p>
-        <p className="text-xs font-bold text-prism-300">
+        <p className="flex items-center gap-1.5 text-xs font-bold text-prism-300">
+          <MedallaMmr
+            mmr={perfil?.mmr}
+            size="xs"
+            mostrarEstrellas={false}
+            mostrarNombre={false}
+            className="shrink-0"
+          />
           {perfil?.mmr != null ? `MMR ${formatearMmr(perfil.mmr)}` : 'Sin MMR'}
         </p>
         <p className="truncate text-[10px] text-slate-500">
           {resumenRolesConIconos(perfil?.roles_preferidos)}
         </p>
+        <PreferenciaLado equipo={p.preferencia_equipo} className="mt-1" />
       </div>
     );
   }
@@ -487,6 +517,52 @@ function TableroPicks({
                 : 'Completado'}
         </span>
       </div>
+
+      {/* Preferencia de lado: solo informativa y solo durante la fase de picks */}
+      {participantes.some((p) => p.user_id === userId) && (
+        <div className="mt-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+          <p className="text-xs font-semibold text-slate-300">
+            ¿A qué lado prefieres ir?{' '}
+            <span className="font-normal text-slate-500">(solo informativo, no cambia el reparto)</span>
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onPreferencia(1)}
+              disabled={procesando}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold ring-1 ring-inset transition disabled:opacity-50 ${
+                miPreferencia === 1
+                  ? 'bg-emerald-500/25 text-emerald-100 ring-emerald-400/40'
+                  : 'bg-emerald-500/10 text-emerald-200 ring-emerald-400/25 hover:bg-emerald-500/20'
+              }`}
+            >
+              ☀ Radiant
+            </button>
+            <button
+              type="button"
+              onClick={() => onPreferencia(2)}
+              disabled={procesando}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold ring-1 ring-inset transition disabled:opacity-50 ${
+                miPreferencia === 2
+                  ? 'bg-rose-500/25 text-rose-100 ring-rose-400/40'
+                  : 'bg-rose-500/10 text-rose-200 ring-rose-400/25 hover:bg-rose-500/20'
+              }`}
+            >
+              ☾ Dire
+            </button>
+            {miPreferencia !== null && (
+              <button
+                type="button"
+                onClick={() => onPreferencia(null)}
+                disabled={procesando}
+                className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10 disabled:opacity-50"
+              >
+                Quitar
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {estado === 'eleccion' && (
         <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
@@ -738,8 +814,22 @@ function SalaContenido() {
       .eq('sala_id', salaId)
       .order('created_at', { ascending: true });
 
+    // La preferencia de lado es un dato opcional: si el SQL todavía no está
+    // aplicado, la sala debe funcionar igual.
+    const { data: prefData } = await supabase
+      .from('participantes_sala')
+      .select('user_id, preferencia_equipo')
+      .eq('sala_id', salaId);
+
+    const preferencias = new Map(
+      (prefData ?? []).map((p) => [p.user_id, (p as { preferencia_equipo?: number | null }).preferencia_equipo ?? null])
+    );
+
     if (partData) {
-      const partsConDota = partData as unknown as Participante[];
+      const partsConDota = (partData as unknown as Participante[]).map((p) => ({
+        ...p,
+        preferencia_equipo: preferencias.get(p.user_id) ?? null,
+      }));
 
       setParticipantes(partsConDota);
       const esPart = partsConDota.some((p) => p.user_id === user.id);
@@ -1130,6 +1220,22 @@ function SalaContenido() {
     setProcesandoPicks(false);
   }
 
+  async function elegirPreferencia(equipo: number | null) {
+    setError(null);
+
+    const { error: rpcError } = await supabase.rpc('elegir_preferencia_equipo', {
+      p_sala: salaId,
+      p_equipo: equipo,
+    });
+
+    if (rpcError) {
+      setError('No se pudo guardar tu preferencia: ' + rpcError.message);
+      return;
+    }
+
+    cargarSala();
+  }
+
   async function elegirLado(equipo: number) {
     setError(null);
     setSuccess(null);
@@ -1511,6 +1617,10 @@ function SalaContenido() {
             userId={userId}
             segundosTurno={segundosTurno}
             procesando={procesandoPicks}
+            miPreferencia={
+              participantes.find((p) => p.user_id === userId)?.preferencia_equipo ?? null
+            }
+            onPreferencia={elegirPreferencia}
             onElegirMoneda={elegirMoneda}
             onElegirLado={elegirLado}
             onPickear={pickearJugador}

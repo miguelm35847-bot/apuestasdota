@@ -11,6 +11,8 @@ import Navbar from '@/components/Navbar';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import ChatPanel from '@/components/ChatPanel';
 import Avatar from '@/components/Avatar';
+import MedallaMmr from '@/components/MedallaMmr';
+import PreferenciaLado from '@/components/PreferenciaLado';
 import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
 import { reproducirSonido } from '@/lib/sonidos';
 import { formatearMmr, promedioMmr, resumenRolesConIconos } from '@/lib/balance';
@@ -27,6 +29,7 @@ function FilaJugador({
   actual,
   estadoSala,
   mostrarMover,
+  mostrarPreferencia,
   onMover,
   onExpulsar,
 }: {
@@ -34,6 +37,7 @@ function FilaJugador({
   actual: number | null | undefined;
   estadoSala: string;
   mostrarMover: boolean;
+  mostrarPreferencia: boolean;
   onMover: (userId: string, equipo: number | null) => void;
   onExpulsar: (p: Participante) => void;
 }) {
@@ -60,16 +64,22 @@ function FilaJugador({
             {p.profiles?.nick ?? 'Usuario'}
           </span>
           <span className="block truncate text-[11px] text-slate-400">
-            <span className="font-bold text-prism-300/90">
-              {p.profiles?.mmr != null
-                ? `MMR ${formatearMmr(p.profiles.mmr)}`
-                : 'Sin MMR'}
+            <span className="inline-flex items-center gap-1 font-bold text-prism-300/90">
+              <MedallaMmr
+                mmr={p.profiles?.mmr}
+                size="xs"
+                mostrarEstrellas={false}
+                mostrarNombre={false}
+                className="shrink-0"
+              />
+              {p.profiles?.mmr != null ? `MMR ${formatearMmr(p.profiles.mmr)}` : 'Sin MMR'}
             </span>
             <span className="text-slate-500">
               {' · '}
               {resumenRolesConIconos(p.profiles?.roles_preferidos)}
             </span>
           </span>
+          {mostrarPreferencia && <PreferenciaLado equipo={p.preferencia_equipo} className="mt-1" />}
         </div>
       </Link>
       <div className="flex shrink-0 flex-wrap justify-end gap-1">
@@ -118,6 +128,7 @@ function Slots({
   equipos,
   estadoSala,
   mostrarMover,
+  mostrarPreferencia,
   onMover,
   onExpulsar,
 }: {
@@ -126,6 +137,7 @@ function Slots({
   equipos: Record<string, number | null>;
   estadoSala: string;
   mostrarMover: boolean;
+  mostrarPreferencia: boolean;
   onMover: (userId: string, equipo: number | null) => void;
   onExpulsar: (p: Participante) => void;
 }) {
@@ -141,6 +153,7 @@ function Slots({
             actual={equipos[p.user_id]}
             estadoSala={estadoSala}
             mostrarMover={mostrarMover}
+            mostrarPreferencia={mostrarPreferencia}
             onMover={onMover}
             onExpulsar={onExpulsar}
           />
@@ -213,8 +226,22 @@ function AdminSalaContenido() {
       .eq('sala_id', salaId)
       .order('created_at', { ascending: true });
 
+    // La preferencia de lado es un dato opcional: si el SQL todavía no está
+    // aplicado, el panel admin debe funcionar igual.
+    const { data: prefData } = await supabase
+      .from('participantes_sala')
+      .select('user_id, preferencia_equipo')
+      .eq('sala_id', salaId);
+
+    const preferencias = new Map(
+      (prefData ?? []).map((p) => [p.user_id, (p as { preferencia_equipo?: number | null }).preferencia_equipo ?? null])
+    );
+
     if (partData) {
-      const parts = partData as unknown as Participante[];
+      const parts = (partData as unknown as Participante[]).map((p) => ({
+        ...p,
+        preferencia_equipo: preferencias.get(p.user_id) ?? null,
+      }));
       setParticipantes(parts);
       const eq: Record<string, number | null> = {};
       parts.forEach((p) => {
@@ -922,6 +949,8 @@ function AdminSalaContenido() {
     estadoSala: enFasePicks ? 'en_juego' : estadoSala,
     // En 1v1 los equipos los define el sorteo: el admin no los mueve a mano.
     mostrarMover: sala.cupo !== 2,
+    // La preferencia de lado solo se mira durante la fase de picks.
+    mostrarPreferencia: enFasePicks,
     onMover: moverJugador,
     onExpulsar: (p: Participante) =>
       setConfirmacion({
