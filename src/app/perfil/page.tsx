@@ -739,13 +739,6 @@ function PerfilContenido() {
                 >
                   Retirar
                 </Link>
-                <Link
-                  href="/salas"
-                  className="col-span-2 inline-flex items-center justify-center gap-1.5 rounded-lg border border-prism-500/20 bg-prism-500/10 px-4 py-2.5 text-sm font-semibold text-prism-200 transition hover:border-prism-400/40 hover:bg-prism-500/15 hover:text-prism-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-500/40"
-                >
-                  Explorar salas
-                  <span aria-hidden="true">→</span>
-                </Link>
               </div>
             </div>
           </div>
