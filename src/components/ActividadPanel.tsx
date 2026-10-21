@@ -24,7 +24,7 @@ const SELECT_EMBED =
 export default function ActividadPanel({ compacto = false }: { compacto?: boolean }) {
   const [actividades, setActividades] = useState<Actividad[]>([]);
   const [cargando, setCargando] = useState(true);
-  const limite = compacto ? 8 : 12;
+  const limite = compacto ? 6 : 12;
 
   const cargar = useCallback(async () => {
     const { data, error } = await supabase
@@ -109,28 +109,25 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
 
   return (
     <section
-      className={`arena-card rounded-2xl border border-white/10 bg-[#111827] shadow-arena-soft ${
+      className={`arena-card overflow-hidden rounded-2xl border border-white/10 bg-[#111827] shadow-arena-soft ${
         compacto ? 'p-4' : 'p-5'
       }`}
     >
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2
-            className={`font-display font-bold tracking-tight text-white ${
-              compacto ? 'text-sm' : 'text-base'
-            }`}
-          >
-            Actividad reciente
-          </h2>
-          {!compacto && (
-            <p className="mt-0.5 text-sm text-slate-400">
-              Donaciones y multas de la comunidad, en vivo.
-            </p>
-          )}
-        </div>
-        <span className="rounded-full bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-400 ring-1 ring-inset ring-white/10">
-          En vivo
-        </span>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span
+          className={`h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]`}
+          aria-hidden="true"
+        />
+        <h2
+          className={`font-display font-bold tracking-tight text-white ${
+            compacto ? 'text-sm' : 'text-base'
+          }`}
+        >
+          Actividad reciente
+        </h2>
+        {!compacto && (
+          <p className="text-sm text-slate-400">Donaciones y multas de la comunidad.</p>
+        )}
       </div>
 
       {cargando ? (
@@ -150,7 +147,7 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
           </p>
         </div>
       ) : (
-        <ul className={`space-y-2 ${compacto ? 'max-h-[calc(100vh-19rem)] overflow-y-auto pr-1' : ''}`}>
+        <ul className={`space-y-1.5 ${compacto ? 'max-h-[calc(100vh-20rem)] overflow-y-auto pr-1' : ''}`}>
           {actividades.map((actividad) => {
             const esMulta = actividad.tipo === 'multa';
             const donante = nombreDe(actividad.emisor);
@@ -159,35 +156,36 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
             return (
               <li
                 key={actividad.id}
-                className={`flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] ${
-                  compacto ? 'px-2.5 py-2' : 'px-3 py-2.5'
-                }`}
+                className="group flex gap-2.5 rounded-xl border border-white/5 bg-white/[0.02] px-2.5 py-2 transition hover:border-white/10 hover:bg-white/[0.05]"
               >
-                <div className="flex -space-x-2">
+                <div className="flex -space-x-1.5 pt-0.5">
                   {esMulta ? (
                     <Avatar
                       nick={receptor}
                       src={actividad.receptor?.steam_avatar_url ?? null}
-                      size={compacto ? 'xs' : 'sm'}
+                      size="xs"
+                      ringClass="ring-2 ring-rose-500/30"
                     />
                   ) : (
                     <>
                       <Avatar
                         nick={donante}
                         src={actividad.emisor?.steam_avatar_url ?? null}
-                        size={compacto ? 'xs' : 'sm'}
+                        size="xs"
+                        ringClass="ring-2 ring-emerald-500/30"
                       />
                       <Avatar
                         nick={receptor}
                         src={actividad.receptor?.steam_avatar_url ?? null}
-                        size={compacto ? 'xs' : 'sm'}
+                        size="xs"
+                        ringClass="ring-2 ring-white/15"
                       />
                     </>
                   )}
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <p className={`truncate ${compacto ? 'text-[11px]' : 'text-sm'} text-slate-200`}>
+                  <p className="text-[12px] leading-snug text-slate-300">
                     {esMulta ? (
                       <>
                         <span className="font-semibold text-white">{receptor}</span>
@@ -209,15 +207,14 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
                     )}
                   </p>
                   {actividad.descripcion && (
-                    <p className="truncate text-[11px] text-slate-500">
+                    <p className="mt-0.5 line-clamp-2 text-[11px] italic leading-snug text-slate-500">
                       “{actividad.descripcion}”
                     </p>
                   )}
+                  <p className="mt-0.5 text-[10px] text-slate-600">
+                    {tiempoRelativo(actividad.creado_en)}
+                  </p>
                 </div>
-
-                <span className="shrink-0 text-[10px] text-slate-500">
-                  {tiempoRelativo(actividad.creado_en)}
-                </span>
               </li>
             );
           })}

@@ -11,12 +11,24 @@
 create table if not exists public.actividades (
   id uuid primary key default gen_random_uuid(),
   tipo text not null check (tipo in ('donacion', 'multa')),
-  emisor_id uuid references public.profiles(id) on delete set null,
-  receptor_id uuid references public.profiles(id) on delete set null,
+  emisor_id uuid references public.profiles(id) on delete cascade,
+  receptor_id uuid references public.profiles(id) on delete cascade,
   monto integer not null check (monto > 0),
   descripcion text,
   creado_en timestamptz not null default now()
 );
+
+-- Si la tabla ya existía, se dejan las claves foráneas en cascade: al borrar
+-- un perfil se van sus actividades y el feed no queda con filas huérfanas.
+alter table public.actividades drop constraint if exists actividades_emisor_id_fkey;
+alter table public.actividades add constraint actividades_emisor_id_fkey
+  foreign key (emisor_id) references public.profiles(id) on delete cascade;
+alter table public.actividades drop constraint if exists actividades_receptor_id_fkey;
+alter table public.actividades add constraint actividades_receptor_id_fkey
+  foreign key (receptor_id) references public.profiles(id) on delete cascade;
+
+-- Limpia actividades huérfanas de pruebas anteriores (sin emisor o sin receptor).
+delete from public.actividades where emisor_id is null or receptor_id is null;
 
 create index if not exists actividades_creado_idx
   on public.actividades (creado_en desc);
@@ -132,8 +144,8 @@ begin
 
   if v_saldo < p_monto then
     raise exception 'Saldo insuficiente: tienes % y quieres donar %',
-      format('S/ %s', to_char(v_saldo / 100.0, 'FM990.00')),
-      format('S/ %s', to_char(p_monto / 100.0, 'FM990.00'));
+      format('S/ %s', (v_saldo / 100.0)::numeric(12, 2)),
+      format('S/ %s', (p_monto / 100.0)::numeric(12, 2));
   end if;
 
   insert into public.donaciones (donante_id, receptor_id, monto, mensaje)
@@ -157,7 +169,7 @@ begin
   values (
     p_receptor,
     'donacion_recibida',
-    'Recibiste una donación de ' || format('S/ %s', to_char(p_monto / 100.0, 'FM990.00')) || '.'
+    'Recibiste una donación de ' || format('S/ %s', (p_monto / 100.0)::numeric(12, 2)) || '.'
   );
 
   return public._saldo_de(v_donante);
@@ -215,7 +227,7 @@ begin
   values (
     p_user,
     'multa',
-    'Se aplicó una multa de ' || format('S/ %s', to_char(p_monto / 100.0, 'FM990.00')) ||
+    'Se aplicó una multa de ' || format('S/ %s', (p_monto / 100.0)::numeric(12, 2)) ||
       '. Motivo: ' || v_motivo
   );
 end;

@@ -138,7 +138,7 @@ export default function Navbar({ titulo }: { titulo?: string }) {
 
   return (
     <nav className="arena-nav sticky top-0 z-40 border-b border-white/10 bg-[#05070c]/95 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.04)]">
-      <div className="relative mx-auto flex h-16 max-w-[1680px] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6 lg:h-[72px] lg:px-8">
+      <div className="relative mx-auto flex h-16 max-w-[1760px] items-center justify-between gap-2 px-3 sm:gap-3 sm:px-6 lg:h-[72px] lg:px-8">
         <div className="flex min-w-0 items-center">
           <Link href="/" className="flex max-w-[46vw] min-w-0 items-center gap-2.5 sm:max-w-none">
             <Image

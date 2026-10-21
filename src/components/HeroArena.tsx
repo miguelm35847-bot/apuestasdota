@@ -204,7 +204,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
         ))}
       </div>
 
-      <div className="relative mx-auto max-w-[1680px] px-4 sm:px-6 lg:px-8 xl:max-w-[1040px] 2xl:max-w-[1200px]">
+      <div className="relative mx-auto max-w-[1760px] px-4 sm:px-6 lg:px-8 xl:max-w-[1040px] 2xl:max-w-[1200px]">
         <div className="grid min-w-0 items-center gap-5 py-4 sm:gap-8 sm:py-10 lg:grid-cols-[minmax(0,1fr)_minmax(400px,440px)] lg:gap-10 lg:py-12 xl:grid-cols-[minmax(0,1fr)_minmax(440px,460px)] xl:gap-12 xl:py-10 2xl:grid-cols-[minmax(0,1fr)_minmax(500px,560px)] 2xl:gap-14">
           <div className="text-center lg:text-left">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/35 px-3.5 py-1.5 text-[11px] font-semibold text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md sm:text-xs">
