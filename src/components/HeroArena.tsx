@@ -27,9 +27,11 @@ function jugadoresDe(sala: SalaPublica) {
   return sala.participantes_sala?.[0]?.count ?? 0;
 }
 
-function premioDe(sala: SalaPublica) {
-  const comision = sala.comision_bp ?? 0;
-  return Math.round(sala.cuota * sala.cupo * (1 - comision / 10000));
+/** Premio por ganador: el pozo menos la comisión, dividido entre los ganadores. */
+function premioPorGanadorDe(sala: SalaPublica) {
+  const comision = Math.floor((sala.cuota * sala.cupo * (sala.comision_bp ?? 0)) / 10000);
+  const ganadores = sala.cupo === 2 ? 1 : 5;
+  return Math.floor((sala.cuota * sala.cupo - comision) / ganadores);
 }
 
 function estadoBadge(estado: string) {
@@ -359,10 +361,10 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                       </div>
                       <div className="rounded-xl border border-white/[0.06] bg-black/25 px-3.5 py-2.5">
                         <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
-                          Premio estimado
+                          Premio por ganador
                         </p>
                         <p className="mt-1 font-display text-lg font-bold text-amber-300">
-                          {soles(premioDe(destacada))}
+                          {soles(premioPorGanadorDe(destacada))}
                         </p>
                       </div>
                     </div>

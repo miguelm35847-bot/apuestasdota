@@ -9,6 +9,7 @@ import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
 import ChatPanel from '@/components/ChatPanel';
 import Avatar from '@/components/Avatar';
+import MonedaSorteo from '@/components/MonedaSorteo';
 import PerfilHover from '@/components/PerfilHover';
 import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
 import {
@@ -426,6 +427,24 @@ function TableroPicks({
   const deboDecidir = estado === 'eleccion' && sala.pick_decision_user_id === userId;
   const miTurno = estado === 'en_curso' && sala.pick_turno_user_id === userId;
 
+  // 1v1: la moneda espera a que ambos confirmen que están listos.
+  const verificacionPendiente = sala.verificacion_estado === 'pendiente';
+  const listos = participantes.filter((p) => p.verificado_at).length;
+  const aMoneda = (p: Participante | null) =>
+    p
+      ? {
+          id: p.user_id,
+          nick: p.profiles?.nick ?? null,
+          steam_avatar_url: p.profiles?.steam_avatar_url ?? null,
+        }
+      : null;
+  const jugadorMoneda = aMoneda(
+    participantes.find((p) => p.user_id === sala.pick_decision_user_id) ?? null
+  );
+  const rivalMoneda = aMoneda(
+    participantes.find((p) => p.user_id !== sala.pick_decision_user_id) ?? null
+  );
+
   function Ficha({ p }: { p: Participante }) {
     const perfil = p.profiles;
     return (
@@ -471,67 +490,102 @@ function TableroPicks({
 
       {estado === 'eleccion' && (
         <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-          <p className="text-sm text-amber-200">
-            {sala.cupo === 2 ? (
-              <>
-                🪙 El sorteo eligió a <strong>{nombre(sala.pick_ganador_moneda)}</strong>. Elegirá su
-                lado (Radiant o Dire); el otro jugador irá al lado contrario.
-              </>
-            ) : (
-              <>
+          {sala.cupo === 2 ? (
+            <>
+              {verificacionPendiente ? (
+                <p className="text-sm text-amber-200">
+                  🪙 Esperando a que ambos confirmen que están listos (
+                  {listos}/{participantes.length}). Cuando confirmen, la moneda decide el lado.
+                </p>
+              ) : (
+                <>
+                  <MonedaSorteo ganador={jugadorMoneda} rival={rivalMoneda} />
+
+                  <p className="mt-2 text-center text-sm text-amber-200">
+                    {nombre(sala.pick_decision_user_id)} elige su lado (Radiant o Dire); el otro
+                    jugador irá al lado contrario.
+                  </p>
+
+                  {deboDecidir && sala.pick_decision_tipo === 'lado' && (
+                    <div className="mt-3 flex flex-wrap justify-center gap-2">
+                      <button
+                        onClick={() => onElegirLado(1)}
+                        disabled={procesando}
+                        className="rounded-lg border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/25 disabled:opacity-50"
+                      >
+                        Radiant
+                      </button>
+                      <button
+                        onClick={() => onElegirLado(2)}
+                        disabled={procesando}
+                        className="rounded-lg border border-rose-400/30 bg-rose-500/15 px-4 py-2 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/25 disabled:opacity-50"
+                      >
+                        Dire
+                      </button>
+                    </div>
+                  )}
+
+                  {!deboDecidir && (
+                    <p className="mt-3 text-center text-sm text-amber-300">
+                      Esperando a que <strong>{nombre(sala.pick_decision_user_id)}</strong> elija su
+                      lado…
+                    </p>
+                  )}
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-amber-200">
                 🪙 La moneda eligió a <strong>{nombre(sala.pick_ganador_moneda)}</strong>. El ganador
                 decide si pickea primero o elige lado; el otro completa la decisión.
-              </>
-            )}
-          </p>
-
-          {deboDecidir && sala.pick_decision_tipo === 'moneda' && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                onClick={() => onElegirMoneda('pickear_primero')}
-                disabled={procesando}
-                className="rounded-lg bg-prism-500 px-4 py-2 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
-              >
-                Quiero pickear primero
-              </button>
-              <button
-                onClick={() => onElegirMoneda('lado')}
-                disabled={procesando}
-                className="rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
-              >
-                Quiero elegir lado
-              </button>
-            </div>
-          )}
-
-          {deboDecidir && sala.pick_decision_tipo === 'lado' && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              <p className="w-full text-sm text-amber-200">
-                {sala.cupo === 2
-                  ? 'Elige tu lado (el otro jugador irá al contrario):'
-                  : 'Elige tu lado:'}
               </p>
-              <button
-                onClick={() => onElegirLado(1)}
-                disabled={procesando}
-                className="rounded-lg border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/25 disabled:opacity-50"
-              >
-                Radiant
-              </button>
-              <button
-                onClick={() => onElegirLado(2)}
-                disabled={procesando}
-                className="rounded-lg border border-rose-400/30 bg-rose-500/15 px-4 py-2 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/25 disabled:opacity-50"
-              >
-                Dire
-              </button>
-            </div>
-          )}
 
-          {!deboDecidir && (
-            <p className="mt-3 text-sm text-amber-300">
-              Esperando la decisión de <strong>{nombre(sala.pick_decision_user_id)}</strong>…
-            </p>
+              {deboDecidir && sala.pick_decision_tipo === 'moneda' && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button
+                    onClick={() => onElegirMoneda('pickear_primero')}
+                    disabled={procesando}
+                    className="rounded-lg bg-prism-500 px-4 py-2 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
+                  >
+                    Quiero pickear primero
+                  </button>
+                  <button
+                    onClick={() => onElegirMoneda('lado')}
+                    disabled={procesando}
+                    className="rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                  >
+                    Quiero elegir lado
+                  </button>
+                </div>
+              )}
+
+              {deboDecidir && sala.pick_decision_tipo === 'lado' && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <p className="w-full text-sm text-amber-200">Elige tu lado:</p>
+                  <button
+                    onClick={() => onElegirLado(1)}
+                    disabled={procesando}
+                    className="rounded-lg border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/25 disabled:opacity-50"
+                  >
+                    Radiant
+                  </button>
+                  <button
+                    onClick={() => onElegirLado(2)}
+                    disabled={procesando}
+                    className="rounded-lg border border-rose-400/30 bg-rose-500/15 px-4 py-2 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/25 disabled:opacity-50"
+                  >
+                    Dire
+                  </button>
+                </div>
+              )}
+
+              {!deboDecidir && (
+                <p className="mt-3 text-sm text-amber-300">
+                  Esperando la decisión de <strong>{nombre(sala.pick_decision_user_id)}</strong>…
+                </p>
+              )}
+            </>
           )}
         </div>
       )}

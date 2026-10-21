@@ -26,12 +26,14 @@ function FilaJugador({
   p,
   actual,
   estadoSala,
+  mostrarMover,
   onMover,
   onExpulsar,
 }: {
   p: Participante;
   actual: number | null | undefined;
   estadoSala: string;
+  mostrarMover: boolean;
   onMover: (userId: string, equipo: number | null) => void;
   onExpulsar: (p: Participante) => void;
 }) {
@@ -71,7 +73,7 @@ function FilaJugador({
         </div>
       </Link>
       <div className="flex shrink-0 flex-wrap justify-end gap-1">
-        {estadoSala !== 'en_juego' && actual !== null && (
+        {mostrarMover && estadoSala !== 'en_juego' && actual !== null && (
           <button
             onClick={() => onMover(p.user_id, null)}
             className="rounded px-1.5 py-0.5 text-[11px] font-medium text-slate-300 ring-1 ring-inset ring-white/10 transition hover:bg-white/5"
@@ -80,7 +82,7 @@ function FilaJugador({
             Espera
           </button>
         )}
-        {estadoSala !== 'en_juego' && actual !== 1 && (
+        {mostrarMover && estadoSala !== 'en_juego' && actual !== 1 && (
           <button
             onClick={() => onMover(p.user_id, 1)}
             className="rounded bg-emerald-500/10 px-1.5 py-0.5 text-[11px] font-medium text-emerald-200 ring-1 ring-inset ring-emerald-400/20 transition hover:bg-emerald-500/20"
@@ -88,7 +90,7 @@ function FilaJugador({
             Radiant
           </button>
         )}
-        {estadoSala !== 'en_juego' && actual !== 2 && (
+        {mostrarMover && estadoSala !== 'en_juego' && actual !== 2 && (
           <button
             onClick={() => onMover(p.user_id, 2)}
             className="rounded bg-rose-500/10 px-1.5 py-0.5 text-[11px] font-medium text-rose-200 ring-1 ring-inset ring-rose-400/20 transition hover:bg-rose-500/20"
@@ -115,6 +117,7 @@ function Slots({
   capacidad,
   equipos,
   estadoSala,
+  mostrarMover,
   onMover,
   onExpulsar,
 }: {
@@ -122,6 +125,7 @@ function Slots({
   capacidad: number;
   equipos: Record<string, number | null>;
   estadoSala: string;
+  mostrarMover: boolean;
   onMover: (userId: string, equipo: number | null) => void;
   onExpulsar: (p: Participante) => void;
 }) {
@@ -136,6 +140,7 @@ function Slots({
             p={p}
             actual={equipos[p.user_id]}
             estadoSala={estadoSala}
+            mostrarMover={mostrarMover}
             onMover={onMover}
             onExpulsar={onExpulsar}
           />
@@ -915,6 +920,8 @@ function AdminSalaContenido() {
   const slotsProps = {
     equipos,
     estadoSala: enFasePicks ? 'en_juego' : estadoSala,
+    // En 1v1 los equipos los define el sorteo: el admin no los mueve a mano.
+    mostrarMover: sala.cupo !== 2,
     onMover: moverJugador,
     onExpulsar: (p: Participante) =>
       setConfirmacion({

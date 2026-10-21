@@ -268,6 +268,21 @@ html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
   }
 }
 
+/* Moneda del sorteo 1v1: gira en 3D y cae en la cara del ganador. */
+@keyframes moneda-giro {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(1800deg);
+  }
+}
+
+.moneda-giro {
+  animation: moneda-giro 1.9s cubic-bezier(0.22, 0.75, 0.2, 1) forwards;
+  transform-style: preserve-3d;
+}
+
 @media (hover: none) {
   .arena-spotlight {
     display: none;
@@ -277,7 +292,8 @@ html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
 @media (prefers-reduced-motion: reduce) {
   .arena-aurora,
   .arena-particle,
-  .arena-cta-shine::after {
+  .arena-cta-shine::after,
+  .moneda-giro {
     animation: none;
   }
 

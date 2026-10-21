@@ -1,8 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Avatar from '@/components/Avatar';
+import PerfilHover from '@/components/PerfilHover';
 import {
   Actividad,
   formatoSoles,
@@ -14,6 +16,39 @@ const SELECT_EMBED =
   'id, tipo, emisor_id, receptor_id, monto, descripcion, creado_en, ' +
   'emisor:profiles!actividades_emisor_id_fkey(nick, steam_avatar_url), ' +
   'receptor:profiles!actividades_receptor_id_fkey(nick, steam_avatar_url)';
+
+/**
+ * Avatar del feed con la tarjeta de jugador (y el botón de donar) al pasar el
+ * cursor, igual que en las salas y el chat.
+ */
+function TarjetaActividad({
+  id,
+  nick,
+  avatar,
+}: {
+  id: string | null;
+  nick: string;
+  avatar: string | null;
+}) {
+  if (!id) {
+    return <Avatar nick={nick} src={avatar} size="xs" />;
+  }
+
+  return (
+    <PerfilHover
+      usuario={{ id, nick, steam_avatar_url: avatar }}
+      className="inline-block shrink-0"
+    >
+      <Link
+        href={`/jugadores/${id}`}
+        aria-label={`Ver perfil de ${nick}`}
+        className="block rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400"
+      >
+        <Avatar nick={nick} src={avatar} size="xs" />
+      </Link>
+    </PerfilHover>
+  );
+}
 
 /**
  * Panel público de actividades del landing.
@@ -160,25 +195,22 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
               >
                 <div className="flex -space-x-1.5 pt-0.5">
                   {esMulta ? (
-                    <Avatar
+                    <TarjetaActividad
+                      id={actividad.receptor_id}
                       nick={receptor}
-                      src={actividad.receptor?.steam_avatar_url ?? null}
-                      size="xs"
-                      ringClass="ring-2 ring-rose-500/30"
+                      avatar={actividad.receptor?.steam_avatar_url ?? null}
                     />
                   ) : (
                     <>
-                      <Avatar
+                      <TarjetaActividad
+                        id={actividad.emisor_id}
                         nick={donante}
-                        src={actividad.emisor?.steam_avatar_url ?? null}
-                        size="xs"
-                        ringClass="ring-2 ring-emerald-500/30"
+                        avatar={actividad.emisor?.steam_avatar_url ?? null}
                       />
-                      <Avatar
+                      <TarjetaActividad
+                        id={actividad.receptor_id}
                         nick={receptor}
-                        src={actividad.receptor?.steam_avatar_url ?? null}
-                        size="xs"
-                        ringClass="ring-2 ring-white/15"
+                        avatar={actividad.receptor?.steam_avatar_url ?? null}
                       />
                     </>
                   )}

@@ -10,7 +10,7 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 - Chat general en el landing y chat privado por sala. Cada mensaje ajeno muestra avatar, cabecera con nick + medalla de rango y burbuja separada; la tarjeta del jugador se ancla al avatar.
 - `/perfil` con identidad, Steam, saldo, Recargar/Retirar, resumen y perfil competitivo (MMR único + roles). Sin acceso directo a `/salas` desde la cabecera.
 - `/jugadores/[id]` público con medalla, stats y últimas partidas; enlaces icon-only a Steam/Dotabuff sin exponer `steam_id`.
-- Salas 1v1/5v5 con equipos, picks, lobby, cierre automático/manual, panel admin y endurecimiento de RPCs.
+- Salas 1v1/5v5 con equipos, picks, lobby, cierre automático/manual, panel admin y endurecimiento de RPCs. En 1v1, cuando los dos confirman “Estoy listo” gira una moneda con los avatares de ambos y el ganador elige Radiant o Dire (el admin no asigna los equipos a mano); en 5v5 el reparto sale de los picks.
 - Admin → Jugadores: MMR, **recarga manual** (sin motivo) y **multas** por faltas a las reglas, con saldo por jugador y notificación.
 - Verificación de sala "Estoy listo": el admin la pide cuando la sala está completa, cada jugador confirma desde la sala (aviso sonoro dentro de la sala + notificación) y los slots marcan con ✓ a los que confirmaron. No bloquea el inicio de la partida.
 - Donaciones entre usuarios: botón "Donar saldo" en el perfil público **y en la tarjeta flotante de cada jugador** (landing, chat y salas), con mensaje opcional; todo el movimiento ocurre en la RPC `donar_saldo` (atómico, con control de saldo y sin donarse a uno mismo).
