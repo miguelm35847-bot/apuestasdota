@@ -1787,11 +1787,11 @@ notify pgrst, 'reload schema';
 - `scripts/qa/probes.mjs`: 21 comprobaciones de RLS/grants (`anon` y sesión), CSP/X-Frame/nosniff, endpoints `/api/steam/sync`, `/api/dota/match`, `/api/perfil/steam` y `/api/jugadores/[id]/links`, y existencia de RPCs/columnas vía OpenAPI con `service_role`.
 - `scripts/qa/seed.mjs`: crea `qa-admin` y `qa-p1..qa-p10` (MMR 4500, roles variados) y acredita S/ 100 con `crear_recarga` + `aprobar_recarga`. Los perfiles QA llevan un `steam_id` ficticio para que `unirse_a_sala` los acepte. `--cleanup` llama a `qa_cleanup()` (security definer) porque `service_role` no tiene DELETE/UPDATE en movimientos, notificaciones, recargas, retiros ni participantes.
 - `scripts/qa/flows.mjs`: 1v1 (sorteo, lado, lobby, notificación, cancelación y reembolso) y 5v5 (10 uniones, `iniciar_picks`, moneda, lado, picks, auto-pick, lobby y reembolso). Limpia cada sala en `finally`.
-- Hallazgos:
-  - `pickear_jugador` y `auto_pickear_si_vencido` calculan el siguiente capitán con el rival del turno actual en vez del rival fijo del primer pick; el draft se desbalancea desde el tercer pick (3/7). El SQL corregido está en `docs/sql/2026-10-21-qa-hallazgos.sql`.
-  - `authenticated` puede leer `profiles.steam_id` de otros por REST. El mismo SQL deja a `authenticated` solo las columnas públicas; Navbar y `/perfil` ya no piden `steam_id` directo y el propio lo obtiene de `GET /api/perfil/steam`.
-  - El trigger de sorteo 1v1 sí está aplicado: el flujo 1v1 pasa completo.
-- Verificación: `npm run qa:probes` (20/21 con el SQL pendiente), `npm run qa:flows -- 1v1` (verde) y `npm run qa:flows -- 5v5` (falla el reparto y repara equipos para seguir con lobby/cancelación). Tras aplicar el SQL deben quedar verdes.
+- Hallazgos corregidos con `docs/sql/2026-10-21-qa-hallazgos.sql`:
+  - `pickear_jugador` y `auto_pickear_si_vencido` calculaban el siguiente capitán con el rival del turno actual en vez del rival fijo del primer pick; el draft se desbalanceaba desde el tercer pick (3/7). Ahora el reparto cierra 5/5.
+  - `authenticated` podía leer `profiles.steam_id` de otros por REST. Ahora solo tiene las columnas públicas; Navbar y `/perfil` no piden `steam_id` directo y el propio lo obtiene de `GET /api/perfil/steam`.
+  - El trigger de sorteo 1v1 está aplicado: el flujo 1v1 pasa completo.
+- Verificación tras aplicar el SQL: `npm run qa:probes` **21/21**, `npm run qa:flows` 1v1 y 5v5 verdes, y `npm run qa:cleanup` sin perfiles `qa-*` ni salas `QA `. Se conserva `qa_cdp` para el QA visual.
 
 ## 9. Limitaciones conocidas
 

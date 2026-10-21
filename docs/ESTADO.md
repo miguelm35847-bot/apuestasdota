@@ -17,8 +17,7 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 
 ## Pendientes
 
-- Aplicar `docs/sql/2026-10-21-qa-hallazgos.sql` antes de desplegar: corrige los picks 5v5, revoca la lectura de `profiles.steam_id` para `authenticated` y agrega `qa_cleanup()` para borrar las cuentas/salas QA (el `service_role` no tiene DELETE en las tablas sensibles). Después: `npm run qa:probes`, `npm run qa:flows` y `npm run qa:cleanup`.
-- Volver a correr `npm run qa:probes` y `npm run qa:flows` después de aplicar ese SQL; los flujos 1v1 ya pasan completos.
+- QA de backend aplicado (21/10/2026): `qa:probes` queda **21/21**, `qa:flows` 1v1 y 5v5 quedan verdes (reparto 5/5, lobby y reembolso) y `qa:cleanup` dejó la base sin perfiles `qa-*` ni salas `QA `. Se conserva `qa_cdp` para el harness visual.
 - Probar el flujo completo de MMR único + fase de picks en la interfaz
 - Probar la vinculación de Steam con el nuevo flujo (state HMAC + cookie HttpOnly) y confirmar que el access token no aparece en la URL
 - Probar el cierre automático con un lobby de torneo con ticket y cuentas con Steam vinculado
