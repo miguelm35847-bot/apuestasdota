@@ -22,7 +22,7 @@ export default function MonedaSorteo({ ganador, rival }: Props) {
   const [terminado, setTerminado] = useState(false);
 
   useEffect(() => {
-    const temporizador = setTimeout(() => setTerminado(true), 1900);
+    const temporizador = setTimeout(() => setTerminado(true), 3800);
     return () => clearTimeout(temporizador);
   }, []);
 

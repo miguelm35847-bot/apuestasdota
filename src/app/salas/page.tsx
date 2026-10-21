@@ -7,6 +7,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
+import FormularioCrearSala from '@/components/FormularioCrearSala';
 
 type Sala = {
   id: string;
@@ -32,11 +33,6 @@ export default function SalasPage() {
   const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showCrear, setShowCrear] = useState(false);
-  const [nombre, setNombre] = useState('');
-  const [cuota, setCuota] = useState('');
-  const [modalidad, setModalidad] = useState<'1v1' | '5v5'>('5v5');
-  const [comision, setComision] = useState('1500');
-  const [creating, setCreating] = useState(false);
   const [destacandoId, setDestacandoId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -108,45 +104,6 @@ export default function SalasPage() {
     };
   }, [user, cargarSalas]);
 
-  async function crearSala() {
-    setError(null);
-    if (!nombre.trim()) {
-      setError('Escribe un nombre para la sala');
-      return;
-    }
-    const cuotaNum = parseFloat(cuota);
-    if (isNaN(cuotaNum) || cuotaNum < 1) {
-      setError('La cuota mínima es S/ 1.00');
-      return;
-    }
-    const cupoNum = modalidad === '1v1' ? 2 : 10;
-    const comisionNum = parseInt(comision);
-    if (isNaN(comisionNum) || comisionNum < 0 || comisionNum > 5000) {
-      setError('La comisión debe estar entre 0 y 5000 (0-50%)');
-      return;
-    }
-
-    setCreating(true);
-    const { error: rpcError } = await supabase.rpc('crear_sala', {
-      p_nombre: nombre.trim(),
-      p_cuota: Math.round(cuotaNum * 100),
-      p_cupo: cupoNum,
-      p_comision_bp: comisionNum,
-    });
-
-    if (rpcError) {
-      setError('Error al crear sala: ' + rpcError.message);
-    } else {
-      setNombre('');
-      setCuota('');
-      setModalidad('5v5');
-      setComision('1500');
-      setShowCrear(false);
-      cargarSalas();
-    }
-    setCreating(false);
-  }
-
   async function alternarDestacada(sala: Sala) {
     setError(null);
     setDestacandoId(sala.id);
@@ -217,78 +174,12 @@ export default function SalasPage() {
         {showCrear && (
           <div className="arena-card mb-6 rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena-soft">
             <h3 className="mb-4 font-display text-lg font-bold text-white">Nueva sala</h3>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-slate-300">Nombre</label>
-                <input
-                  type="text"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
-                  placeholder="Ej: Sala Pro 5v5"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300">Cuota (S/)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="1"
-                  value={cuota}
-                  onChange={(e) => setCuota(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
-                  placeholder="Ej: 10.00"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300">Modalidad</label>
-                <div className="mt-1 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setModalidad('1v1')}
-                    className={`rounded border-2 px-4 py-3 text-lg font-semibold ${
-                      modalidad === '1v1'
-                        ? 'border-prism-400 bg-prism-500/15 text-prism-200'
-                        : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/20'
-                    }`}
-                  >
-                    1 vs 1
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setModalidad('5v5')}
-                    className={`rounded border-2 px-4 py-3 text-lg font-semibold ${
-                      modalidad === '5v5'
-                        ? 'border-prism-400 bg-prism-500/15 text-prism-200'
-                        : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/20'
-                    }`}
-                  >
-                    5 vs 5
-                  </button>
-                </div>
-                <p className="mt-1 text-xs text-slate-500">
-                  {modalidad === '1v1' ? '2 jugadores: 1 Radiant y 1 Dire' : '10 jugadores: 5 Radiant y 5 Dire'}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300">Comisión (%)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="50"
-                  value={Math.round(parseInt(comision) / 100)}
-                  onChange={(e) => setComision(String(parseInt(e.target.value) * 100))}
-                  className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
-                />
-              </div>
-            </div>
-            <button
-              onClick={crearSala}
-              disabled={creating}
-              className="mt-4 rounded-lg bg-emerald-500 px-6 py-2.5 font-semibold text-emerald-950 transition hover:bg-emerald-400 disabled:opacity-50"
-            >
-              {creating ? 'Creando...' : 'Crear sala'}
-            </button>
+            <FormularioCrearSala
+              onCreada={() => {
+                setShowCrear(false);
+                cargarSalas();
+              }}
+            />
           </div>
         )}
 

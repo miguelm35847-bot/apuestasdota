@@ -279,7 +279,7 @@ html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
 }
 
 .moneda-giro {
-  animation: moneda-giro 1.9s cubic-bezier(0.22, 0.75, 0.2, 1) forwards;
+  animation: moneda-giro 3.8s cubic-bezier(0.22, 0.75, 0.2, 1) forwards;
   transform-style: preserve-3d;
 }
 

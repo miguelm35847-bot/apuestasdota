@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -9,6 +9,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { useSalas } from '@/components/SalasProvider';
 import Toast from '@/components/Toast';
 import Avatar from '@/components/Avatar';
+import FormularioCrearSala from '@/components/FormularioCrearSala';
 import PerfilHover from '@/components/PerfilHover';
 
 function ringEquipo(equipo: number | null) {
@@ -41,6 +42,42 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
   const salas = todasLasSalas.slice(0, 10);
   const [procesando, setProcesando] = useState<string | null>(null);
   const [aviso, setAviso] = useState<{ mensaje: string; tipo: 'success' | 'error' } | null>(null);
+  const [esAdmin, setEsAdmin] = useState(false);
+  const [showCrear, setShowCrear] = useState(false);
+  const [destacandoId, setDestacandoId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.rpc('es_admin').then(({ data }: { data: boolean | null }) => {
+      setEsAdmin(data === true);
+    });
+  }, [user]);
+
+  async function alternarDestacada(sala: { id: string; destacada?: boolean | null; nombre: string }) {
+    setAviso(null);
+    setDestacandoId(sala.id);
+
+    const { error: rpcError } = await supabase.rpc('admin_destacar_sala', {
+      p_sala: sala.id,
+      p_destacar: !sala.destacada,
+    });
+
+    if (rpcError) {
+      const detalle = rpcError.message.includes('Could not find the function')
+        ? 'falta ejecutar el SQL de admin_destacar_sala en Supabase'
+        : rpcError.message;
+      setAviso({ mensaje: 'No se pudo actualizar la sala destacada: ' + detalle, tipo: 'error' });
+    } else {
+      setAviso({
+        mensaje: sala.destacada
+          ? `Ya no es la sala destacada.`
+          : `“${sala.nombre}” ahora es la sala destacada del hero.`,
+        tipo: 'success',
+      });
+    }
+
+    setDestacandoId(null);
+  }
 
   async function unirseASala(salaId: string) {
     if (!user) return;
@@ -75,10 +112,21 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
         <h2 className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
           Salas activas
         </h2>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-500/30">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          En vivo
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-500/30">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            En vivo
+          </span>
+          {esAdmin && (
+            <button
+              onClick={() => setShowCrear(true)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[11px] font-bold text-[#070a10] shadow-[0_0_28px_-14px_rgba(255,255,255,0.7)] transition hover:bg-slate-200"
+            >
+              <span aria-hidden="true">+</span>
+              Crear sala
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-medium text-slate-500">
@@ -259,6 +307,34 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                       {count}/{sala.cupo}
                     </span>
                   </div>
+
+                  {esAdmin && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/5 pt-2.5">
+                      <button
+                        onClick={() => alternarDestacada(sala)}
+                        disabled={destacandoId === sala.id}
+                        className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-200 transition hover:bg-amber-500/20 disabled:opacity-50"
+                        title={
+                          sala.destacada
+                            ? 'Quitar el destaque del hero'
+                            : 'Mostrar esta sala en el hero del landing'
+                        }
+                      >
+                        {destacandoId === sala.id
+                          ? '...'
+                          : sala.destacada
+                            ? '★ Quitar destacado'
+                            : '☆ Destacar'}
+                      </button>
+                      <Link
+                        href={`/admin/salas/${sala.id}`}
+                        className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-200 transition hover:bg-white/10"
+                        title="Gestionar la sala (equipos, lobby, verificación, cierre)"
+                      >
+                        Gestionar →
+                      </Link>
+                    </div>
+                  )}
                 </div>
 
                 <div className="relative mt-3">
@@ -304,6 +380,48 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
         tipo={aviso?.tipo}
         onClose={() => setAviso(null)}
       />
+
+      {showCrear && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="crear-sala-title"
+        >
+          <div className="arena-card max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-white/10 bg-[#111827] p-6 shadow-arena">
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div>
+                <h2
+                  id="crear-sala-title"
+                  className="font-display text-xl font-bold tracking-tight text-white"
+                >
+                  Nueva sala
+                </h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  La sala aparece de inmediato en el landing para que se unan los jugadores.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCrear(false)}
+                aria-label="Cerrar"
+                className="rounded-full p-2 text-2xl leading-none text-slate-400 transition hover:bg-white/5 hover:text-white"
+              >
+                ×
+              </button>
+            </div>
+
+            <FormularioCrearSala
+              mostrarCancelar
+              onCancelar={() => setShowCrear(false)}
+              onCreada={() => {
+                setShowCrear(false);
+                setAviso({ mensaje: 'Sala creada. Ya aparece en el landing.', tipo: 'success' });
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
