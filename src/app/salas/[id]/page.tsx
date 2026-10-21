@@ -13,6 +13,7 @@ import MedallaMmr from '@/components/MedallaMmr';
 import MonedaSorteo from '@/components/MonedaSorteo';
 import PerfilHover from '@/components/PerfilHover';
 import PreferenciaLado from '@/components/PreferenciaLado';
+import ResumenJugador from '@/components/ResumenJugador';
 import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
 import {
   etiquetaRol,
@@ -319,6 +320,12 @@ function Columna({
                         </span>
                       )}
                     </div>
+                    <ResumenJugador
+                      key={p.user_id}
+                      userId={p.user_id}
+                      compacto
+                      className="mt-1"
+                    />
                   </div>
                 </Link>
               </PerfilHover>
@@ -495,6 +502,7 @@ function TableroPicks({
           {resumenRolesConIconos(perfil?.roles_preferidos)}
         </p>
         <PreferenciaLado equipo={p.preferencia_equipo} className="mt-1" />
+        <ResumenJugador key={p.user_id} userId={p.user_id} className="mt-1" />
       </div>
     );
   }

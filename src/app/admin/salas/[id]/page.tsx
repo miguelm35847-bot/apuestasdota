@@ -13,6 +13,7 @@ import ChatPanel from '@/components/ChatPanel';
 import Avatar from '@/components/Avatar';
 import MedallaMmr from '@/components/MedallaMmr';
 import PreferenciaLado from '@/components/PreferenciaLado';
+import ResumenJugador from '@/components/ResumenJugador';
 import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
 import { reproducirSonido } from '@/lib/sonidos';
 import { formatearMmr, promedioMmr, resumenRolesConIconos } from '@/lib/balance';
@@ -80,6 +81,7 @@ function FilaJugador({
             </span>
           </span>
           {mostrarPreferencia && <PreferenciaLado equipo={p.preferencia_equipo} className="mt-1" />}
+          <ResumenJugador key={p.user_id} userId={p.user_id} compacto className="mt-1" />
         </div>
       </Link>
       <div className="flex shrink-0 flex-wrap justify-end gap-1">
