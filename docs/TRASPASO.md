@@ -18,6 +18,14 @@ Documento para continuar el trabajo en un chat nuevo sin perder contexto.
 - Verificado con Chrome headless: 504 px de hero en 1366×768, 1440×1000, 1280×800 y 1600×900; 748 px en 390×844 y 747 px en 360×800; sin overflow horizontal ni errores de consola. `prefers-reduced-motion: reduce` deja todas las animaciones en `none` y las partículas en opacidad 0.3.
 - **Sin SQL nuevo** para el rediseño. Toda la funcionalidad de salas, unirse, admin y sala destacada se conserva.
 
+## 0.1 Guía pública “Cómo jugar” y reglas (21/10/2026)
+
+- Ruta pública: `/como-jugar`. Una sola página con dos secciones ancladas: `#como-jugar` (7 pasos) y `#reglas` (9 reglas). No existe una ruta `/reglas` separada; los enlaces “Reglas” usan `/como-jugar#reglas` para no duplicar contenido.
+- Portada Arena Dark con chips (1v1/5v5, Yape/Plin, MMR real, premios), 7 pasos desde crear cuenta/vincular Steam hasta cierre/premio, checklist “Antes de entrar”, las 9 reglas en el orden aportado por el usuario, resumen sticky de tiempos/penalidades y aclaración de que “Tío Apuestas” es el anfitrión/admin de la sala.
+- Reglas conservadas sin cambiar tiempos ni porcentajes: MMR falso = toda la apuesta; 2 min de pausa por equipo en picks; pausas ilimitadas del Tío Apuestas con justificación; 2 min de tolerancia sin picks y luego RMK + 50% de la casada al pozo; 10 min de tolerancia por equipo para desconexiones tras los picks; cada pausa cuenta como 1 min; desconexión antes de 10 min = casada completa al equipo contrario; pausa en TF sin desconexión = 10% de la casada o de la ganancia; no quitar pausas hasta resolver el motivo.
+- Landing: enlaces “Cómo jugar” y “Reglas” en el hero, tarjeta “Guía rápida” después del Historial global y enlaces en el footer. `src/app/page.tsx` importa `Link` y `HeroArena` agrega los dos enlaces. Sin cambios en Navbar, salas, auth, perfil ni admin.
+- Verificación con Chrome headless en 1366×768, 390×844 y 360×800: sin overflow horizontal ni errores de consola; 7 pasos, 9 reglas y 6 enlaces de guía en el landing; `/como-jugar` responde 200. `npx tsc --noEmit`, `npm run lint` y `npm run build` pasan. Sin librerías ni SQL nuevos.
+
 ## 1. Qué es
 
 Aplicación web de salas de apuestas de Dota 2 para Perú:
@@ -1520,10 +1528,11 @@ notify pgrst, 'reload schema';
 
 ## 7. Archivos clave
 
-- `src/app/page.tsx` — landing pública: envuelve `<HeroArena />` y las salas con `<SalasProvider>`; debajo salas a la izquierda, chat general a la derecha e historial global en modal.
+- `src/app/page.tsx` — landing pública: envuelve `<HeroArena />` y las salas con `<SalasProvider>`; debajo salas a la izquierda, chat general a la derecha e historial global en modal. Incluye la tarjeta “Guía rápida” y los enlaces “Cómo jugar”/“Reglas” del footer.
+- `src/app/como-jugar/page.tsx` — guía pública: 7 pasos, checklist, 9 reglas, resumen sticky de tiempos/penalidades y CTAs; secciones `#como-jugar` y `#reglas`. No requiere sesión ni SQL.
 - `src/components/SalasProvider.tsx` — fuente única de salas activas y participantes del landing: una consulta, una suscripción Realtime `landing-salas`, polling de respaldo y hook `useSalas()`.
 - `src/lib/salas.ts` — tipos compartidos `SalaPublica` y `ParticipantePublico` para el hero y la lista de salas.
-- `src/components/HeroArena.tsx` — hero del landing: imagen única `public/hero-arena.jpg` con Shadow Fiend, Phantom Assassin y la bandera; copy “JUEGA · COMPITE · GANA”; sala destacada en vivo (consulta `salas` + `participantes_sala`, se actualiza por Realtime `hero-salas`), **sala elegida por el admin** (`destacada`) con respaldo automático a la más llena, **todos los slots de la modalidad** (10 en 5v5, 2 en 1v1, libres y ocupados) con `PerfilHover`, ícono de Dota 2, stats de salas/jugadores/dinero en juego, partículas y spotlight de cursor. Enlace “Entrar a la sala” o `/login` según sesión.
+- `src/components/HeroArena.tsx` — hero del landing: imagen única `public/hero-arena.jpg` con Shadow Fiend, Phantom Assassin y la bandera; copy “JUEGA · COMPITE · GANA”; sala destacada en vivo (consulta `salas` + `participantes_sala`, se actualiza por Realtime `hero-salas`), **sala elegida por el admin** (`destacada`) con respaldo automático a la más llena, **todos los slots de la modalidad** (10 en 5v5, 2 en 1v1, libres y ocupados) con `PerfilHover`, ícono de Dota 2, stats de salas/jugadores/dinero en juego, partículas y spotlight de cursor. Enlace “Entrar a la sala” o `/login` según sesión, más accesos “Cómo jugar” y “Reglas”.
 - `src/components/SalasPublicas.tsx` — landing: tarjetas Arena Dark con ícono de Dota 2, chip **★ Destacada**, slots por modalidad, avatares con color de equipo, unirse y actualización en vivo.
 - `public/dota2.svg` — ícono de Dota 2 (Simple Icons) usado en las tarjetas del landing y en la gestión de sala.
 - `src/app/globals.css` — tokens de **Arena Dark** (grafito, indigo, Radiant, Dire, dorado; superficies, radios y sombras), clases nativas `.arena-shell`/`.arena-card`/`.arena-hero`/`.arena-nav` y animaciones del hero (`arena-aurora`, `arena-particle`, `arena-spotlight`, `arena-cta-shine`), con `prefers-reduced-motion`; body oscuro condicionado y controles nativos con `color-scheme: dark`.
@@ -1819,5 +1828,6 @@ Opciones para continuar (elegir una):
 21. Cierre automático: jugar una partida en un **lobby de torneo con ticket** (los lobbies custom/practice sin ticket no aparecen en la API) y con cuentas con Steam vinculado. Al terminar, en menos de ~2 minutos la sala debe pasar a `terminada`, repartir premios y aparecer en el historial con duración, marcador y chip `Auto`. Probar “Detectar ahora” y el toggle `Auto` en el panel admin.
 22. Cierre manual: desactivar `Auto`, pegar el ID, verificar y confirmar. También debe guardar duración/marcador en el historial. Si la partida es un lobby custom/practice sin ticket, la verificación fallará; elige el ganador manualmente y confirma (no se guardarán duración/marcador).
 23. Perfil público: sin iniciar sesión, abrir el avatar/nombre de un jugador desde el landing, historial, chat o sala. Debe mostrar su MMR con la medalla correcta, partidas terminadas, victorias, winrate y últimas partidas. Probar `/jugadores/[id]` con un ID inexistente o inválido: debe aparecer “Jugador no encontrado”.
+24. Guía: abrir `/como-jugar` desde el hero, la tarjeta “Guía rápida” o el footer del landing. Debe mostrar 7 pasos y 9 reglas; “Reglas” debe llevar a `#reglas`. Probar en móvil y escritorio que no haya overflow horizontal.
 
 > Verificado el 21/10/2026 con Chrome headless en 1366×768, 390×844 y 360×800. Se probaron perfil con partidas, perfil vacío y estados de error; los enlaces desde landing, chat, historial, sala autenticada y admin abren el jugador correcto. No hubo cambios de código ni SQL.

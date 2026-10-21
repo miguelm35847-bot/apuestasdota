@@ -252,6 +252,47 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                 </>
               )}
             </div>
+
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs font-semibold text-slate-300 lg:justify-start">
+              <Link
+                href="/como-jugar"
+                className="inline-flex items-center gap-1.5 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              >
+                <svg
+                  className="h-3.5 w-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M4 4h7a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H4V4Z" />
+                  <path d="M20 4h-3a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h3V4Z" />
+                </svg>
+                Cómo jugar
+              </Link>
+              <Link
+                href="/como-jugar#reglas"
+                className="inline-flex items-center gap-1.5 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              >
+                <svg
+                  className="h-3.5 w-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 3 4.5 6v5.5c0 4.5 3 7.5 7.5 9.5 4.5-2 7.5-5 7.5-9.5V6L12 3Z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+                Reglas
+              </Link>
+            </div>
           </div>
 
           <aside className="relative mx-auto w-full min-w-0 max-w-[560px] lg:mx-0 lg:max-w-none">
