@@ -17,16 +17,16 @@ import { partidaVivaMock } from '@/lib/vivoMock';
 
 const PARTIDA = partidaVivaMock(
   [
-    { user_id: 'demo-1', equipo: 1, profiles: { nick: 'mik' } },
-    { user_id: 'demo-2', equipo: 1, profiles: { nick: 'asdfbhbwnef' } },
-    { user_id: 'demo-3', equipo: 1, profiles: { nick: 'Kchaprras' } },
-    { user_id: 'demo-4', equipo: 1, profiles: { nick: 'Polar' } },
-    { user_id: 'demo-5', equipo: 1, profiles: { nick: 'Musulman' } },
-    { user_id: 'demo-6', equipo: 2, profiles: { nick: 'Yunois' } },
-    { user_id: 'demo-7', equipo: 2, profiles: { nick: 'qa-p1' } },
-    { user_id: 'demo-8', equipo: 2, profiles: { nick: 'qa-p2' } },
-    { user_id: 'demo-9', equipo: 2, profiles: { nick: 'qa-p3' } },
-    { user_id: 'demo-10', equipo: 2, profiles: { nick: 'qa-p4' } },
+    { user_id: 'demo-1', equipo: 1, profiles: { nick: 'mik', mmr: 5480 } },
+    { user_id: 'demo-2', equipo: 1, profiles: { nick: 'asdfbhbwnef', mmr: 4700 } },
+    { user_id: 'demo-3', equipo: 1, profiles: { nick: 'Kchaprras', mmr: 3900 } },
+    { user_id: 'demo-4', equipo: 1, profiles: { nick: 'Polar', mmr: 3400 } },
+    { user_id: 'demo-5', equipo: 1, profiles: { nick: 'Musulman', mmr: 2600 } },
+    { user_id: 'demo-6', equipo: 2, profiles: { nick: 'Yunois', mmr: 2050 } },
+    { user_id: 'demo-7', equipo: 2, profiles: { nick: 'qa-p1', mmr: 1600 } },
+    { user_id: 'demo-8', equipo: 2, profiles: { nick: 'qa-p2', mmr: 1200 } },
+    { user_id: 'demo-9', equipo: 2, profiles: { nick: 'qa-p3', mmr: 900 } },
+    { user_id: 'demo-10', equipo: 2, profiles: { nick: 'qa-p4', mmr: 400 } },
   ],
   1421
 ) as PartidaViva;

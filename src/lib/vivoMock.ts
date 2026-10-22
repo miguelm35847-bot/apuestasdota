@@ -1,3 +1,4 @@
+import { RUTAS_HEROE, puntoEnRuta } from './mapaDota';
 import { ItemVivo, JugadorVivo, PartidaViva, esDeDia } from './vivo';
 
 /**
@@ -101,52 +102,10 @@ const NEUTRALES: ItemVivo[] = [
 /** Cuánto farmea cada posición: carry, support, mid, offlane, support. */
 const FACTOR_FARMA = [1, 0.35, 0.95, 0.7, 0.3];
 
-type Punto = { x: number; y: number };
-
-/**
- * Rutas aproximadas del mapa (porcentajes): inferior, inferior, medio, superior
- * y superior. El lado Dire usa las mismas rutas espejadas.
- */
-const RUTAS: Punto[][] = [
-  [
-    { x: 16, y: 84 },
-    { x: 48, y: 93 },
-    { x: 93, y: 48 },
-    { x: 84, y: 16 },
-  ],
-  [
-    { x: 16, y: 84 },
-    { x: 38, y: 88 },
-    { x: 70, y: 76 },
-    { x: 84, y: 48 },
-    { x: 84, y: 16 },
-  ],
-  [
-    { x: 16, y: 84 },
-    { x: 34, y: 66 },
-    { x: 50, y: 50 },
-    { x: 66, y: 34 },
-    { x: 84, y: 16 },
-  ],
-  [
-    { x: 16, y: 84 },
-    { x: 7, y: 54 },
-    { x: 54, y: 7 },
-    { x: 84, y: 16 },
-  ],
-  [
-    { x: 16, y: 84 },
-    { x: 12, y: 52 },
-    { x: 30, y: 24 },
-    { x: 52, y: 16 },
-    { x: 84, y: 16 },
-  ],
-];
-
 type JugadorSala = {
   user_id: string;
   equipo?: number | null;
-  profiles?: { nick?: string | null } | null;
+  profiles?: { nick?: string | null; mmr?: number | null } | null;
 };
 
 /** Hash estable (FNV-1a) para que cada jugador tenga siempre las mismas stats. */
@@ -157,20 +116,6 @@ function semillaDe(texto: string) {
     hash = Math.imul(hash, 16777619);
   }
   return Math.abs(hash);
-}
-
-/** Punto intermedio de una ruta (0 = salida, 1 = llegada). */
-function puntoEnRuta(ruta: Punto[], avance: number): Punto {
-  const tramo = Math.min(0.999, Math.max(0, avance)) * (ruta.length - 1);
-  const indice = Math.floor(tramo);
-  const resto = tramo - indice;
-  const desde = ruta[indice];
-  const hasta = ruta[indice + 1] ?? ruta[indice];
-
-  return {
-    x: desde.x + (hasta.x - desde.x) * resto,
-    y: desde.y + (hasta.y - desde.y) * resto,
-  };
 }
 
 /** Ítems comprados según el minuto (el primero son las botas). */
@@ -249,7 +194,7 @@ export function partidaVivaMock(
     const respawn =
       deaths > 0 && (turnoRespawn + base) % 9 === 0 ? 6 + (base % 28) : 0;
 
-    const ruta = RUTAS[rol];
+    const ruta = RUTAS_HEROE[rol];
     // Avance por el carril: crece con el reloj y se separa un poco por posición
     // para que los cinco no vayan apilados.
     const avanceMapa = Math.min(
@@ -261,6 +206,7 @@ export function partidaVivaMock(
     return {
       accountId: indice + 1,
       nick: jugador.profiles?.nick?.trim() || `Jugador ${indice + 1}`,
+      mmr: jugador.profiles?.mmr ?? null,
       heroId: heroe.id,
       heroNombre: heroe.nombre,
       heroSlug: heroe.slug,

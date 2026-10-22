@@ -22,7 +22,7 @@ type SalaPartida = {
 type ParticipanteFila = {
   user_id: string;
   equipo: number | null;
-  profiles: { nick: string | null } | null;
+  profiles: { nick: string | null; mmr: number | null } | null;
 };
 
 function Estado({ children }: { children: React.ReactNode }) {
@@ -74,7 +74,7 @@ function PartidaContenido() {
 
     const { data: partes } = await supabase
       .from('participantes_sala')
-      .select('user_id, equipo, profiles(nick)')
+      .select('user_id, equipo, profiles(nick, mmr)')
       .eq('sala_id', salaId)
       .order('created_at', { ascending: true });
 

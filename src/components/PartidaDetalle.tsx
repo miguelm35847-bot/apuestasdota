@@ -1,5 +1,17 @@
 'use client';
 
+import MedallaMmr from '@/components/MedallaMmr';
+import {
+  BASES,
+  CARRILES,
+  type CarrilId,
+  type EquipoMapa,
+  ROSHAN,
+  TORRES_POR_EQUIPO,
+  type TorreMapa,
+  puntoEnRuta,
+  torresDestruidas,
+} from '@/lib/mapaDota';
 import {
   EquipoVivo,
   JugadorVivo,
@@ -78,6 +90,7 @@ function FilaJugador({ jugador }: { jugador: JugadorVivo }) {
       <div className="min-w-0 flex-1 basis-28">
         <div className="flex items-center gap-1.5">
           <p className="truncate text-xs font-semibold text-slate-100">{jugador.nick}</p>
+          <MedallaMmr mmr={jugador.mmr} size="xs" inline className="shrink-0" />
           {jugador.respawn > 0 && (
             <span
               className="shrink-0 rounded bg-rose-500/15 px-1 text-[9px] font-bold text-rose-300 ring-1 ring-inset ring-rose-500/30"
@@ -201,11 +214,78 @@ function TablaEquipo({
   );
 }
 
+const TONO_TORRE: Record<EquipoMapa, { relleno: string; borde: string }> = {
+  radiant: { relleno: '#34d399', borde: '#065f46' },
+  dire: { relleno: '#fb7185', borde: '#881337' },
+};
+
+/** Desvío del nombre de cada senda para no pisar el camino. */
+const ETIQUETA_SENDA: Record<CarrilId, { x: number; y: number }> = {
+  bot: { x: 4.5, y: 4.5 },
+  mid: { x: 7, y: 7 },
+  top: { x: -4.5, y: -4.5 },
+};
+
+const MEDIO_LADO_TORRE = 1.6;
+
+/** Una torre del minimapa: en pie con el color del equipo, caída apagada. */
+function TorreSvg({ torre, caida }: { torre: TorreMapa; caida: boolean }) {
+  const color = TONO_TORRE[torre.equipo];
+
+  return (
+    <g>
+      {!caida && (
+        <circle
+          cx={torre.x}
+          cy={torre.y}
+          r="2.6"
+          fill={color.relleno}
+          opacity="0.14"
+          aria-hidden="true"
+        />
+      )}
+      <rect
+        x={torre.x - MEDIO_LADO_TORRE}
+        y={torre.y - MEDIO_LADO_TORRE}
+        width={MEDIO_LADO_TORRE * 2}
+        height={MEDIO_LADO_TORRE * 2}
+        rx="0.4"
+        fill={caida ? '#111827' : color.relleno}
+        stroke={caida ? '#475569' : color.borde}
+        strokeWidth="0.7"
+      />
+      {caida && (
+        <g stroke="#64748b" strokeWidth="0.55" strokeLinecap="round">
+          <line
+            x1={torre.x - 0.9}
+            y1={torre.y - 0.9}
+            x2={torre.x + 0.9}
+            y2={torre.y + 0.9}
+          />
+          <line
+            x1={torre.x - 0.9}
+            y1={torre.y + 0.9}
+            x2={torre.x + 0.9}
+            y2={torre.y - 0.9}
+          />
+        </g>
+      )}
+    </g>
+  );
+}
+
 function Mapa({ partida }: { partida: PartidaViva }) {
   const heroes = [
     ...partida.radiant.jugadores.map((jugador) => ({ jugador, lado: 'radiant' as const })),
     ...partida.dire.jugadores.map((jugador) => ({ jugador, lado: 'dire' as const })),
   ];
+
+  // Las torres de la lista van en orden de caída: las primeras `caidas` están
+  // destruidas y el resto siguen en pie.
+  const caidas: Record<EquipoMapa, number> = {
+    radiant: torresDestruidas('radiant', partida.radiant.torres),
+    dire: torresDestruidas('dire', partida.dire.torres),
+  };
 
   return (
     <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-3">
@@ -227,62 +307,81 @@ function Mapa({ partida }: { partida: PartidaViva }) {
           viewBox="0 0 100 100"
           className="absolute inset-0 h-full w-full"
           role="img"
-          aria-label="Mapa con la posición aproximada de los héroes"
+          aria-label="Mapa de Dota con las tres sendas, las torres y la posición aproximada de los héroes"
         >
+          {/* Territorio */}
           <polygon points="0,0 0,100 100,100" fill="rgba(16,185,129,0.10)" />
           <polygon points="0,0 100,0 100,100" fill="rgba(244,63,94,0.10)" />
 
           {/* Río */}
-          <path
-            d="M2,2 L98,98"
-            stroke="rgba(56,189,248,0.22)"
-            strokeWidth="7"
-            fill="none"
-          />
+          <path d="M2,2 L98,98" stroke="rgba(56,189,248,0.20)" strokeWidth="8" fill="none" />
 
-          {/* Caminos de las tres líneas */}
-          <path
-            d="M16,84 L48,93 L93,48 L84,16"
-            stroke="rgba(148,163,184,0.14)"
-            strokeWidth="4"
-            fill="none"
-            strokeLinecap="round"
-          />
-          <path
-            d="M16,84 L7,54 L54,7 L84,16"
-            stroke="rgba(148,163,184,0.14)"
-            strokeWidth="4"
-            fill="none"
-            strokeLinecap="round"
-          />
-          <path
-            d="M16,84 L84,16"
-            stroke="rgba(148,163,184,0.2)"
-            strokeWidth="3"
-            fill="none"
-          />
+          {/* Las tres sendas: borde oscuro y camino claro encima */}
+          {CARRILES.map((carril) => {
+            const camino = `M${carril.puntos.map((p) => `${p.x},${p.y}`).join(' L')}`;
+            return (
+              <g key={carril.id}>
+                <path
+                  d={camino}
+                  stroke="rgba(6,10,18,0.9)"
+                  strokeWidth="7.5"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d={camino}
+                  stroke="rgba(160,174,192,0.32)"
+                  strokeWidth="5"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </g>
+            );
+          })}
+
+          {/* Nombre de cada senda, apartado del camino */}
+          {CARRILES.map((carril) => {
+            const centro = puntoEnRuta(carril.puntos, 0.5);
+            const desvio = ETIQUETA_SENDA[carril.id];
+            return (
+              <text
+                key={`nombre-${carril.id}`}
+                x={centro.x + desvio.x}
+                y={centro.y + desvio.y}
+                textAnchor="middle"
+                fontSize="3.4"
+                fontWeight="700"
+                letterSpacing="0.3"
+                fill="rgba(148,163,184,0.7)"
+              >
+                {carril.etiqueta}
+              </text>
+            );
+          })}
 
           {/* Bases y Roshan */}
           <circle
-            cx="16"
-            cy="84"
+            cx={BASES.radiant.x}
+            cy={BASES.radiant.y}
             r="5"
             fill="rgba(16,185,129,0.35)"
             stroke="rgba(52,211,153,0.9)"
             strokeWidth="1"
           />
           <circle
-            cx="84"
-            cy="16"
+            cx={BASES.dire.x}
+            cy={BASES.dire.y}
             r="5"
             fill="rgba(244,63,94,0.3)"
             stroke="rgba(251,113,133,0.9)"
             strokeWidth="1"
           />
-          <circle cx="47" cy="53" r="2.6" fill="rgba(251,191,36,0.9)" />
+          <circle cx={ROSHAN.x} cy={ROSHAN.y} r="2.6" fill="rgba(251,191,36,0.9)" />
           <text
-            x="47"
-            y="49.5"
+            x={ROSHAN.x}
+            y={ROSHAN.y - 3.5}
             textAnchor="middle"
             fontSize="3.6"
             fontWeight="700"
@@ -290,6 +389,17 @@ function Mapa({ partida }: { partida: PartidaViva }) {
           >
             R
           </text>
+
+          {/* Torres: en pie con el color del equipo, caídas apagadas y tachadas */}
+          {(['radiant', 'dire'] as const).map((lado) =>
+            TORRES_POR_EQUIPO[lado].map((torre, indice) => (
+              <TorreSvg
+                key={`${lado}-${torre.carril}-${torre.nivel}-${indice}`}
+                torre={torre}
+                caida={indice < caidas[lado]}
+              />
+            ))
+          )}
         </svg>
 
         {!partida.esDia && (
@@ -338,18 +448,36 @@ function Mapa({ partida }: { partida: PartidaViva }) {
 
       <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-500">
         <span className="inline-flex items-center gap-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
-          Radiant
+          <span className="h-2 w-2 rounded-[2px] bg-emerald-400" aria-hidden="true" />
+          Torre Radiant
         </span>
         <span className="inline-flex items-center gap-1">
-          <span className="h-1.5 w-1.5 rounded-full bg-rose-400" aria-hidden="true" />
-          Dire
+          <span className="h-2 w-2 rounded-[2px] bg-rose-400" aria-hidden="true" />
+          Torre Dire
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span
+            className="h-2 w-2 rounded-[2px] border border-slate-500 bg-[#111827]"
+            aria-hidden="true"
+          />
+          Torre caída
         </span>
         <span className="inline-flex items-center gap-1">
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400" aria-hidden="true" />
           Roshan
         </span>
       </div>
+
+      <p className="mt-1.5 text-[10px] leading-relaxed text-slate-500">
+        Las tres sendas (superior, media e inferior) con las 11 torres de cada equipo. Ahora mismo
+        quedan{' '}
+        <span className="font-semibold text-slate-300">
+          {partida.radiant.torres} de Radiant
+        </span>{' '}
+        y{' '}
+        <span className="font-semibold text-slate-300">{partida.dire.torres} de Dire</span>. La
+        posición de los héroes es simulada.
+      </p>
     </div>
   );
 }

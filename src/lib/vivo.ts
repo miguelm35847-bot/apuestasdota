@@ -15,6 +15,8 @@ export type ItemVivo = {
 export type JugadorVivo = {
   accountId: number;
   nick: string;
+  /** MMR del jugador (para la medalla); `null` si no lo tiene. */
+  mmr: number | null;
   heroId: number;
   heroNombre: string;
   heroSlug: string;
