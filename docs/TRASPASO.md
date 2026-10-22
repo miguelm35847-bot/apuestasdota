@@ -96,7 +96,7 @@ Estados de sala: `abierta`, `llena`, `en_juego`, `terminada`, `cancelada`.
 - `elegir_moneda(p_sala, p_opcion)` — el ganador elige `pickear_primero` o `lado`; el otro completa la decisión.
 - `elegir_lado(p_sala, p_equipo)` — en 5v5 asigna lado a los capitanes y arranca el draft; en 1v1 asigna al ganador del sorteo y manda al otro al lado contrario. El sorteo 1v1 lo dispara `iniciar_sorteo_1v1()` automáticamente al llenarse la sala (2 jugadores).
 - `pickear_jugador(p_sala, p_user)` — solo el capitán de turno; asigna equipo, guarda `pick_orden` y avanza el turno.
-- `auto_pickear_si_vencido(p_sala, p_forzar)` — auto-pick a los 60 s (o forzado por admin): prioriza roles faltantes y luego MMR.
+- `auto_pickear_si_vencido(p_sala, p_forzar)` — auto-pick a los **45 s** (o forzado por admin): elige al disponible con **más MMR**.
 - `cancelar_picks(p_sala)` — admin: devuelve a todos a la lista de espera y limpia la fase.
 - `bloquear_cambios_en_picks()` — trigger `before update/delete` en `participantes_sala`: impide mover/expulsar durante `en_curso`; en salas 1v1 permite salir durante el sorteo de lado.
 - `salir_de_sala(p_sala)` — reembolsa y permite salir en `abierta`/`llena`.
@@ -115,9 +115,13 @@ Estados de sala: `abierta`, `llena`, `en_juego`, `terminada`, `cancelada`.
 
 Si el usuario aún no los ejecutó, pegarlos en Supabase:
 
-### Orden de picks y verificación anticipada (PENDIENTE · 22/10/2026)
+### Turno de 45 s, auto-pick por mayor MMR y capitanes marcados (PENDIENTE · 22/10/2026)
 
-Ejecutar `docs/sql/2026-10-22-orden-picks-y-verificacion-anticipada.sql`. Corrige el orden del draft a **R-DD-RR-DD-R** (con el SQL anterior el servidor repartía R-R-R-D-D y cerraba el draft en el pick 6, dejando 5/3), reescribe `pickear_jugador` y `auto_pickear_si_vencido`, permite que el admin pida la verificación con la sala incompleta y reabre la verificación cuando entra alguien nuevo sin borrar las confirmaciones.
+Ejecutar `docs/sql/2026-10-22-turno-45s-autopick-mmr.sql`. Cierra el arreglo del draft: cuenta solo a los 8 jugadores elegidos (excluye a los capitanes por id; hasta ahora el conteo los incluía porque `es_capitan` se quedaba en `false`, y por eso el draft repartía R-R-R-D-D y cerraba en el pick 6 con 5/3), marca `es_capitan = true` en los dos capitanes (la UI mostraba `Pick 3/8` al empezar y no pintaba la ⭐), deja el turno en **45 s** con un trigger que acota `pick_turno_expira_at` (las demás funciones fijan 60 s desde dentro) y cambia el auto-pick a **solo mayor MMR**.
+
+### Orden de picks y verificación anticipada (ya aplicada)
+
+`docs/sql/2026-10-22-orden-picks-y-verificacion-anticipada.sql` → helper `siguiente_capitan_de_pick` + `pickear_jugador`/`auto_pickear_si_vencido` recreados, `admin_pedir_verificacion` sin exigir sala llena e `iniciar_verificacion_llenada` reabriendo la verificación sin borrar confirmaciones. Se comprobó aplicado: el helper devuelve `A,B,B,A,A,B,B,A` y la RPC pide la verificación con 3/10 jugadores.
 
 ### Elección Radiant/LastPick en 5v5 (ya aplicada)
 
@@ -1597,9 +1601,9 @@ notify pgrst, 'reload schema';
 1. Admin crea sala 1v1 (cupo 2) o 5v5 (cupo 10).
 2. Jugadores se unen desde el landing: quedan en **lista de espera** y pasan directo a la sala.
 3. Jugador se mueve entre espera / Radiant / Dire, o el admin lo mueve. Para unirse debe tener MMR en su perfil.
-4. En 5v5, al llenarse la sala el admin inicia la **fase de picks**: elige dos capitanes y se lanza la moneda en el servidor.
-5. El ganador de la moneda elige **pickear primero** o **elegir lado**; el otro jugador completa la decisión.
-6. Los capitanes pickean por turnos en orden **serpiente A-B-B-A**. Si un capitán no pickea en 60 s, el sistema elige por él (rol faltante y luego MMR). El admin puede forzar el auto-pick o cancelar la fase.
+4. En 5v5, al llenarse la sala se pide la verificación **"Estoy listo"** (el admin puede pedirla antes, con la sala incompleta, y se reabre si entra alguien nuevo). Cuando los 10 confirman, el admin elige dos capitanes y se lanza la moneda con sus avatares.
+5. En 5v5 el ganador de la moneda elige **Radiant (pickea primero)** o **LastPick (se queda con Dire y abre el rival)**. En 1v1 el ganador del sorteo elige lado y el otro queda al contrario.
+6. El draft 5v5 sigue el orden **R-DD-RR-DD-R** (8 picks): cada elegido va al equipo del capitán que lo hace. Si un capitán no pickea en **45 s**, el sistema elige al disponible de **mayor MMR**. El admin puede forzar el auto-pick o cancelar la fase.
 7. Al completarse los 8 picks, cada equipo queda 5/5. El admin escribe nombre y clave del lobby y pulsa **Poner partida en juego**.
 8. La sala pasa a `en_juego`; los jugadores ven el lobby en la sala y reciben notificación.
 9. El admin crea el lobby en Dota 2 e invita a los jugadores (la web NO puede crear lobbies ni invitar).
@@ -1819,7 +1823,7 @@ notify pgrst, 'reload schema';
 - El perfil público calcula partidas/victorias/winrate en el cliente a partir de `participantes_sala` + `salas` + `partidas`; solo cuenta salas `terminada` con equipo asignado y partida registrada.
 - `lobbies` solo es legible por participantes de la sala o admin.
 - El flujo Steam usa state HMAC + cookie HttpOnly; el access token de Supabase ya no viaja en la URL. `/api/auth/steam/link` fue eliminado.
-- El auto-pick de los 60 s se dispara desde la sala o el panel admin abiertos (el RPC valida el vencimiento en el servidor). Si nadie tiene la pantalla abierta, se resuelve en la siguiente interacción.
+- El auto-pick de los 45 s se dispara desde la sala o el panel admin abiertos (el RPC valida el vencimiento en el servidor). Si nadie tiene la pantalla abierta, se resuelve en la siguiente interacción.
 - Los triggers de la fase de picks bloquean mover/expulsar durante `en_curso`; si hiciera falta, el admin debe cancelar la fase primero.
 - No hay tests automatizados.
 
@@ -1854,7 +1858,7 @@ Opciones para continuar (elegir una):
 14. Perfil: en Mi perfil guardar un MMR y, opcionalmente, 1–3 roles en orden. Un jugador sin MMR no debe poder unirse: `Completa tu MMR en Mi perfil antes de unirte a una sala`.
 15. Sala 5v5 llena: el admin elige dos capitanes y pulsa “Lanzar moneda e iniciar picks”. El ganador debe ver en su sala los botones para pickear primero o elegir lado; el otro completa la decisión de lado.
 16. Draft: verificar el orden serpiente A-B-B-A, que solo el capitán de turno pueda pickear y que los equipos se actualicen en vivo. Al completar 8 picks deben quedar 5/5 y `picks_estado = terminado`.
-17. Auto-pick: dejar vencer 60 s sin pickear; el sistema debe elegir al mejor disponible (rol faltante y luego MMR). Probar también “Auto-pick ahora” desde el admin.
+17. Auto-pick: dejar vencer 45 s sin pickear; el sistema debe elegir al disponible de mayor MMR. Probar también "Auto-pick ahora" desde el admin.
 18. Cancelar picks: el admin cancela, todos vuelven a la lista de espera y se pueden mover de nuevo. Durante `en_curso` los botones de mover/expulsar deben estar bloqueados.
 19. Con picks terminados, definir lobby y “Poner partida en juego”; el cierre automático debe empezar a revisar a los 8–12 s y luego cada 60–90 s.
 20. Sala 1v1: al entrar el segundo jugador debe dispararse el sorteo automáticamente. El ganador ve los botones Radiant/Dire en su sala; al elegir, el otro jugador queda en el lado contrario y el sorteo queda cerrado. Si alguien sale antes de decidir, la sala vuelve a `inactivo` y el siguiente en entrar dispara un nuevo sorteo.
@@ -1985,12 +1989,23 @@ Opciones para continuar (elegir una):
 ## 18. Orden del draft y verificación anticipada (22/10/2026)
 
 - **Hallazgo al probar el flujo completo con la RPC ya aplicada**: el draft no seguía el orden acordado. El servidor repartía **R-R-R-D-D-R** y lo cerraba en el **pick 6** (equipos 5/3), porque la versión desplegada de `pickear_jugador` contaba a los dos capitanes dentro de los 8 picks y `capitan_de_pick` devolvía el turno equivocado desde el segundo pick.
-- **SQL** (`docs/sql/2026-10-22-orden-picks-y-verificacion-anticipada.sql`, **pendiente de aplicar**):
+- **SQL** (`docs/sql/2026-10-22-orden-picks-y-verificacion-anticipada.sql`, aplicado):
   - helper propio `siguiente_capitan_de_pick(p_primer, p_otro, p_pick)`: `1 → primer`, `2,3 → otro`, `4,5 → primer`, `6,7 → otro`, `8 → primer`, es decir **R-DD-RR-DD-R**;
-  - `pickear_jugador` y `auto_pickear_si_vencido` se recrean (`drop` + `create`) usando el helper y contando solo a los **8 jugadores elegidos** (`es_capitan = false`), de modo que el draft dura 8 picks y termina 5/5; el auto-pick conserva la elección por roles/MMR del equipo que pickea;
+  - `pickear_jugador` y `auto_pickear_si_vencido` se recrean (`drop` + `create`) usando el helper y contando solo a los **8 jugadores elegidos** (`es_capitan = false`), de modo que el draft dura 8 picks y termina 5/5; el auto-pick conserva la elección por roles/MMR del equipo que pickea (el conteo aún fallaba porque `es_capitan` no se marcaba: lo corrige el §19);
   - `admin_pedir_verificacion` ya no exige la sala completa: pide confirmar con **cualquier cantidad de jugadores ≥ 1**;
   - `iniciar_verificacion_llenada`: si la verificación estaba `completa` y entra alguien nuevo, vuelve a `pendiente` **sin borrar** `verificado_at` de los demás (solo refresca la expiración). La verificación automática al llenarse y la moneda 1v1 siguen igual (el sorteo 1v1 se detiene mientras haya una verificación `pendiente`).
 - **UI**:
   - admin: el botón “Pedir 'Estoy listo'” ya no se deshabilita con la sala incompleta y el texto explica que los que entran después también reciben el aviso;
   - sala y aviso central: los textos dejan de decir “la sala está completa” cuando se pide con la sala a medias.
 - **QA**: `scripts/qa/flows.mjs` ahora recorre los 6 primeros picks comprobando que cada uno va al equipo del capitán y que la secuencia es **R-DD-RR-D**, y cierra con dos auto-picks exigiendo **D y R** y el 5/5 final. Mientras el SQL no esté aplicado, el escenario imprime `[pendiente]` (el servidor sigue repartiendo 5/3) y no cuenta como falla; al aplicarlo se validan el orden y el 5/5.
+
+## 19. Turno de 45 s, auto-pick por mayor MMR y capitanes marcados (22/10/2026)
+
+- **Hallazgo tras aplicar el SQL del orden**: el draft seguía repartiendo **R-R-R-D-D-R** y cerrando en el pick 6. El motivo no era el helper (que devuelve `A,B,B,A,A,B,B,A` correctamente) sino que **`es_capitan` nunca se ponía en `true`**: los dos capitanes contaban dentro de los 8 picks, así que `v_hechos` arrancaba en 2, el turno se desplazaba (`n = v_hechos + 1` → 4, 5...) y el draft terminaba al llegar a 8 con solo 6 picks reales. Efecto secundario en la UI: el contador mostraba `Pick 3/8` al empezar y no salía la ⭐ de capitán.
+- **SQL** (`docs/sql/2026-10-22-turno-45s-autopick-mmr.sql`, **pendiente de aplicar**):
+  - `pickear_jugador` y `auto_pickear_si_vencido` cuentan los picks **excluyendo a los dos capitanes por id** (`user_id is distinct from pick_capitan1/2`), sin depender de `es_capitan`;
+  - trigger `sincronizar_capitanes` (`after insert or update of pick_capitan1, pick_capitan2 on salas`): deja `es_capitan = true` solo a esos dos jugadores (y en `false` al resto) con un backfill para las salas que ya tienen capitanes;
+  - turno de **45 s**: `pickear_jugador` y `auto_pickear_si_vencido` lo fijan directamente y el trigger `limitar_turno_pick` (`before insert or update of pick_turno_expira_at on salas`) acota cualquier valor mayor a 45 s, porque `iniciar_picks`, `elegir_moneda`, `elegir_lado` y `elegir_radiant_o_lastpick` viven en funciones que no están en el repo y fijan 60 s;
+  - el auto-pick ordena solo por **`mmr` desc** (desempate: `created_at asc`); ya no prioriza los roles que le faltan al equipo.
+- **UI**: el texto del panel admin pasa a “Si no pickea en 45 segundos, el sistema elegirá automáticamente al jugador de mayor MMR disponible.”
+- **QA**: `flows.mjs` detecta el SQL pendiente porque los capitanes no están marcados (`[pendiente]`) y, cuando esté aplicado, comprueba además que el primer turno y los siguientes duran ~45 s y que el auto-pick del pick 7 elige al jugador con más MMR de los dos que quedan (les pone 9000/1000 temporalmente y restaura su MMR al terminar).

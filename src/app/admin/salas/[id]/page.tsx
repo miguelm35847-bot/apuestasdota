@@ -1311,7 +1311,8 @@ function AdminSalaContenido() {
                 {picksEstado === 'en_curso' && (
                   <p className="mt-2 text-sm text-prism-200">
                     Turno de <strong>{nombreJugador(sala.pick_turno_user_id)}</strong>. Si no
-                    pickea en 60 segundos, el sistema elegirá automáticamente al mejor disponible.
+                    pickea en 45 segundos, el sistema elegirá automáticamente al jugador de mayor
+                    MMR disponible.
                   </p>
                 )}
 

@@ -13,6 +13,7 @@
 import {
   ADMIN_EMAIL,
   PLAYER_EMAIL,
+  actualizarPerfil,
   assert,
   cancelarSala,
   crearSala,
@@ -24,6 +25,7 @@ import {
   notificacionesDe,
   participantesDe,
   paso,
+  rest,
   rpc,
   rpcSeguro,
   salaPorId,
@@ -281,14 +283,22 @@ async function escenario5v5(adminToken, jugadores) {
     const ordenEsperado = ['R', 'D', 'D', 'R', 'R', 'D', 'D', 'R'];
     const secuencia = [];
 
-    // ¿Ya se aplicó el SQL del orden nuevo? Sin él, el servidor reparte
-    // R-R-R-D-D y cierra el draft en el pick 6 (equipos 5/3).
+    // SQL del 22/10: el primero trae el helper del orden; el segundo marca a los
+    // capitanes (es_capitan) y arregla el conteo de los 8 picks + el turno de 45 s.
     const sonda = await rpcSeguro(adminToken, 'siguiente_capitan_de_pick', {
       p_primer: jugadores[0].user.id,
       p_otro: jugadores[1].user.id,
       p_pick: 2,
     });
     const conOrdenNuevo = sonda.ok;
+    const partesInicio = await participantesDe(salaId);
+    const conCapitanes = partesInicio.filter((p) => p.es_capitan).length === 2;
+    const conDraftNuevo = conOrdenNuevo && conCapitanes;
+
+    const restanteTurno = (sala) => {
+      if (!sala.pick_turno_expira_at) return null;
+      return (new Date(sala.pick_turno_expira_at).getTime() - Date.now()) / 1000;
+    };
 
     if (!conOrdenNuevo) {
       console.log(
@@ -296,13 +306,28 @@ async function escenario5v5(adminToken, jugadores) {
           'docs/sql/2026-10-22-orden-picks-y-verificacion-anticipada.sql: ' +
           'no se valida el orden ni el 5/5 del draft',
       );
+    } else if (!conCapitanes) {
+      console.log(
+        '[pendiente] falta aplicar docs/sql/2026-10-22-turno-45s-autopick-mmr.sql: ' +
+          'el draft cuenta a los capitanes dentro de los 8 picks (reparte R-R-R-D-D y ' +
+          'cierra en el pick 6) y el turno dura 60 s; no se valida el orden ni el 5/5',
+      );
+    }
+
+    if (!conDraftNuevo) {
       for (let intento = 0; intento < 12; intento++) {
         const actual = await salaPorId(salaId);
         if (actual.picks_estado !== 'en_curso') break;
         await rpc(adminToken, 'auto_pickear_si_vencido', { p_sala: salaId, p_forzar: true });
       }
     } else {
-      await paso('5v5: los 6 primeros picks siguen R-DD-RR-D', async () => {
+      await paso('5v5: los 6 primeros picks siguen R-DD-RR-D con turnos de 45 s', async () => {
+        const inicio = restanteTurno(await salaPorId(salaId));
+        assert(
+          inicio !== null && inicio > 30 && inicio <= 46,
+          `el primer turno dura ${inicio?.toFixed(1)} s (se esperan 45)`,
+        );
+
         for (let n = 1; n <= 6; n++) {
           const actual = await salaPorId(salaId);
           assert(actual.picks_estado === 'en_curso', `picks ${actual.picks_estado} en el pick ${n}`);
@@ -319,28 +344,59 @@ async function escenario5v5(adminToken, jugadores) {
           const equipo = luego.find((p) => p.user_id === objetivo.user_id)?.equipo;
           assert(equipo === capitan?.equipo, `el pick ${n} no fue al equipo del capitán`);
           secuencia.push(equipo === 1 ? 'R' : 'D');
+
+          if (n < 6) {
+            const restante = restanteTurno(await salaPorId(salaId));
+            assert(
+              restante !== null && restante > 30 && restante <= 46,
+              `el turno tras el pick ${n} dura ${restante?.toFixed(1)} s (se esperan 45)`,
+            );
+          }
         }
         assert(
           secuencia.join('-') === ordenEsperado.slice(0, 6).join('-'),
           `orden ${secuencia.join('-')}`,
         );
-        return secuencia.join('-');
+        return `${secuencia.join('-')}, turno 45 s`;
       });
 
-      await paso('5v5: el auto-pick cierra el draft con D y R (5/5)', async () => {
-        await rpc(adminToken, 'auto_pickear_si_vencido', { p_sala: salaId, p_forzar: true });
-        let partes = await participantesDe(salaId);
-        assert(partes.filter((p) => p.equipo === 2).length === 5, 'el pick 7 no fue de Dire');
+      await paso('5v5: el auto-pick cierra el draft con D y R (5/5) por mayor MMR', async () => {
+        const pendientes = (await participantesDe(salaId)).filter((p) => p.equipo === null);
+        assert(pendientes.length === 2, `quedan ${pendientes.length} sin equipo`);
 
-        await rpc(adminToken, 'auto_pickear_si_vencido', { p_sala: salaId, p_forzar: true });
-        const actual = await salaPorId(salaId);
-        partes = await participantesDe(salaId);
-        const radiant = partes.filter((p) => p.equipo === 1).length;
-        const dire = partes.filter((p) => p.equipo === 2).length;
-        assert(actual.picks_estado === 'terminado', `picks ${actual.picks_estado}`);
-        assert(partes.every((p) => p.equipo === 1 || p.equipo === 2), 'quedó gente sin equipo');
-        assert(radiant === 5 && dire === 5, `reparto ${radiant}/${dire}`);
-        return `${secuencia.join('-')}-D-R, ${radiant}/${dire}`;
+        const mmr = async (id) => {
+          const res = await rest(`profiles?id=eq.${id}&select=mmr&limit=1`);
+          return res.data?.[0]?.mmr ?? null;
+        };
+        const originales = [];
+        for (const p of pendientes) originales.push({ id: p.user_id, mmr: await mmr(p.user_id) });
+
+        // El primero de la lista (orden de entrada) lleva el MMR más alto: es a
+        // quien debe elegir el auto-pick.
+        await actualizarPerfil(pendientes[0].user_id, { mmr: 9000 });
+        await actualizarPerfil(pendientes[1].user_id, { mmr: 1000 });
+
+        try {
+          await rpc(adminToken, 'auto_pickear_si_vencido', { p_sala: salaId, p_forzar: true });
+          let partes = await participantesDe(salaId);
+          assert(partes.filter((p) => p.equipo === 2).length === 5, 'el pick 7 no fue de Dire');
+          assert(
+            partes.find((p) => p.user_id === pendientes[0].user_id)?.equipo === 2,
+            'el auto-pick no eligió al de mayor MMR',
+          );
+
+          await rpc(adminToken, 'auto_pickear_si_vencido', { p_sala: salaId, p_forzar: true });
+          const actual = await salaPorId(salaId);
+          partes = await participantesDe(salaId);
+          const radiant = partes.filter((p) => p.equipo === 1).length;
+          const dire = partes.filter((p) => p.equipo === 2).length;
+          assert(actual.picks_estado === 'terminado', `picks ${actual.picks_estado}`);
+          assert(partes.every((p) => p.equipo === 1 || p.equipo === 2), 'quedó gente sin equipo');
+          assert(radiant === 5 && dire === 5, `reparto ${radiant}/${dire}`);
+          return `${secuencia.join('-')}-D-R, ${radiant}/${dire}, auto-pick por MMR`;
+        } finally {
+          for (const o of originales) await actualizarPerfil(o.id, { mmr: o.mmr });
+        }
       });
     }
 
@@ -351,11 +407,11 @@ async function escenario5v5(adminToken, jugadores) {
     if (radiant === 5 && dire === 5) {
       console.log('[ok] 5v5: reparto equilibrado 5/5');
     } else {
-      if (conOrdenNuevo) {
+      if (conDraftNuevo) {
         fallos++;
         console.error(`[FALLA] 5v5: reparto desequilibrado ${radiant}/${dire}`);
       } else {
-        console.log(`[pendiente] reparto ${radiant}/${dire} hasta aplicar el SQL del orden`);
+        console.log(`[pendiente] reparto ${radiant}/${dire} hasta aplicar el SQL del draft`);
       }
       // Se repara la sala para seguir verificando lobby y reembolso.
       await rpc(adminToken, 'cancelar_picks', { p_sala: salaId });
