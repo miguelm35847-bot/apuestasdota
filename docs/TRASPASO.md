@@ -115,9 +115,13 @@ Estados de sala: `abierta`, `llena`, `en_juego`, `terminada`, `cancelada`.
 
 Si el usuario aún no los ejecutó, pegarlos en Supabase:
 
-### Elección Radiant/LastPick en 5v5 (PENDIENTE · 21/10/2026)
+### Orden de picks y verificación anticipada (PENDIENTE · 22/10/2026)
 
-Ejecutar `docs/sql/2026-10-21-eleccion-radiant-lastpick.sql`, que crea la RPC `elegir_radiant_o_lastpick(p_sala, p_opcion)` (`'radiant'` | `'lastpick'`). Mientras no esté aplicada, el ganador de la moneda ve los dos botones pero al pulsarlos aparece el aviso “Falta aplicar docs/sql/2026-10-21-eleccion-radiant-lastpick.sql…” y la sala sigue en `eleccion` (no se rompe nada).
+Ejecutar `docs/sql/2026-10-22-orden-picks-y-verificacion-anticipada.sql`. Corrige el orden del draft a **R-DD-RR-DD-R** (con el SQL anterior el servidor repartía R-R-R-D-D y cerraba el draft en el pick 6, dejando 5/3), reescribe `pickear_jugador` y `auto_pickear_si_vencido`, permite que el admin pida la verificación con la sala incompleta y reabre la verificación cuando entra alguien nuevo sin borrar las confirmaciones.
+
+### Elección Radiant/LastPick en 5v5 (ya aplicada)
+
+`docs/sql/2026-10-21-eleccion-radiant-lastpick.sql` → RPC `elegir_radiant_o_lastpick(p_sala, p_opcion)` (`'radiant'` | `'lastpick'`).
 
 ### Multa por abandonar una 5v5 llena (ya aplicada)
 
@@ -1977,3 +1981,16 @@ Opciones para continuar (elegir una):
 - **QA**:
   - `scripts/qa/flows.mjs`: el escenario 1v1 se actualizó a la verificación automática (llena → `pendiente` → los dos confirman → moneda) y el 5v5 usa la RPC nueva con fallback al flujo anterior + `[pendiente]` si el SQL no está aplicado.
   - Verificado con datos reales: `llena` → `pendiente` → 10 confirmaciones → `completa` → `iniciar_picks` → `eleccion` (gana `qa-p1`, moneda con los dos capitanes, botones de decisión) y el error guiado al pulsar sin el SQL. `qa:probes` 22/22, `qa:flows` 1v1 y 5v5 en verde, `tsc`/`lint`/`build` en verde. Medición por DOM de la tarjeta: reloj y “vs” exactamente al centro (desvío 0 px) y el último avatar de Dire a 17 px del borde en 1366/390/360.
+
+## 18. Orden del draft y verificación anticipada (22/10/2026)
+
+- **Hallazgo al probar el flujo completo con la RPC ya aplicada**: el draft no seguía el orden acordado. El servidor repartía **R-R-R-D-D-R** y lo cerraba en el **pick 6** (equipos 5/3), porque la versión desplegada de `pickear_jugador` contaba a los dos capitanes dentro de los 8 picks y `capitan_de_pick` devolvía el turno equivocado desde el segundo pick.
+- **SQL** (`docs/sql/2026-10-22-orden-picks-y-verificacion-anticipada.sql`, **pendiente de aplicar**):
+  - helper propio `siguiente_capitan_de_pick(p_primer, p_otro, p_pick)`: `1 → primer`, `2,3 → otro`, `4,5 → primer`, `6,7 → otro`, `8 → primer`, es decir **R-DD-RR-DD-R**;
+  - `pickear_jugador` y `auto_pickear_si_vencido` se recrean (`drop` + `create`) usando el helper y contando solo a los **8 jugadores elegidos** (`es_capitan = false`), de modo que el draft dura 8 picks y termina 5/5; el auto-pick conserva la elección por roles/MMR del equipo que pickea;
+  - `admin_pedir_verificacion` ya no exige la sala completa: pide confirmar con **cualquier cantidad de jugadores ≥ 1**;
+  - `iniciar_verificacion_llenada`: si la verificación estaba `completa` y entra alguien nuevo, vuelve a `pendiente` **sin borrar** `verificado_at` de los demás (solo refresca la expiración). La verificación automática al llenarse y la moneda 1v1 siguen igual (el sorteo 1v1 se detiene mientras haya una verificación `pendiente`).
+- **UI**:
+  - admin: el botón “Pedir 'Estoy listo'” ya no se deshabilita con la sala incompleta y el texto explica que los que entran después también reciben el aviso;
+  - sala y aviso central: los textos dejan de decir “la sala está completa” cuando se pide con la sala a medias.
+- **QA**: `scripts/qa/flows.mjs` ahora recorre los 6 primeros picks comprobando que cada uno va al equipo del capitán y que la secuencia es **R-DD-RR-D**, y cierra con dos auto-picks exigiendo **D y R** y el 5/5 final. Mientras el SQL no esté aplicado, el escenario imprime `[pendiente]` (el servidor sigue repartiendo 5/3) y no cuenta como falla; al aplicarlo se validan el orden y el 5/5.

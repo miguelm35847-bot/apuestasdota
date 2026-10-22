@@ -142,8 +142,8 @@ export default function AvisoVerificacion() {
           Confirma que estás listo
         </h2>
         <p className="mt-1 text-sm text-slate-400">
-          La sala <strong className="text-white">{aviso.nombre}</strong> está completa y espera tu
-          confirmación para empezar la partida.
+          La sala <strong className="text-white">{aviso.nombre}</strong> espera tu confirmación para
+          empezar la partida.
         </p>
 
         <div className="mt-5 flex flex-col gap-2">

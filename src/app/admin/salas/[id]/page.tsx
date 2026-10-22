@@ -1409,17 +1409,15 @@ function AdminSalaContenido() {
                 <>
                   <button
                     onClick={pedirVerificacion}
-                    disabled={pidiendoVerificacion || participantes.length < sala.cupo}
+                    disabled={pidiendoVerificacion || participantes.length === 0}
                     className="mt-3 w-full rounded-lg bg-amber-500 py-2 text-sm font-semibold text-amber-950 transition hover:bg-amber-400 disabled:opacity-50"
                   >
-                    {pidiendoVerificacion ? 'Enviando...' : 'Pedir verificación'}
+                    {pidiendoVerificacion ? 'Enviando...' : 'Pedir "Estoy listo"'}
                   </button>
-                  {participantes.length < sala.cupo && (
-                    <p className="mt-1.5 text-[11px] text-amber-300">
-                      La sala debe estar completa ({participantes.length}/{sala.cupo}) para pedir la
-                      verificación.
-                    </p>
-                  )}
+                  <p className="mt-1.5 text-[11px] text-slate-400">
+                    Puedes pedirla ahora mismo, con la sala incompleta ({participantes.length}/
+                    {sala.cupo}): los que ya están reciben el aviso y los que entren después también.
+                  </p>
                 </>
               )}
 

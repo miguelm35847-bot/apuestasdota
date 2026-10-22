@@ -1629,7 +1629,7 @@ function SalaContenido() {
                 >
                   {verificacionEstado === 'completa'
                     ? 'Todos los jugadores confirmaron que están listos.'
-                    : 'La sala está completa: confirma que estás listo para la partida.'}
+                    : 'El admin pide confirmar que estás listo para la partida.'}
                 </p>
                 <p className="mt-0.5 text-xs text-slate-300">
                   {listos}/{totalEnSala} listos

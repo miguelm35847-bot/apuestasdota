@@ -62,7 +62,7 @@ export function esCapitan(participante: Participante): boolean {
 /**
  * Orden serpiente para 2 equipos con picks alternos:
  * A, B, B, A, A, B, B, A…
- * Debe coincidir con la función SQL `capitan_de_pick`.
+ * Debe coincidir con la función SQL `siguiente_capitan_de_pick`.
  */
 export function capitanDePick(
   primer: string | null | undefined,
