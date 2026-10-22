@@ -1910,12 +1910,18 @@ Opciones para continuar (elegir una):
 
 - **Vista de partida en vivo**: ya está montada en la web real (aún con **datos de ejemplo**):
   - `src/components/VivoMarcador.tsx`: franja con el score (Radiant/Dire), el reloj de la partida y los 10 héroes con sus K/D/A. En versión **compacta** (sala destacada del hero: score + reloj + los 10 iconos de héroe con las kills) y en versión **completa** (dentro de la sala: las dos listas con héroe y K/D/A).
-  - `src/components/VivoJugador.tsx`: en cada slot de la sala, el icono del héroe del jugador y su K/D/A.
+  - `src/components/VivoJugador.tsx`: el K/D/A de un jugador; con `mostrarIcono={false}` solo el K/D/A (cuando el icono va aparte, bajo el avatar).
+  - `src/components/HeroEnSlot.tsx`: **el icono del héroe que está jugando cada jugador, justo debajo de su avatar**, con las kills encima en una pastilla. Es la información que después usarán las apuestas por partida.
   - `src/lib/vivo.ts`: tipos (`PartidaViva`, `JugadorVivo`) y helpers (reloj `23:41`, URL del icono del héroe en el CDN de Valve, K/D/A).
-  - `src/lib/vivoMock.ts`: **MOCK** que arma una partida de ejemplo con los jugadores reales de la sala. Aparece solo cuando la sala está `en_juego`.
-  - Puntos de montaje: `HeroArena` (franja compacta en la sala destacada) y `src/app/salas/[id]/page.tsx` (marcador completo arriba + chip de héroe/K-D-A en cada slot).
+  - `src/lib/vivoMock.ts`: **MOCK** que arma una partida de ejemplo con los jugadores reales de la sala. Aparece solo cuando la sala está `en_juego`. Helper `jugadorVivoDe(partida, nick)` para cruzar el jugador de un slot con su datos en la partida.
+  - Puntos de montaje:
+    - `src/components/HeroArena.tsx`: franja compacta en la sala destacada del hero + el héroe bajo cada avatar.
+    - `src/components/SalasPublicas.tsx`: **tarjetas de sala del landing** con la misma franja compacta (cuando la sala está `en_juego`) y el héroe bajo cada avatar.
+    - `src/app/salas/[id]/page.tsx`: marcador completo arriba + héroe bajo el avatar en cada slot (variante compacta y grande) y el K/D/A junto al nick.
+    - `src/app/admin/salas/[id]/page.tsx`: el panel admin también muestra el héroe bajo cada avatar.
   - Para conectarlo de verdad: un endpoint de servidor que consulte `GetLiveLeagueGames` de Valve con caché (15–30 s), cruce los `account_id` con los perfiles de la sala (nunca exponiendo el `steam_id`) y devuelva el marcador normalizado; entonces `partidaVivaMock` se sustituye por ese endpoint y la interfaz no cambia. Hace falta el `league_id` de la liga/torneo: Valve solo publica ese tipo de partidas.
   - La ruta `/demo-vivo` queda como vista previa aislada de ambos diseños.
+  - En las tarjetas del landing y en el hero, el héroe va **justo debajo del avatar** de cada jugador (con sus kills), para saber de un vistazo quién juega qué: es la base de las apuestas por partida.
 - **HTML anidado (errores de hidratación)**: se corrigieron 4 casos:
   1. `MedallaMmr` renderizaba un `<div>` dentro de un `<p>` (el MMR de los slots). Se añadió la prop `inline`, que devuelve solo la imagen en un `<span>` para poder incrustarla en `<p>`/`<span>`.
   2. El `<div>` de la medalla dentro del `<p>` del MMR (sala del jugador).

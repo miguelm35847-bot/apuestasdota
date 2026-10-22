@@ -13,6 +13,7 @@ import MedallaMmr from '@/components/MedallaMmr';
 import MonedaSorteo from '@/components/MonedaSorteo';
 import PerfilHover from '@/components/PerfilHover';
 import PreferenciaLado from '@/components/PreferenciaLado';
+import HeroEnSlot from '@/components/HeroEnSlot';
 import ResumenJugador from '@/components/ResumenJugador';
 import VivoJugador from '@/components/VivoJugador';
 import VivoMarcador from '@/components/VivoMarcador';
@@ -283,13 +284,20 @@ function Columna({
                     aria-label={`Ver perfil de ${nick}`}
                     className="flex min-h-10 items-start gap-1.5 transition hover:opacity-90"
                   >
-                    <Avatar
-                      nick={p.profiles?.nick}
-                      src={p.profiles?.steam_avatar_url}
-                      size="sm"
-                      ringClass="ring-2 ring-white/20"
-                      title={detalle}
-                    />
+                    {/* Avatar y, justo debajo, el héroe que está jugando. */}
+                    <span className="flex shrink-0 flex-col items-center gap-0.5">
+                      <Avatar
+                        nick={p.profiles?.nick}
+                        src={p.profiles?.steam_avatar_url}
+                        size="sm"
+                        ringClass="ring-2 ring-white/20"
+                        title={detalle}
+                      />
+                      <HeroEnSlot
+                        jugador={vivoPorNick?.get(nick) ?? null}
+                        className="mt-0.5"
+                      />
+                    </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-medium text-slate-100">
                         {p.es_capitan ? '⭐ ' : ''}
@@ -329,6 +337,12 @@ function Columna({
                           </span>
                         )}
                       </div>
+                      {/* K/D/A de la partida en vivo (el héroe va bajo el avatar). */}
+                      <VivoJugador
+                        jugador={vivoPorNick?.get(nick) ?? null}
+                        mostrarIcono={false}
+                        className="mt-0.5"
+                      />
                     </div>
                   </Link>
                 </PerfilHover>
@@ -336,10 +350,6 @@ function Columna({
                 {/* El resumen va fuera del enlace del perfil: si no, el enlace a
                     Dotabuff quedaría anidado dentro de otro <a>. */}
                 <div className="pl-9">
-                  <VivoJugador
-                    jugador={vivoPorNick?.get(nick) ?? null}
-                    className="mt-1"
-                  />
                   <ResumenJugador userId={p.user_id} compacto className="mt-1" />
                 </div>
               </div>
@@ -369,12 +379,18 @@ function Columna({
                     ✓
                   </span>
                 )}
-                <Avatar
-                  nick={p.profiles?.nick}
-                  src={p.profiles?.steam_avatar_url}
-                  ringClass="ring-2 ring-white/20"
-                  title={detalle}
-                />
+                <span className="flex shrink-0 flex-col items-center gap-0.5">
+                  <Avatar
+                    nick={p.profiles?.nick}
+                    src={p.profiles?.steam_avatar_url}
+                    ringClass="ring-2 ring-white/20"
+                    title={detalle}
+                  />
+                  <HeroEnSlot
+                    jugador={vivoPorNick?.get(nick) ?? null}
+                    className="mt-0.5"
+                  />
+                </span>
                 <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
                   <div className="min-w-0">
                     <p className="flex items-center gap-1.5 truncate text-sm font-medium text-slate-100">

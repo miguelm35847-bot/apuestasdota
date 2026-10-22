@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef, Suspense } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -13,7 +13,10 @@ import ChatPanel from '@/components/ChatPanel';
 import Avatar from '@/components/Avatar';
 import MedallaMmr from '@/components/MedallaMmr';
 import PreferenciaLado from '@/components/PreferenciaLado';
+import HeroEnSlot from '@/components/HeroEnSlot';
 import ResumenJugador from '@/components/ResumenJugador';
+import { partidaVivaMock } from '@/lib/vivoMock';
+import type { JugadorVivo } from '@/lib/vivo';
 import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
 import { reproducirSonido } from '@/lib/sonidos';
 import { formatearMmr, promedioMmr, resumenRolesConIconos } from '@/lib/balance';
@@ -31,6 +34,7 @@ function FilaJugador({
   estadoSala,
   mostrarMover,
   mostrarPreferencia,
+  vivoPorNick,
   onMover,
   onExpulsar,
 }: {
@@ -39,6 +43,7 @@ function FilaJugador({
   estadoSala: string;
   mostrarMover: boolean;
   mostrarPreferencia: boolean;
+  vivoPorNick?: Map<string, JugadorVivo>;
   onMover: (userId: string, equipo: number | null) => void;
   onExpulsar: (p: Participante) => void;
 }) {
@@ -50,7 +55,14 @@ function FilaJugador({
           title={`Ver perfil de ${p.profiles?.nick ?? 'Usuario'}`}
           className="flex min-w-0 items-center gap-2 transition hover:bg-white/5"
         >
-          <Avatar nick={p.profiles?.nick} src={p.profiles?.steam_avatar_url} size="sm" />
+          {/* Avatar y, justo debajo, el héroe que está jugando. */}
+          <span className="flex shrink-0 flex-col items-center gap-0.5">
+            <Avatar nick={p.profiles?.nick} src={p.profiles?.steam_avatar_url} size="sm" />
+            <HeroEnSlot
+              jugador={vivoPorNick?.get(p.profiles?.nick ?? '') ?? null}
+              className="mt-0.5"
+            />
+          </span>
           <div className="relative min-w-0 pr-4">
             {p.verificado_at && (
               <span
@@ -141,6 +153,7 @@ function Slots({
   estadoSala,
   mostrarMover,
   mostrarPreferencia,
+  vivoPorNick,
   onMover,
   onExpulsar,
 }: {
@@ -150,6 +163,7 @@ function Slots({
   estadoSala: string;
   mostrarMover: boolean;
   mostrarPreferencia: boolean;
+  vivoPorNick?: Map<string, JugadorVivo>;
   onMover: (userId: string, equipo: number | null) => void;
   onExpulsar: (p: Participante) => void;
 }) {
@@ -166,6 +180,7 @@ function Slots({
             estadoSala={estadoSala}
             mostrarMover={mostrarMover}
             mostrarPreferencia={mostrarPreferencia}
+            vivoPorNick={vivoPorNick}
             onMover={onMover}
             onExpulsar={onExpulsar}
           />
@@ -885,6 +900,20 @@ function AdminSalaContenido() {
     };
   }
 
+  // Partida en vivo de la sala (MOCK hasta que llegue el league_id de Valve).
+  const partidaViva = useMemo(
+    () => (sala?.estado === 'en_juego' ? partidaVivaMock(participantes) : null),
+    [sala?.estado, participantes]
+  );
+  const vivoPorNick = useMemo(() => {
+    const mapa = new Map<string, JugadorVivo>();
+    if (!partidaViva) return mapa;
+    for (const jugador of [...partidaViva.radiant.jugadores, ...partidaViva.dire.jugadores]) {
+      mapa.set(jugador.nick, jugador);
+    }
+    return mapa;
+  }, [partidaViva]);
+
   if (authLoading || loading) {
     return (
       <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
@@ -959,6 +988,7 @@ function AdminSalaContenido() {
   const slotsProps = {
     equipos,
     estadoSala: enFasePicks ? 'en_juego' : estadoSala,
+    vivoPorNick,
     // En 1v1 los equipos los define el sorteo: el admin no los mueve a mano.
     mostrarMover: sala.cupo !== 2,
     // La preferencia de lado solo se mira durante la fase de picks.

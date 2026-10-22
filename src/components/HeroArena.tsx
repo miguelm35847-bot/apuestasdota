@@ -6,8 +6,9 @@ import Link from 'next/link';
 import Avatar from '@/components/Avatar';
 import PerfilHover from '@/components/PerfilHover';
 import { useSalas } from '@/components/SalasProvider';
+import HeroEnSlot from '@/components/HeroEnSlot';
 import VivoMarcador from '@/components/VivoMarcador';
-import { partidaVivaMock } from '@/lib/vivoMock';
+import { jugadorVivoDe, partidaVivaMock } from '@/lib/vivoMock';
 import type { SalaPublica } from '@/lib/salas';
 
 const PARTICULAS = [
@@ -395,10 +396,13 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                             return (
                               <span
                                 key={`libre-${i}`}
-                                className="mx-auto h-7 w-7 rounded-full border-2 border-dashed border-white/12 bg-white/[0.02]"
-                                title="Slot libre"
+                                className="flex flex-col items-center gap-0.5"
                                 aria-hidden="true"
-                              />
+                              >
+                                <span className="mx-auto h-7 w-7 rounded-full border-2 border-dashed border-white/12 bg-white/[0.02]" />
+                                {/* espacio del icono de héroe para alinear la fila */}
+                                <span className="h-[18px] w-[18px]" />
+                              </span>
                             );
                           }
 
@@ -420,13 +424,18 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                               <Link
                                 href={`/jugadores/${p.user_id}`}
                                 aria-label={`Ver perfil de ${nick}`}
-                                className="block rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                                className="flex flex-col items-center gap-0.5 rounded-lg p-0.5 transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
                               >
                                 <Avatar
                                   nick={p.profiles?.nick}
                                   src={p.profiles?.steam_avatar_url}
                                   size="xs"
                                   ringClass={ringEquipo(p.equipo)}
+                                />
+                                {/* Héroe que está jugando: va justo debajo del avatar. */}
+                                <HeroEnSlot
+                                  jugador={jugadorVivoDe(partidaViva, nick)}
+                                  className="mt-0.5"
                                 />
                               </Link>
                             </PerfilHover>

@@ -79,3 +79,20 @@ export function partidaVivaMock(jugadores: JugadorSala[]): PartidaViva | null {
     dire: { score: Math.round(puntos(dire) / 60), jugadores: dire },
   };
 }
+
+/**
+ * Héroe y estadísticas de un jugador dentro de la partida en vivo.
+ * Se busca por nick porque el mock se arma con los jugadores de la sala.
+ */
+export function jugadorVivoDe(
+  partida: PartidaViva | null,
+  nick: string | null | undefined
+): JugadorVivo | null {
+  if (!partida || !nick) return null;
+
+  const objetivo = nick.trim();
+  if (!objetivo) return null;
+
+  const jugadores = [...partida.radiant.jugadores, ...partida.dire.jugadores];
+  return jugadores.find((jugador) => jugador.nick === objetivo) ?? null;
+}

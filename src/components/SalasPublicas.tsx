@@ -11,6 +11,9 @@ import Toast from '@/components/Toast';
 import Avatar from '@/components/Avatar';
 import FormularioCrearSala from '@/components/FormularioCrearSala';
 import PerfilHover from '@/components/PerfilHover';
+import HeroEnSlot from '@/components/HeroEnSlot';
+import VivoMarcador from '@/components/VivoMarcador';
+import { jugadorVivoDe, partidaVivaMock } from '@/lib/vivoMock';
 
 function ringEquipo(equipo: number | null) {
   return equipo === 1
@@ -168,6 +171,10 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
             const puedeUnirse = sala.estado === 'abierta' && count < sala.cupo && !estoyDentro;
             const esRadiant = index % 2 === 0;
 
+            // Partida en vivo de la sala (MOCK hasta que llegue el league_id).
+            const partidaViva =
+              sala.estado === 'en_juego' ? partidaVivaMock(parts) : null;
+
             // Mismo cálculo que la sala y el hero: pozo menos comisión, dividido
             // entre los ganadores de cada equipo.
             const pozo = sala.cuota * sala.cupo;
@@ -259,7 +266,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                     </div>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-1">
+                  <div className="mt-3 flex flex-wrap items-start gap-1">
                     {Array.from({ length: sala.cupo }).map((_, i) => {
                       const p = parts[i];
 
@@ -280,7 +287,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                           <Link
                             href={`/jugadores/${p.user_id}`}
                             aria-label={`Ver perfil de ${p.profiles?.nick ?? 'jugador'}`}
-                            className="block rounded-full transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                            className="flex flex-col items-center gap-0.5 rounded-lg p-0.5 transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
                           >
                             <Avatar
                               nick={p.profiles?.nick ?? '?'}
@@ -293,20 +300,36 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                                 p.equipo === 1 ? ' · Radiant' : p.equipo === 2 ? ' · Dire' : ' · Espera'
                               }`}
                             />
+                            {/* Héroe que está jugando: justo debajo del avatar. */}
+                            <HeroEnSlot
+                              jugador={jugadorVivoDe(partidaViva, p.profiles?.nick)}
+                              className="mt-0.5"
+                            />
                           </Link>
                         </PerfilHover>
                       ) : (
                         <div
                           key={`libre-${i}`}
-                          className="h-6 w-6 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]"
+                          className="flex flex-col items-center gap-0.5"
                           title="Slot libre"
-                        />
+                        >
+                          <span className="h-6 w-6 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]" />
+                          {/* espacio del icono de héroe para alinear la fila */}
+                          <span className="h-[18px] w-[18px]" />
+                        </div>
                       );
                     })}
-                    <span className="ml-1 rounded-full bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-slate-300">
+                    <span className="ml-1 self-center rounded-full bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-slate-300">
                       {count}/{sala.cupo}
                     </span>
                   </div>
+
+                  {/* Marcador en vivo de la partida de esta sala. */}
+                  {partidaViva && (
+                    <div className="mt-3">
+                      <VivoMarcador partida={partidaViva} compacto />
+                    </div>
+                  )}
 
                   {esAdmin && (
                     <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/5 pt-2.5">
