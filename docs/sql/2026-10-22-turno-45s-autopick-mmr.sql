@@ -48,10 +48,15 @@ begin
   perform set_config('app.picks_operacion', 'on', true);
 
   update public.participantes_sala ps
-  set es_capitan = (ps.user_id = new.pick_capitan1 or ps.user_id = new.pick_capitan2)
+  set es_capitan = coalesce(
+        ps.user_id = new.pick_capitan1 or ps.user_id = new.pick_capitan2,
+        false
+      )
   where ps.sala_id = new.id
-    and ps.es_capitan is distinct from
-        (ps.user_id = new.pick_capitan1 or ps.user_id = new.pick_capitan2);
+    and ps.es_capitan is distinct from coalesce(
+          ps.user_id = new.pick_capitan1 or ps.user_id = new.pick_capitan2,
+          false
+        );
 
   return new;
 end;
@@ -66,11 +71,16 @@ create trigger sincronizar_capitanes
 select set_config('app.picks_operacion', 'on', true);
 
 update public.participantes_sala ps
-set es_capitan = (ps.user_id = s.pick_capitan1 or ps.user_id = s.pick_capitan2)
+set es_capitan = coalesce(
+      ps.user_id = s.pick_capitan1 or ps.user_id = s.pick_capitan2,
+      false
+    )
 from public.salas s
 where s.id = ps.sala_id
-  and ps.es_capitan is distinct from
-      (ps.user_id = s.pick_capitan1 or ps.user_id = s.pick_capitan2);
+  and ps.es_capitan is distinct from coalesce(
+        ps.user_id = s.pick_capitan1 or ps.user_id = s.pick_capitan2,
+        false
+      );
 
 -- 3) Pick manual (45 s y conteo real de 8 picks) ------------------------------
 -- Se recrea (drop + create) para no depender del tipo de retorno desplegado.
