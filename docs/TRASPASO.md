@@ -100,6 +100,7 @@ Estados de sala: `abierta`, `llena`, `en_juego`, `terminada`, `cancelada`.
 - `cancelar_picks(p_sala)` — admin: devuelve a todos a la lista de espera y limpia la fase.
 - `bloquear_cambios_en_picks()` — trigger `before update/delete` en `participantes_sala`: impide mover/expulsar durante `en_curso`; en salas 1v1 permite salir durante el sorteo de lado.
 - `salir_de_sala(p_sala)` — reembolsa y permite salir en `abierta`/`llena`.
+- `salir_de_sala_con_multa(p_sala)` — salida con multa de S/ 2.00 al abandonar una **5v5 llena** (llama a `salir_de_sala`, cobra la multa sin dejar saldo negativo, la apunta en `actividades` y notifica). En salas abiertas o 1v1 se comporta como `salir_de_sala`. Requiere `docs/sql/2026-10-21-multa-abandono-5v5.sql`.
 - `unirse_a_equipo(p_sala, p_equipo)` — jugador se mueve a espera (`null`), Radiant (1) o Dire (2), con límite por equipo.
 - `asignar_equipo(p_sala, p_user, p_equipo)` — admin mueve a cualquier jugador (incluida espera).
 - `definir_lobby(p_sala, p_nombre, p_clave)` — valida equipos completos y espera vacía, pone `en_juego` y notifica a los jugadores.
@@ -113,6 +114,10 @@ Estados de sala: `abierta`, `llena`, `en_juego`, `terminada`, `cancelada`.
 ## 6. Funciones y SQL pendientes de ejecutar
 
 Si el usuario aún no los ejecutó, pegarlos en Supabase:
+
+### Multa por abandonar una 5v5 llena (PENDIENTE · 21/10/2026)
+
+Ejecutar `docs/sql/2026-10-21-multa-abandono-5v5.sql`, que crea la RPC `salir_de_sala_con_multa`. Mientras no esté aplicada, la sala avisa de la multa pero al salir **no se cobra**: la app detecta que la función no existe y cae en `salir_de_sala` para no dejar al jugador atrapado.
 
 ### Columnas de avatar Steam (ya ejecutadas)
 
@@ -1909,11 +1914,11 @@ Opciones para continuar (elegir una):
 ## 15. Vista de partida en vivo (mockup) y arreglo de HTML anidado (21/10/2026)
 
 - **Vista de partida en vivo**: ya está montada en la web real (aún con **datos de ejemplo**):
-  - `src/components/VivoMarcador.tsx`: franja con el score (Radiant/Dire), el reloj de la partida y los 10 héroes con sus K/D/A. En versión **compacta** (sala destacada del hero: score + reloj + los 10 iconos de héroe con las kills) y en versión **completa** (dentro de la sala: las dos listas con héroe y K/D/A).
+  - `src/components/VivoMarcador.tsx`: franja con el score (Radiant/Dire) y el reloj de la partida. En versión **compacta** (sala destacada del hero y tarjetas del landing) solo eso: los héroes ya van bajo el avatar y no se repiten. En versión **completa** (dentro de la sala) añade las dos listas con héroe y K/D/A.
   - `src/components/VivoJugador.tsx`: el K/D/A de un jugador; con `mostrarIcono={false}` solo el K/D/A (cuando el icono va aparte, bajo el avatar).
-  - `src/components/HeroEnSlot.tsx`: **el icono del héroe que está jugando cada jugador, justo debajo de su avatar**, con las kills encima en una pastilla. Es la información que después usarán las apuestas por partida.
+  - `src/components/HeroEnSlot.tsx`: **el icono del héroe que está jugando cada jugador, justo debajo de su avatar**, sin números (las kills no aportaban y se quitaron). Es la información que después usarán las apuestas por partida.
   - `src/lib/vivo.ts`: tipos (`PartidaViva`, `JugadorVivo`) y helpers (reloj `23:41`, URL del icono del héroe en el CDN de Valve, K/D/A).
-  - `src/lib/vivoMock.ts`: **MOCK** que arma una partida de ejemplo con los jugadores reales de la sala. Aparece solo cuando la sala está `en_juego`. Helper `jugadorVivoDe(partida, nick)` para cruzar el jugador de un slot con su datos en la partida.
+  - `src/lib/vivoMock.ts`: **MOCK** que arma una partida de ejemplo con los jugadores reales de la sala. Respeta los equipos reales (`equipo` 1 = Radiant, 2 = Dire) y solo reparte por mitades si aún no hay equipos. Aparece solo cuando la sala está `en_juego`. Helper `jugadorVivoDe(partida, nick)` para cruzar el jugador de un slot con su datos en la partida.
   - Puntos de montaje:
     - `src/components/HeroArena.tsx`: franja compacta en la sala destacada del hero + el héroe bajo cada avatar.
     - `src/components/SalasPublicas.tsx`: **tarjetas de sala del landing** con la misma franja compacta (cuando la sala está `en_juego`) y el héroe bajo cada avatar.
@@ -1921,7 +1926,8 @@ Opciones para continuar (elegir una):
     - `src/app/admin/salas/[id]/page.tsx`: el panel admin también muestra el héroe bajo cada avatar.
   - Para conectarlo de verdad: un endpoint de servidor que consulte `GetLiveLeagueGames` de Valve con caché (15–30 s), cruce los `account_id` con los perfiles de la sala (nunca exponiendo el `steam_id`) y devuelva el marcador normalizado; entonces `partidaVivaMock` se sustituye por ese endpoint y la interfaz no cambia. Hace falta el `league_id` de la liga/torneo: Valve solo publica ese tipo de partidas.
   - La ruta `/demo-vivo` queda como vista previa aislada de ambos diseños.
-  - En las tarjetas del landing y en el hero, el héroe va **justo debajo del avatar** de cada jugador (con sus kills), para saber de un vistazo quién juega qué: es la base de las apuestas por partida.
+  - En las tarjetas del landing y en el hero, el héroe va **justo debajo del avatar** de cada jugador, para saber de un vistazo quién juega qué: es la base de las apuestas por partida.
+  - Cuando la sala tiene equipos (o está `en_juego`), los jugadores se ordenan por equipo: **Radiant a la izquierda y Dire a la derecha**, con un separador “vs” entre los dos grupos en las tarjetas del landing (en el hero y en móvil, Radiant ocupa las primeras posiciones).
 - **HTML anidado (errores de hidratación)**: se corrigieron 4 casos:
   1. `MedallaMmr` renderizaba un `<div>` dentro de un `<p>` (el MMR de los slots). Se añadió la prop `inline`, que devuelve solo la imagen en un `<span>` para poder incrustarla en `<p>`/`<span>`.
   2. El `<div>` de la medalla dentro del `<p>` del MMR (sala del jugador).
@@ -1930,3 +1936,15 @@ Opciones para continuar (elegir una):
 - En 5v5 **no** hay que mover a los jugadores a mano: el reparto sale de los picks (el admin elige dos capitanes, lanza la moneda y los capitanes eligen; el reparto queda 5/5). Los botones de “mover” del panel admin solo sirven antes de los picks, para balancear, y se ocultan solos durante la fase de picks.
 - El hero de la sala destacada muestra el **premio por ganador** (mismo cálculo que las tarjetas y la sala: pozo − comisión entre los ganadores de cada equipo).
 - `src/lib/actividades.ts` centraliza los tipos, el formato de soles, el tiempo relativo y las etiquetas de los tipos de movimiento de la billetera (`donacion_enviada`, `donacion_recibida`, `ajuste_admin`…).
+
+## 16. Multa por abandonar una sala 5v5 llena (21/10/2026)
+
+- **Regla**: si una sala 5v5 está llena (10/10) y un jugador se sale por su cuenta, se le cobra una **multa de S/ 2.00** además del reembolso normal de la cuota (recupera la cuota menos la multa).
+- **SQL** (`docs/sql/2026-10-21-multa-abandono-5v5.sql`): RPC nueva `salir_de_sala_con_multa(p_sala)`. Llama primero a `salir_de_sala` (reembolso + salida, sin reescribir esa función) y después cobra la multa en la **misma transacción**:
+  - solo si la sala es `cupo = 10` y estaba `llena`; en salas abiertas o 1v1 salir sigue siendo gratis;
+  - nunca deja saldo negativo: si quedan menos de S/ 2.00 se cobra solo lo disponible;
+  - la multa queda en `actividades` (`tipo = 'multa'`, emisor = receptor = jugador, descripción “Abandonó una sala 5v5 llena”) y se le notifica al jugador;
+  - el movimiento de billetera es `ajuste_admin` negativo con `referencia_id` = sala.
+- **UI** (`src/app/salas/[id]/page.tsx`): si `cupo === 10 && estado === 'llena'`, el botón pasa a “Salir de la sala (multa de S/ 2.00)”, se muestra el aviso bajo el botón y se pide confirmación con `ConfirmDialog` (peligro). Si la RPC aún no existe en Supabase, la app cae en `salir_de_sala` y el jugador puede salir igual (sin multa).
+- **Verificado** (sin el SQL aplicado): botón, aviso, diálogo y salida con fallback probados con `qa-p1` en una sala 5v5 llena; `tsc`, `lint`, `build`, `qa:probes` 22/22 y QA visual (1366/390/360) en verde.
+- **Pendiente**: aplicar el SQL y comprobar el cobro real (saldo −S/ 2.00 y la multa en el panel de actividades).

@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
 import ChatPanel from '@/components/ChatPanel';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import Avatar from '@/components/Avatar';
 import MedallaMmr from '@/components/MedallaMmr';
 import MonedaSorteo from '@/components/MonedaSorteo';
@@ -30,6 +31,18 @@ import {
 import type { Lobby, Participante, RolDota, Sala } from '@/lib/types';
 
 type TonoEquipo = 'radiant' | 'dire' | 'neutral';
+
+/**
+ * ¿El error dice que la RPC no existe en Supabase? (SQL aún sin aplicar).
+ * PostgREST responde PGRST202; Postgres, 42883.
+ */
+function existeLaRpc(error: { code?: string; message: string }) {
+  return (
+    error.code !== 'PGRST202' &&
+    error.code !== '42883' &&
+    !/could not find the function|schema cache/i.test(error.message)
+  );
+}
 
 /**
  * Paleta de equipos para Arena Dark.
@@ -820,6 +833,8 @@ function SalaContenido() {
   const [copiado, setCopiado] = useState<string | null>(null);
   const [confirmandoListo, setConfirmandoListo] = useState(false);
   const [segundosSalida, setSegundosSalida] = useState(5);
+  const [confirmarSalida, setConfirmarSalida] = useState(false);
+  const [saliendo, setSaliendo] = useState(false);
   const eraParticipante = useRef(false);
   const autoPickEnviado = useRef(false);
   const cierreAutoEnviado = useRef(false);
@@ -1127,10 +1142,21 @@ function SalaContenido() {
     setError(null);
     setSuccess(null);
     eraParticipante.current = false;
+    setSaliendo(true);
 
-    const { error: rpcError } = await supabase.rpc('salir_de_sala', {
-      p_sala: salaId,
-    });
+    // En una 5v5 llena, abandonar cuesta una multa: la RPC hace la salida
+    // normal (reembolso) y cobra la multa en la misma transacción.
+    const conMulta = sala?.cupo === 10 && sala?.estado === 'llena';
+
+    let { error: rpcError } = conMulta
+      ? await supabase.rpc('salir_de_sala_con_multa', { p_sala: salaId })
+      : await supabase.rpc('salir_de_sala', { p_sala: salaId });
+
+    // Si la RPC de la multa todavía no está aplicada en Supabase, se sale con
+    // la función de siempre para no dejar al jugador atrapado en la sala.
+    if (conMulta && rpcError && !existeLaRpc(rpcError)) {
+      ({ error: rpcError } = await supabase.rpc('salir_de_sala', { p_sala: salaId }));
+    }
 
     if (rpcError) {
       setError(rpcError.message);
@@ -1138,6 +1164,8 @@ function SalaContenido() {
       window.dispatchEvent(new Event('saldo:refresh'));
       router.push('/');
     }
+
+    setSaliendo(false);
   }
 
   async function confirmarListo() {
@@ -1430,6 +1458,9 @@ function SalaContenido() {
   const espera = participantes.filter((p) => p.equipo === null);
   const radiant = participantes.filter((p) => p.equipo === 1);
   const dire = participantes.filter((p) => p.equipo === 2);
+
+  // Multa por abandonar una sala 5v5 llena (10/10).
+  const multaAbandono = sala.cupo === 10 && sala.estado === 'llena' ? 200 : 0;
 
   const pozo = sala.cuota * sala.cupo;
   const comision = Math.floor((pozo * sala.comision_bp) / 10000);
@@ -1796,15 +1827,43 @@ function SalaContenido() {
         )}
 
         {esParticipante && picksEstado === 'inactivo' && (sala.estado === 'abierta' || sala.estado === 'llena') && (
-          <div className="mt-4 flex justify-center">
+          <div className="mt-4 flex flex-col items-center gap-1.5">
             <button
-              onClick={salirDeSala}
-              className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-6 py-2 text-sm font-semibold text-rose-300 transition hover:bg-rose-500/15"
+              onClick={() => (multaAbandono > 0 ? setConfirmarSalida(true) : salirDeSala())}
+              disabled={saliendo}
+              className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-6 py-2 text-sm font-semibold text-rose-300 transition hover:bg-rose-500/15 disabled:opacity-60"
             >
-              Salir de la sala y recuperar S/ {(sala.cuota / 100).toFixed(2)}
+              {saliendo
+                ? 'Saliendo...'
+                : multaAbandono > 0
+                  ? `Salir de la sala (multa de S/ ${(multaAbandono / 100).toFixed(2)})`
+                  : `Salir de la sala y recuperar S/ ${(sala.cuota / 100).toFixed(2)}`}
             </button>
+            {multaAbandono > 0 && (
+              <p className="max-w-sm text-center text-[11px] leading-snug text-slate-500">
+                La sala está llena: te devolvemos la cuota menos la multa de{' '}
+                <span className="font-semibold text-rose-300">
+                  S/ {(multaAbandono / 100).toFixed(2)}
+                </span>{' '}
+                por abandonar.
+              </p>
+            )}
           </div>
         )}
+
+        <ConfirmDialog
+          abierto={confirmarSalida}
+          titulo="Abandonar la sala"
+          mensaje={`La sala está llena (10/10). Si te sales ahora se te devuelve la cuota y se te cobra una multa de S/ ${(
+            multaAbandono / 100
+          ).toFixed(2)} por abandonar.`}
+          confirmar="Sí, salir"
+          cancelar="Me quedo"
+          peligro
+          procesando={saliendo}
+          onConfirmar={salirDeSala}
+          onCancelar={() => setConfirmarSalida(false)}
+        />
           </div>
 
           {esParticipante && (

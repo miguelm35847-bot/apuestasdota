@@ -44,13 +44,36 @@ const KDA = [
 
 type JugadorSala = {
   user_id: string;
+  equipo?: number | null;
   profiles?: { nick?: string | null } | null;
 };
 
 export function partidaVivaMock(jugadores: JugadorSala[]): PartidaViva | null {
   if (jugadores.length < 2) return null;
 
-  const mitad = Math.ceil(jugadores.length / 2);
+  const conEquipo = jugadores.filter((j) => j.equipo === 1 || j.equipo === 2);
+  const sinEquipo = jugadores.filter((j) => j.equipo !== 1 && j.equipo !== 2);
+
+  // Si la sala ya tiene equipos se respetan (Radiant 1, Dire 2); si no,
+  // se reparte por mitades.
+  let radiantSala: JugadorSala[];
+  let direSala: JugadorSala[];
+
+  if (conEquipo.length > 0) {
+    radiantSala = jugadores.filter((j) => j.equipo === 1);
+    direSala = jugadores.filter((j) => j.equipo === 2);
+  } else {
+    const mitad = Math.ceil(jugadores.length / 2);
+    radiantSala = jugadores.slice(0, mitad);
+    direSala = jugadores.slice(mitad);
+  }
+
+  // Los que estén en lista de espera completan el lado más corto.
+  for (const jugador of sinEquipo) {
+    if (radiantSala.length <= direSala.length) radiantSala = [...radiantSala, jugador];
+    else direSala = [...direSala, jugador];
+  }
+
   const aJugador = (jugador: JugadorSala, indice: number): JugadorVivo => {
     const heroe = HEROES[indice % HEROES.length];
     const kda = KDA[indice % KDA.length];
@@ -66,8 +89,8 @@ export function partidaVivaMock(jugadores: JugadorSala[]): PartidaViva | null {
     };
   };
 
-  const radiant = jugadores.slice(0, mitad).map(aJugador);
-  const dire = jugadores.slice(mitad).map((jugador, indice) => aJugador(jugador, indice + mitad));
+  const radiant = radiantSala.map(aJugador);
+  const dire = direSala.map((jugador, indice) => aJugador(jugador, indice + radiant.length));
 
   const puntos = (equipo: JugadorVivo[]) =>
     equipo.reduce((total, jugador) => total + jugador.kills * 30 + jugador.assists * 10, 0);

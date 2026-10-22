@@ -156,10 +156,11 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
     )[0];
   }, [salas]);
 
-  const roster = useMemo(
-    () => (destacada ? participantes[destacada.id] ?? [] : []),
-    [destacada, participantes]
-  );
+  const roster = useMemo(() => {
+    const lista = destacada ? participantes[destacada.id] ?? [] : [];
+    // Radiant a la izquierda y Dire a la derecha en cuanto hay equipos.
+    return [...lista].sort((a, b) => (a.equipo ?? 3) - (b.equipo ?? 3));
+  }, [destacada, participantes]);
   const cupoDestacada = destacada?.cupo ?? 0;
   const jugadoresDestacada = destacada ? jugadoresDe(destacada) : 0;
 

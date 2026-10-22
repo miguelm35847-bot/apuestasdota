@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -167,6 +167,11 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
           {salas.map((sala, index) => {
             const count = sala.participantes_sala?.[0]?.count ?? 0;
             const parts = participantes[sala.id] ?? [];
+            // En juego (y en cuanto hay equipos) Radiant va a la izquierda y
+            // Dire a la derecha.
+            const ordenados = [...parts].sort(
+              (a, b) => (a.equipo ?? 3) - (b.equipo ?? 3)
+            );
             const estoyDentro = !!user && parts.some((p) => p.user_id === user.id);
             const puedeUnirse = sala.estado === 'abierta' && count < sala.cupo && !estoyDentro;
             const esRadiant = index % 2 === 0;
@@ -268,55 +273,72 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
 
                   <div className="mt-3 flex flex-wrap items-start gap-1">
                     {Array.from({ length: sala.cupo }).map((_, i) => {
-                      const p = parts[i];
+                      const p = ordenados[i];
+                      // Separador entre equipos: Radiant a la izquierda, Dire a la derecha.
+                      const separar =
+                        Boolean(partidaViva) &&
+                        p?.equipo === 2 &&
+                        i > 0 &&
+                        ordenados[i - 1]?.equipo === 1;
 
-                      return p ? (
-                        <PerfilHover
-                          key={p.user_id}
-                          usuario={{
-                            id: p.user_id,
-                            nick: p.profiles?.nick,
-                            steam_avatar_url: p.profiles?.steam_avatar_url,
-                            steam_nombre: p.profiles?.steam_nombre,
-                            mmr: p.profiles?.mmr,
-                            roles_preferidos: p.profiles?.roles_preferidos,
-                            equipo: p.equipo,
-                          }}
-                          className="inline-block shrink-0"
-                        >
-                          <Link
-                            href={`/jugadores/${p.user_id}`}
-                            aria-label={`Ver perfil de ${p.profiles?.nick ?? 'jugador'}`}
-                            className="flex flex-col items-center gap-0.5 rounded-lg p-0.5 transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
-                          >
-                            <Avatar
-                              nick={p.profiles?.nick ?? '?'}
-                              src={p.profiles?.steam_avatar_url}
-                              size="xs"
-                              ringClass={ringEquipo(p.equipo)}
-                              title={`${p.profiles?.nick ?? 'Usuario'}${
-                                p.profiles?.mmr != null ? ` · MMR ${p.profiles.mmr}` : ''
-                              }${
-                                p.equipo === 1 ? ' · Radiant' : p.equipo === 2 ? ' · Dire' : ' · Espera'
-                              }`}
-                            />
-                            {/* Héroe que está jugando: justo debajo del avatar. */}
-                            <HeroEnSlot
-                              jugador={jugadorVivoDe(partidaViva, p.profiles?.nick)}
-                              className="mt-0.5"
-                            />
-                          </Link>
-                        </PerfilHover>
-                      ) : (
-                        <div
-                          key={`libre-${i}`}
-                          className="flex flex-col items-center gap-0.5"
-                          title="Slot libre"
-                        >
-                          <span className="h-6 w-6 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]" />
-                          {/* espacio del icono de héroe para alinear la fila */}
-                          <span className="h-[18px] w-[18px]" />
-                        </div>
+                      return (
+                        <Fragment key={p ? p.user_id : `libre-${i}`}>
+                          {separar && (
+                            <span className="mx-0.5 self-center rounded bg-white/5 px-1 py-0.5 text-[9px] font-bold uppercase leading-none text-slate-500">
+                              vs
+                            </span>
+                          )}
+                          {p ? (
+                            <PerfilHover
+                              usuario={{
+                                id: p.user_id,
+                                nick: p.profiles?.nick,
+                                steam_avatar_url: p.profiles?.steam_avatar_url,
+                                steam_nombre: p.profiles?.steam_nombre,
+                                mmr: p.profiles?.mmr,
+                                roles_preferidos: p.profiles?.roles_preferidos,
+                                equipo: p.equipo,
+                              }}
+                              className="inline-block shrink-0"
+                            >
+                              <Link
+                                href={`/jugadores/${p.user_id}`}
+                                aria-label={`Ver perfil de ${p.profiles?.nick ?? 'jugador'}`}
+                                className="flex flex-col items-center gap-0.5 rounded-lg p-0.5 transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                              >
+                                <Avatar
+                                  nick={p.profiles?.nick ?? '?'}
+                                  src={p.profiles?.steam_avatar_url}
+                                  size="xs"
+                                  ringClass={ringEquipo(p.equipo)}
+                                  title={`${p.profiles?.nick ?? 'Usuario'}${
+                                    p.profiles?.mmr != null ? ` · MMR ${p.profiles.mmr}` : ''
+                                  }${
+                                    p.equipo === 1
+                                      ? ' · Radiant'
+                                      : p.equipo === 2
+                                        ? ' · Dire'
+                                        : ' · Espera'
+                                  }`}
+                                />
+                                {/* Héroe que está jugando: justo debajo del avatar. */}
+                                <HeroEnSlot
+                                  jugador={jugadorVivoDe(partidaViva, p.profiles?.nick)}
+                                  className="mt-0.5"
+                                />
+                              </Link>
+                            </PerfilHover>
+                          ) : (
+                            <div
+                              className="flex flex-col items-center gap-0.5"
+                              title="Slot libre"
+                            >
+                              <span className="h-6 w-6 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]" />
+                              {/* espacio del icono de héroe para alinear la fila */}
+                              <span className="h-[18px] w-[18px]" />
+                            </div>
+                          )}
+                        </Fragment>
                       );
                     })}
                     <span className="ml-1 self-center rounded-full bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-slate-300">
