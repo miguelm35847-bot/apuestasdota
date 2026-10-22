@@ -22,9 +22,10 @@ language plpgsql
 set search_path = public
 as $$
 begin
-  if new.pick_turno_expira_at is not null
-     and new.pick_turno_expira_at > now() + interval '45 seconds' then
-    new.pick_turno_expira_at := now() + interval '45 seconds';
+  if new.pick_turno_expira_at is not null then
+    if new.pick_turno_expira_at > now() + interval '45 seconds' then
+      new.pick_turno_expira_at := now() + interval '45 seconds';
+    end if;
   end if;
   return new;
 end;
@@ -68,19 +69,23 @@ create trigger sincronizar_capitanes
   for each row execute function public.sincronizar_capitanes();
 
 -- Salas que ya tienen capitanes guardados (draft en curso o en elección).
-select set_config('app.picks_operacion', 'on', true);
+do $$
+begin
+  perform set_config('app.picks_operacion', 'on', true);
 
-update public.participantes_sala ps
-set es_capitan = coalesce(
-      ps.user_id = s.pick_capitan1 or ps.user_id = s.pick_capitan2,
-      false
-    )
-from public.salas s
-where s.id = ps.sala_id
-  and ps.es_capitan is distinct from coalesce(
+  update public.participantes_sala ps
+  set es_capitan = coalesce(
         ps.user_id = s.pick_capitan1 or ps.user_id = s.pick_capitan2,
         false
-      );
+      )
+  from public.salas s
+  where s.id = ps.sala_id
+    and ps.es_capitan is distinct from coalesce(
+          ps.user_id = s.pick_capitan1 or ps.user_id = s.pick_capitan2,
+          false
+        );
+end;
+$$;
 
 -- 3) Pick manual (45 s y conteo real de 8 picks) ------------------------------
 -- Se recrea (drop + create) para no depender del tipo de retorno desplegado.

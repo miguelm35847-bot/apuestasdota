@@ -115,9 +115,9 @@ Estados de sala: `abierta`, `llena`, `en_juego`, `terminada`, `cancelada`.
 
 Si el usuario aún no los ejecutó, pegarlos en Supabase:
 
-### Turno de 45 s, auto-pick por mayor MMR y capitanes marcados (PENDIENTE · 22/10/2026)
+### Turno de 45 s, auto-pick por mayor MMR y capitanes marcados (ya aplicada)
 
-Ejecutar `docs/sql/2026-10-22-turno-45s-autopick-mmr.sql`. Cierra el arreglo del draft: cuenta solo a los 8 jugadores elegidos (excluye a los capitanes por id; hasta ahora el conteo los incluía porque `es_capitan` se quedaba en `false`, y por eso el draft repartía R-R-R-D-D y cerraba en el pick 6 con 5/3), marca `es_capitan = true` en los dos capitanes (la UI mostraba `Pick 3/8` al empezar y no pintaba la ⭐), deja el turno en **45 s** con un trigger que acota `pick_turno_expira_at` (las demás funciones fijan 60 s desde dentro) y cambia el auto-pick a **solo mayor MMR**.
+`docs/sql/2026-10-22-turno-45s-autopick-mmr.sql`. Cierra el arreglo del draft: cuenta solo a los 8 jugadores elegidos (excluye a los capitanes por id; antes el conteo los incluía porque `es_capitan` se quedaba en `false`, y por eso el draft repartía R-R-R-D-D y cerraba en el pick 6 con 5/3), marca `es_capitan = true` en los dos capitanes (la UI mostraba `Pick 3/8` al empezar y no pintaba la ⭐), deja el turno en **45 s** con un trigger que acota `pick_turno_expira_at` (las demás funciones fijan 60 s desde dentro) y cambia el auto-pick a **solo mayor MMR**. Verificado con `qa:flows`: `R-D-D-R-R-D` + auto-picks `D` y `R`, 5/5, turnos de ~45 s y el pick 7 al de mayor MMR.
 
 ### Orden de picks y verificación anticipada (ya aplicada)
 
@@ -2002,10 +2002,11 @@ Opciones para continuar (elegir una):
 ## 19. Turno de 45 s, auto-pick por mayor MMR y capitanes marcados (22/10/2026)
 
 - **Hallazgo tras aplicar el SQL del orden**: el draft seguía repartiendo **R-R-R-D-D-R** y cerrando en el pick 6. El motivo no era el helper (que devuelve `A,B,B,A,A,B,B,A` correctamente) sino que **`es_capitan` nunca se ponía en `true`**: los dos capitanes contaban dentro de los 8 picks, así que `v_hechos` arrancaba en 2, el turno se desplazaba (`n = v_hechos + 1` → 4, 5...) y el draft terminaba al llegar a 8 con solo 6 picks reales. Efecto secundario en la UI: el contador mostraba `Pick 3/8` al empezar y no salía la ⭐ de capitán.
-- **SQL** (`docs/sql/2026-10-22-turno-45s-autopick-mmr.sql`, **pendiente de aplicar**):
+- **SQL** (`docs/sql/2026-10-22-turno-45s-autopick-mmr.sql`, aplicado):
   - `pickear_jugador` y `auto_pickear_si_vencido` cuentan los picks **excluyendo a los dos capitanes por id** (`user_id is distinct from pick_capitan1/2`), sin depender de `es_capitan`;
   - trigger `sincronizar_capitanes` (`after insert or update of pick_capitan1, pick_capitan2 on salas`): deja `es_capitan = true` solo a esos dos jugadores (y en `false` al resto) con un backfill para las salas que ya tienen capitanes;
   - turno de **45 s**: `pickear_jugador` y `auto_pickear_si_vencido` lo fijan directamente y el trigger `limitar_turno_pick` (`before insert or update of pick_turno_expira_at on salas`) acota cualquier valor mayor a 45 s, porque `iniciar_picks`, `elegir_moneda`, `elegir_lado` y `elegir_radiant_o_lastpick` viven en funciones que no están en el repo y fijan 60 s;
   - el auto-pick ordena solo por **`mmr` desc** (desempate: `created_at asc`); ya no prioriza los roles que le faltan al equipo.
 - **UI**: el texto del panel admin pasa a “Si no pickea en 45 segundos, el sistema elegirá automáticamente al jugador de mayor MMR disponible.”
 - **QA**: `flows.mjs` detecta el SQL pendiente porque los capitanes no están marcados (`[pendiente]`) y, cuando esté aplicado, comprueba además que el primer turno y los siguientes duran ~45 s y que el auto-pick del pick 7 elige al jugador con más MMR de los dos que quedan (les pone 9000/1000 temporalmente y restaura su MMR al terminar).
+- **Aplicado y verificado (22/10/2026)**: al primer intento el backfill falló (`null value in column "es_capitan"`) porque hay salas con participantes en un equipo pero sin `pick_capitan1/2` guardado → `user_id = null` daba `NULL` y la columna es `NOT NULL`. Se corrigió con `coalesce(..., false)` en el trigger y en el backfill (commit `e76fb21`), y el `select set_config(...)` de nivel superior se pasó a un bloque `do $$ ... $$` para que el editor no muestre `set_config | on`. Con el SQL aplicado, `npm run qa:flows` queda verde: `R-D-D-R-R-D` + auto-picks `D` y `R` → **R-DD-RR-DD-R**, 5/5, turnos de ~45 s y el pick 7 al de mayor MMR.
