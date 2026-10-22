@@ -19,6 +19,7 @@ import ResumenJugador from '@/components/ResumenJugador';
 import VivoJugador from '@/components/VivoJugador';
 import VivoMarcador from '@/components/VivoMarcador';
 import { partidaVivaMock } from '@/lib/vivoMock';
+import { duracionDesdeInicio } from '@/lib/vivo';
 import type { JugadorVivo } from '@/lib/vivo';
 import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
 import {
@@ -1376,8 +1377,14 @@ function SalaContenido() {
 
   // Partida en vivo de la sala (MOCK hasta que llegue el league_id de Valve).
   const partidaViva = useMemo(
-    () => (sala?.estado === 'en_juego' ? partidaVivaMock(participantes) : null),
-    [sala?.estado, participantes]
+    () =>
+      sala?.estado === 'en_juego'
+        ? partidaVivaMock(
+            participantes,
+            sala.iniciada_at ? duracionDesdeInicio(sala.iniciada_at) : undefined
+          )
+        : null,
+    [sala, participantes]
   );
   const vivoPorNick = useMemo(() => {
     const mapa = new Map<string, JugadorVivo>();
@@ -1606,8 +1613,14 @@ function SalaContenido() {
 
         {/* Marcador en vivo de la partida */}
         {partidaViva && (
-          <div className="mb-3">
+          <div className="mb-3 space-y-2">
             <VivoMarcador partida={partidaViva} />
+            <Link
+              href={`/salas/${sala.id}/partida`}
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-200 transition hover:bg-emerald-500/15"
+            >
+              Ver datos de la partida (K/D/A, ítems, oro y mapa) →
+            </Link>
           </div>
         )}
 

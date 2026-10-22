@@ -17,6 +17,7 @@ import PreferenciaLado from '@/components/PreferenciaLado';
 import HeroEnSlot from '@/components/HeroEnSlot';
 import ResumenJugador from '@/components/ResumenJugador';
 import { partidaVivaMock } from '@/lib/vivoMock';
+import { duracionDesdeInicio } from '@/lib/vivo';
 import type { JugadorVivo } from '@/lib/vivo';
 import { intentarCierreAutomatico } from '@/lib/dotaAutoClose';
 import { reproducirSonido } from '@/lib/sonidos';
@@ -903,8 +904,14 @@ function AdminSalaContenido() {
 
   // Partida en vivo de la sala (MOCK hasta que llegue el league_id de Valve).
   const partidaViva = useMemo(
-    () => (sala?.estado === 'en_juego' ? partidaVivaMock(participantes) : null),
-    [sala?.estado, participantes]
+    () =>
+      sala?.estado === 'en_juego'
+        ? partidaVivaMock(
+            participantes,
+            sala.iniciada_at ? duracionDesdeInicio(sala.iniciada_at) : undefined
+          )
+        : null,
+    [sala, participantes]
   );
   const vivoPorNick = useMemo(() => {
     const mapa = new Map<string, JugadorVivo>();

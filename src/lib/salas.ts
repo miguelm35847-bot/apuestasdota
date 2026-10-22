@@ -9,6 +9,7 @@ export type SalaPublica = {
   estado: string;
   modalidad: string | null;
   destacada?: boolean | null;
+  iniciada_at?: string | null;
   participantes_sala: { count: number }[];
 };
 

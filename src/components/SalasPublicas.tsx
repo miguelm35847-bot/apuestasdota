@@ -13,6 +13,7 @@ import FormularioCrearSala from '@/components/FormularioCrearSala';
 import PerfilHover from '@/components/PerfilHover';
 import HeroEnSlot from '@/components/HeroEnSlot';
 import VivoMarcador from '@/components/VivoMarcador';
+import { duracionDesdeInicio } from '@/lib/vivo';
 import { jugadorVivoDe, partidaVivaMock } from '@/lib/vivoMock';
 
 function ringEquipo(equipo: number | null) {
@@ -177,8 +178,15 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
             const esRadiant = index % 2 === 0;
 
             // Partida en vivo de la sala (MOCK hasta que llegue el league_id).
+            // El reloj sale de `iniciada_at` para que coincida con la vista
+            // completa de la partida.
             const partidaViva =
-              sala.estado === 'en_juego' ? partidaVivaMock(parts) : null;
+              sala.estado === 'en_juego'
+                ? partidaVivaMock(
+                    parts,
+                    sala.iniciada_at ? duracionDesdeInicio(sala.iniciada_at) : undefined
+                  )
+                : null;
 
             // Mismo cálculo que la sala y el hero: pozo menos comisión, dividido
             // entre los ganadores de cada equipo.
@@ -408,7 +416,18 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                 </div>
 
                 <div className="relative mt-3">
-                  {!isAuthenticated ? (
+                  {sala.estado === 'en_juego' ? (
+                    <Link
+                      href={`/salas/${sala.id}/partida`}
+                      className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-500 py-2.5 text-center text-sm font-bold text-[#04120c] shadow-[0_12px_30px_-16px_rgba(16,185,129,0.8)] transition hover:bg-emerald-400"
+                    >
+                      <span
+                        className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#04120c]/70"
+                        aria-hidden="true"
+                      />
+                      Ver datos de la partida
+                    </Link>
+                  ) : !isAuthenticated ? (
                     <Link
                       href="/login"
                       className="block w-full rounded-xl bg-white py-2.5 text-center text-sm font-bold text-[#070a10] shadow-[0_0_32px_-16px_rgba(255,255,255,0.7)] transition hover:bg-slate-200"

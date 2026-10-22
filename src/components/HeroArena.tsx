@@ -8,6 +8,7 @@ import PerfilHover from '@/components/PerfilHover';
 import { useSalas } from '@/components/SalasProvider';
 import HeroEnSlot from '@/components/HeroEnSlot';
 import VivoMarcador from '@/components/VivoMarcador';
+import { duracionDesdeInicio } from '@/lib/vivo';
 import { jugadorVivoDe, partidaVivaMock } from '@/lib/vivoMock';
 import type { SalaPublica } from '@/lib/salas';
 
@@ -166,8 +167,14 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
 
   // Partida en vivo de la sala destacada (MOCK hasta que llegue el league_id).
   const partidaViva = useMemo(
-    () => (destacada?.estado === 'en_juego' ? partidaVivaMock(roster) : null),
-    [destacada?.estado, roster]
+    () =>
+      destacada?.estado === 'en_juego'
+        ? partidaVivaMock(
+            roster,
+            destacada.iniciada_at ? duracionDesdeInicio(destacada.iniciada_at) : undefined
+          )
+        : null,
+    [destacada, roster]
   );
 
   const alMoverCursor = (event: React.PointerEvent<HTMLElement>) => {
@@ -455,10 +462,20 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                     )}
 
                     <Link
-                      href={isAuthenticated ? `/salas/${destacada.id}` : '/login'}
+                      href={
+                        destacada.estado === 'en_juego'
+                          ? `/salas/${destacada.id}/partida`
+                          : isAuthenticated
+                            ? `/salas/${destacada.id}`
+                            : '/login'
+                      }
                       className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-3 text-sm font-bold text-[#070a10] shadow-[0_0_38px_-16px_rgba(255,255,255,0.8)] transition hover:bg-slate-200 sm:mt-5"
                     >
-                      {isAuthenticated ? 'Entrar a la sala' : 'Inicia sesión para entrar'}
+                      {destacada.estado === 'en_juego'
+                        ? 'Ver datos de la partida'
+                        : isAuthenticated
+                          ? 'Entrar a la sala'
+                          : 'Inicia sesión para entrar'}
                       <span aria-hidden="true">→</span>
                     </Link>
                   </>

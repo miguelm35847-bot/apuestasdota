@@ -33,6 +33,8 @@ export type Sala = {
   modalidad?: string;
   destacada?: boolean;
   creado_por?: string;
+  /** Se guarda cuando la sala pasa a `en_juego` (trigger `marcar_inicio_sala`). */
+  iniciada_at?: string | null;
   created_at: string;
   participantes_sala?: { count: number }[];
   participantes_count?: number;

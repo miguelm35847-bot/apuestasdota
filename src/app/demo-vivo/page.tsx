@@ -4,7 +4,9 @@ import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
 import VivoMarcador from '@/components/VivoMarcador';
 import VivoJugador from '@/components/VivoJugador';
-import { PartidaViva } from '@/lib/vivo';
+import PartidaDetalle from '@/components/PartidaDetalle';
+import type { PartidaViva } from '@/lib/vivo';
+import { partidaVivaMock } from '@/lib/vivoMock';
 
 /**
  * Vista previa de la partida en vivo.
@@ -13,30 +15,21 @@ import { PartidaViva } from '@/lib/vivo';
  * conectar la API de Valve (que solo publica partidas de liga/torneo).
  */
 
-const PARTIDA: PartidaViva = {
-  matchId: 9055212787,
-  duracionSegundos: 1421,
-  radiant: {
-    score: 24,
-    jugadores: [
-      { accountId: 1, nick: 'mik', heroId: 1, heroNombre: 'Anti-Mage', heroSlug: 'antimage', kills: 9, deaths: 2, assists: 6 },
-      { accountId: 2, nick: 'asdfbhbwnef', heroId: 8, heroNombre: 'Juggernaut', heroSlug: 'juggernaut', kills: 6, deaths: 4, assists: 9 },
-      { accountId: 3, nick: 'Kchaprras', heroId: 44, heroNombre: 'Phantom Assassin', heroSlug: 'phantom_assassin', kills: 4, deaths: 3, assists: 7 },
-      { accountId: 4, nick: 'Polar', heroId: 20, heroNombre: 'Vengeful Spirit', heroSlug: 'vengefulspirit', kills: 2, deaths: 5, assists: 11 },
-      { accountId: 5, nick: 'Musulman', heroId: 13, heroNombre: 'Puck', heroSlug: 'puck', kills: 3, deaths: 3, assists: 8 },
-    ],
-  },
-  dire: {
-    score: 18,
-    jugadores: [
-      { accountId: 6, nick: 'Yunois', heroId: 25, heroNombre: 'Lina', heroSlug: 'lina', kills: 7, deaths: 4, assists: 4 },
-      { accountId: 7, nick: 'qa-p1', heroId: 48, heroNombre: 'Luna', heroSlug: 'luna', kills: 5, deaths: 3, assists: 6 },
-      { accountId: 8, nick: 'qa-p2', heroId: 5, heroNombre: 'Crystal Maiden', heroSlug: 'crystal_maiden', kills: 3, deaths: 6, assists: 12 },
-      { accountId: 9, nick: 'qa-p3', heroId: 84, heroNombre: 'Ogre Magi', heroSlug: 'ogre_magi', kills: 2, deaths: 4, assists: 9 },
-      { accountId: 10, nick: 'qa-p4', heroId: 35, heroNombre: 'Sniper', heroSlug: 'sniper', kills: 1, deaths: 5, assists: 3 },
-    ],
-  },
-};
+const PARTIDA = partidaVivaMock(
+  [
+    { user_id: 'demo-1', equipo: 1, profiles: { nick: 'mik' } },
+    { user_id: 'demo-2', equipo: 1, profiles: { nick: 'asdfbhbwnef' } },
+    { user_id: 'demo-3', equipo: 1, profiles: { nick: 'Kchaprras' } },
+    { user_id: 'demo-4', equipo: 1, profiles: { nick: 'Polar' } },
+    { user_id: 'demo-5', equipo: 1, profiles: { nick: 'Musulman' } },
+    { user_id: 'demo-6', equipo: 2, profiles: { nick: 'Yunois' } },
+    { user_id: 'demo-7', equipo: 2, profiles: { nick: 'qa-p1' } },
+    { user_id: 'demo-8', equipo: 2, profiles: { nick: 'qa-p2' } },
+    { user_id: 'demo-9', equipo: 2, profiles: { nick: 'qa-p3' } },
+    { user_id: 'demo-10', equipo: 2, profiles: { nick: 'qa-p4' } },
+  ],
+  1421
+) as PartidaViva;
 
 export default function DemoVivoPage() {
   useArenaBody();
@@ -143,6 +136,21 @@ export default function DemoVivoPage() {
                 </ul>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section
+          id="datos-partida"
+          className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-arena-soft"
+        >
+          <h2 className="font-display text-base font-bold text-white">3. Datos de la partida</h2>
+          <p className="mt-1 text-xs text-slate-400">
+            La vista que abre el botón «Ver datos de la partida» desde las tarjetas del landing:
+            K/D/A, oro, GPM/XPM, último golpe, ítems, día/noche y mapa.
+          </p>
+
+          <div className="mt-4">
+            <PartidaDetalle partida={PARTIDA} />
           </div>
         </section>
       </main>
