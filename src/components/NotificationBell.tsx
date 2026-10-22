@@ -14,6 +14,7 @@ export default function NotificationBell() {
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const pedidosVistos = useRef<Record<string, string>>({});
   const sorteosVistos = useRef<Record<string, string>>({});
+  const listosVistos = useRef<Record<string, string>>({});
   const userIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function NotificationBell() {
         (event) => {
           const sala = event.new as {
             id?: string;
+            cupo?: number;
             verificacion_estado?: string;
             verificacion_iniciada_at?: string | null;
             picks_estado?: string;
@@ -55,11 +57,24 @@ export default function NotificationBell() {
 
           // Se pidió la verificación: suena a los jugadores de esa sala.
           if (sala.verificacion_estado === 'pendiente') {
+            listosVistos.current[sala.id] = '';
             const clave = sala.verificacion_iniciada_at ?? '';
             if (pedidosVistos.current[sala.id] !== clave) {
               pedidosVistos.current[sala.id] = clave;
               void avisarSiSoyDeLaSala(sala.id);
             }
+          }
+
+          // En una 5v5, cuando todos confirmaron, el admin que creó la sala
+          // recibe un sonido para que elija a los capitanes.
+          if (
+            sala.verificacion_estado === 'completa' &&
+            sala.cupo === 10 &&
+            sala.creado_por === userIdRef.current &&
+            listosVistos.current[sala.id] !== 'completa'
+          ) {
+            listosVistos.current[sala.id] = 'completa';
+            reproducirSonido('listos');
           }
 
           // Se lanzó la moneda: el admin que creó la sala recibe el aviso

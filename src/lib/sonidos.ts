@@ -11,12 +11,14 @@
  * Sonidos:
  *  - 'verificacion': aviso de que el admin pide confirmar "Estoy listo".
  *    Solo se reproduce dentro de la sala.
+ *  - 'listos': todos confirmaron "Estoy listo" en una 5v5. Suena al admin
+ *    que creó la sala para que elija a los capitanes y lance la moneda.
  *  - 'moneda': se lanzó la moneda del sorteo: el admin puede crear el lobby
  *    en Dota y poner la sala en juego.
  *  - 'fin': la partida terminó. Suena para todos los jugadores de la sala,
  *    estén o no dentro de la sala (llega por notificación).
  */
-export type TonoSonido = 'verificacion' | 'moneda' | 'fin';
+export type TonoSonido = 'verificacion' | 'listos' | 'moneda' | 'fin';
 
 let contexto: AudioContext | null = null;
 let preparado = false;
@@ -80,6 +82,14 @@ function sonar(ctx: AudioContext, tono: TonoSonido) {
   if (tono === 'verificacion') {
     tocarTono(ctx, 880, 0, 0.13, 0.16);
     tocarTono(ctx, 1174, 0.17, 0.16, 0.16);
+    return;
+  }
+  if (tono === 'listos') {
+    // Acorde ascendente de "todos listos": más largo que el aviso de pedir.
+    tocarTono(ctx, 659, 0, 0.16, 0.15);
+    tocarTono(ctx, 784, 0.16, 0.16, 0.15);
+    tocarTono(ctx, 988, 0.32, 0.18, 0.15);
+    tocarTono(ctx, 1318, 0.52, 0.3, 0.13);
     return;
   }
   if (tono === 'moneda') {

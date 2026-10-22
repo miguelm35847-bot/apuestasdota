@@ -470,7 +470,7 @@ function TableroPicks({
   procesando,
   miPreferencia,
   onPreferencia,
-  onElegirMoneda,
+  onElegirRadiantOLastPick,
   onElegirLado,
   onPickear,
 }: {
@@ -481,7 +481,7 @@ function TableroPicks({
   procesando: boolean;
   miPreferencia: number | null;
   onPreferencia: (equipo: number | null) => void;
-  onElegirMoneda: (opcion: 'pickear_primero' | 'lado') => void;
+  onElegirRadiantOLastPick: (opcion: 'radiant' | 'lastpick') => void;
   onElegirLado: (equipo: number) => void;
   onPickear: (userId: string) => void;
 }) {
@@ -514,6 +514,18 @@ function TableroPicks({
   );
   const rivalMoneda = aMoneda(
     participantes.find((p) => p.user_id !== sala.pick_decision_user_id) ?? null
+  );
+
+  // 5v5: la moneda se lanza entre los dos capitanes elegidos por el admin.
+  const capitanMoneda = aMoneda(
+    participantes.find((p) => p.user_id === sala.pick_ganador_moneda) ?? null
+  );
+  const rivalCapitan = aMoneda(
+    participantes.find(
+      (p) =>
+        p.user_id !== sala.pick_ganador_moneda &&
+        (p.user_id === sala.pick_capitan1 || p.user_id === sala.pick_capitan2)
+    ) ?? null
   );
 
   function Ficha({ p, conResumen = false }: { p: Participante; conResumen?: boolean }) {
@@ -661,53 +673,35 @@ function TableroPicks({
             </>
           ) : (
             <>
-              <p className="text-sm text-amber-200">
-                🪙 La moneda eligió a <strong>{nombre(sala.pick_ganador_moneda)}</strong>. El ganador
-                decide si pickea primero o elige lado; el otro completa la decisión.
+              <MonedaSorteo ganador={capitanMoneda} rival={rivalCapitan} />
+
+              <p className="mt-2 text-center text-sm text-amber-200">
+                🪙 La moneda eligió a <strong>{nombre(sala.pick_ganador_moneda)}</strong>. Elige{' '}
+                <strong>Radiant</strong> (y pickeas primero) o <strong>LastPick</strong> (Dire y
+                pickeas segundo).
               </p>
 
-              {deboDecidir && sala.pick_decision_tipo === 'moneda' && (
-                <div className="mt-3 flex flex-wrap gap-2">
+              {deboDecidir ? (
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   <button
-                    onClick={() => onElegirMoneda('pickear_primero')}
-                    disabled={procesando}
-                    className="rounded-lg bg-prism-500 px-4 py-2 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
-                  >
-                    Quiero pickear primero
-                  </button>
-                  <button
-                    onClick={() => onElegirMoneda('lado')}
-                    disabled={procesando}
-                    className="rounded-lg bg-slate-700 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
-                  >
-                    Quiero elegir lado
-                  </button>
-                </div>
-              )}
-
-              {deboDecidir && sala.pick_decision_tipo === 'lado' && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <p className="w-full text-sm text-amber-200">Elige tu lado:</p>
-                  <button
-                    onClick={() => onElegirLado(1)}
+                    onClick={() => onElegirRadiantOLastPick('radiant')}
                     disabled={procesando}
                     className="rounded-lg border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/25 disabled:opacity-50"
                   >
-                    Radiant
+                    ☀ Radiant · pickeo primero
                   </button>
                   <button
-                    onClick={() => onElegirLado(2)}
+                    onClick={() => onElegirRadiantOLastPick('lastpick')}
                     disabled={procesando}
                     className="rounded-lg border border-rose-400/30 bg-rose-500/15 px-4 py-2 text-sm font-semibold text-rose-100 transition hover:bg-rose-500/25 disabled:opacity-50"
                   >
-                    Dire
+                    ☾ LastPick · Dire
                   </button>
                 </div>
-              )}
-
-              {!deboDecidir && (
-                <p className="mt-3 text-sm text-amber-300">
-                  Esperando la decisión de <strong>{nombre(sala.pick_decision_user_id)}</strong>…
+              ) : (
+                <p className="mt-3 text-center text-sm text-amber-300">
+                  Esperando a que <strong>{nombre(sala.pick_decision_user_id)}</strong> elija
+                  Radiant o LastPick…
                 </p>
               )}
             </>
@@ -1266,19 +1260,32 @@ function SalaContenido() {
     setGuardandoRoles(false);
   }
 
-  async function elegirMoneda(opcion: 'pickear_primero' | 'lado') {
+  async function elegirRadiantOLastPick(opcion: 'radiant' | 'lastpick') {
     setError(null);
     setSuccess(null);
     setProcesandoPicks(true);
 
-    const { error: rpcError } = await supabase.rpc('elegir_moneda', {
+    const { error: rpcError } = await supabase.rpc('elegir_radiant_o_lastpick', {
       p_sala: salaId,
       p_opcion: opcion,
     });
 
     if (rpcError) {
-      setError(rpcError.message);
+      const faltaSql =
+        rpcError.code === 'PGRST202' ||
+        rpcError.code === '42883' ||
+        /could not find the function|schema cache/i.test(rpcError.message);
+      setError(
+        faltaSql
+          ? 'Falta aplicar docs/sql/2026-10-21-eleccion-radiant-lastpick.sql en Supabase para elegir Radiant o LastPick.'
+          : rpcError.message
+      );
     } else {
+      setSuccess(
+        opcion === 'radiant'
+          ? 'Elegiste Radiant: pickeas primero.'
+          : 'Elegiste LastPick: juegas Dire y pickeas segundo.'
+      );
       cargarSala();
     }
     setProcesandoPicks(false);
@@ -1710,7 +1717,7 @@ function SalaContenido() {
               participantes.find((p) => p.user_id === userId)?.preferencia_equipo ?? null
             }
             onPreferencia={elegirPreferencia}
-            onElegirMoneda={elegirMoneda}
+            onElegirRadiantOLastPick={elegirRadiantOLastPick}
             onElegirLado={elegirLado}
             onPickear={pickearJugador}
           />

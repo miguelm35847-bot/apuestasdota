@@ -12,6 +12,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import ChatPanel from '@/components/ChatPanel';
 import Avatar from '@/components/Avatar';
 import MedallaMmr from '@/components/MedallaMmr';
+import MonedaSorteo from '@/components/MonedaSorteo';
 import PreferenciaLado from '@/components/PreferenciaLado';
 import HeroEnSlot from '@/components/HeroEnSlot';
 import ResumenJugador from '@/components/ResumenJugador';
@@ -1005,6 +1006,32 @@ function AdminSalaContenido() {
   const verificacionEstado = sala.verificacion_estado ?? 'inactiva';
   const listos = participantes.filter((p) => p.verificado_at).length;
 
+  // Moneda 5v5: se muestra con el avatar de los dos capitanes.
+  const aMoneda = (p: Participante | null) =>
+    p
+      ? {
+          id: p.user_id,
+          nick: p.profiles?.nick ?? null,
+          steam_avatar_url: p.profiles?.steam_avatar_url ?? null,
+        }
+      : null;
+  const capitanMoneda = aMoneda(
+    participantes.find((p) => p.user_id === sala.pick_ganador_moneda) ?? null
+  );
+  const rivalCapitan = aMoneda(
+    participantes.find(
+      (p) =>
+        p.user_id !== sala.pick_ganador_moneda &&
+        (p.user_id === sala.pick_capitan1 || p.user_id === sala.pick_capitan2)
+    ) ?? null
+  );
+  // Todos listos y sin picks: toca elegir capitanes.
+  const tocaElegirCapitanes =
+    sala.cupo === 10 &&
+    verificacionEstado === 'completa' &&
+    picksEstado === 'inactivo' &&
+    participantes.length === sala.cupo;
+
   return (
     <div className="arena-shell min-h-screen bg-[#0a0e17] text-slate-100">
       <Navbar titulo={`Admin: ${sala.nombre}`} />
@@ -1206,8 +1233,14 @@ function AdminSalaContenido() {
 
                 {picksEstado === 'inactivo' && (
                   <>
+                    {tocaElegirCapitanes && (
+                      <div className="mt-2 rounded-lg border border-emerald-400/30 bg-emerald-500/10 p-2 text-xs text-emerald-200">
+                        ✅ Los {participantes.length} jugadores confirmaron que están listos.
+                        Elige a los dos capitanes y guarda para lanzar la moneda.
+                      </div>
+                    )}
                     <p className="mt-1 text-xs text-prism-300">
-                      Elige dos capitanes y lanza la moneda.
+                      Elige a los dos capitanes. Al guardarlos se lanza la moneda con sus avatares.
                     </p>
                     <div className="mt-2 grid gap-2 md:grid-cols-2">
                       <label className="block">
@@ -1244,9 +1277,13 @@ function AdminSalaContenido() {
                     <button
                       onClick={iniciarPicks}
                       disabled={procesandoPicks || participantes.length !== 10}
-                      className="mt-2 w-full rounded-lg bg-prism-500 py-1.5 text-sm font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
+                      className={`mt-2 w-full rounded-lg py-1.5 text-sm font-semibold shadow-arena-glow transition disabled:opacity-50 ${
+                        tocaElegirCapitanes
+                          ? 'bg-emerald-500 text-emerald-950 hover:bg-emerald-400'
+                          : 'bg-prism-500 text-white hover:bg-prism-400'
+                      }`}
                     >
-                      {procesandoPicks ? 'Lanzando moneda…' : 'Lanzar moneda e iniciar picks'}
+                      {procesandoPicks ? 'Lanzando moneda…' : 'Guardar capitanes y lanzar moneda'}
                     </button>
                     {participantes.length !== 10 && (
                       <p className="mt-1.5 text-xs text-prism-300">
@@ -1257,17 +1294,16 @@ function AdminSalaContenido() {
                 )}
 
                 {picksEstado === 'eleccion' && (
-                  <div className="mt-2 text-sm text-prism-200">
-                    <p>
+                  <div className="mt-2">
+                    <MonedaSorteo ganador={capitanMoneda} rival={rivalCapitan} />
+                    <p className="mt-2 text-sm text-prism-200">
                       🪙 La moneda eligió a{' '}
                       <strong>{nombreJugador(sala.pick_ganador_moneda)}</strong>.
                     </p>
                     <p className="mt-1 text-xs text-prism-300">
-                      Ahora decide <strong>{nombreJugador(sala.pick_decision_user_id)}</strong>:{' '}
-                      {sala.pick_decision_tipo === 'moneda'
-                        ? 'pickear primero o elegir lado'
-                        : 'elegir Radiant o Dire'}
-                      . La decisión se toma desde la sala del jugador.
+                      Ahora <strong>{nombreJugador(sala.pick_decision_user_id)}</strong> elige desde su
+                      sala: <strong>Radiant</strong> (pickea primero) o <strong>LastPick</strong>{' '}
+                      (Dire y pickea segundo).
                     </p>
                   </div>
                 )}
@@ -1418,6 +1454,12 @@ function AdminSalaContenido() {
                     Todos los jugadores confirmaron que están listos ({listos}/
                     {participantes.length}).
                   </p>
+                  {tocaElegirCapitanes && (
+                    <p className="mt-1 text-xs text-emerald-300">
+                      Siguiente paso: elige a los dos capitanes en <strong>Equipos → Fase de picks</strong>{' '}
+                      y guarda para lanzar la moneda.
+                    </p>
+                  )}
                   <button
                     onClick={pedirVerificacion}
                     disabled={pidiendoVerificacion}

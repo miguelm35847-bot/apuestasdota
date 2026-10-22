@@ -25,6 +25,7 @@ import {
   participantesDe,
   paso,
   rpc,
+  rpcSeguro,
   salaPorId,
   saldoActor,
   unir,
@@ -111,14 +112,28 @@ async function escenario1v1(adminToken, jugadores) {
       return `${partes.length}/2`;
     });
 
-    await paso('1v1: al llenarse se dispara el sorteo de lado', async () => {
+    await paso('1v1: al llenarse se pide la verificación "Estoy listo"', async () => {
       await unir(p2.token, salaId);
       const actual = await salaPorId(salaId);
       const partes = await participantesDe(salaId);
-      const ids = [p1.user.id, p2.user.id];
       assert(partes.length === 2, `participantes ${partes.length}`);
       assert(actual.estado === 'llena', `estado ${actual.estado}`);
-      assert(actual.picks_estado === 'eleccion', `picks ${actual.picks_estado} (¿falta ejecutar sorteo_1v1_sync?)`);
+      assert(actual.picks_estado === 'inactivo', `picks ${actual.picks_estado}`);
+      assert(actual.verificacion_estado === 'pendiente', `verificación ${actual.verificacion_estado}`);
+      return 'esperando a los dos listos';
+    });
+
+    await paso('1v1: cuando los dos confirman se lanza la moneda', async () => {
+      await rpc(p1.token, 'confirmar_verificacion', { p_sala: salaId });
+      const medio = await salaPorId(salaId);
+      assert(medio.picks_estado === 'inactivo', 'la moneda se lanzó con un solo jugador listo');
+
+      await rpc(p2.token, 'confirmar_verificacion', { p_sala: salaId });
+      const actual = await salaPorId(salaId);
+      const partes = await participantesDe(salaId);
+      const ids = [p1.user.id, p2.user.id];
+      assert(actual.verificacion_estado === 'completa', `verificación ${actual.verificacion_estado}`);
+      assert(actual.picks_estado === 'eleccion', `picks ${actual.picks_estado} (¿falta sortear_1v1?)`);
       assert(actual.pick_decision_tipo === 'lado', `decisión ${actual.pick_decision_tipo}`);
       assert(ids.includes(actual.pick_decision_user_id), 'el ganador del sorteo no está en la sala');
       assert(actual.pick_capitan1 && actual.pick_capitan2, 'faltan capitanes del sorteo');
@@ -222,29 +237,44 @@ async function escenario5v5(adminToken, jugadores) {
       return `gana ${ganador === p1.user.id ? 'qa-p1' : 'qa-p2'}`;
     });
 
-    await paso('5v5: el ganador elige pickear primero y el otro elige lado', async () => {
+    await paso('5v5: el ganador elige Radiant (pickea primero) y arranca el draft', async () => {
       const antes = await salaPorId(salaId);
       const ganador = antes.pick_decision_user_id;
       const otro = ganador === antes.pick_capitan1 ? antes.pick_capitan2 : antes.pick_capitan1;
 
-      await rpc(tokenDe(jugadores, ganador), 'elegir_moneda', {
+      const decision = await rpcSeguro(tokenDe(jugadores, ganador), 'elegir_radiant_o_lastpick', {
         p_sala: salaId,
-        p_opcion: 'pickear_primero',
+        p_opcion: 'radiant',
       });
-      const medio = await salaPorId(salaId);
-      assert(medio.pick_primer_user_id === ganador, 'el primer pick no quedó en el ganador');
-      assert(medio.pick_decision_user_id === otro, 'el otro capitán no quedó a cargo del lado');
-      assert(medio.pick_decision_tipo === 'lado', `decisión ${medio.pick_decision_tipo}`);
 
-      await rpc(tokenDe(jugadores, otro), 'elegir_lado', { p_sala: salaId, p_equipo: 1 });
+      if (!decision.ok) {
+        if (!/could not find the function|schema cache/i.test(decision.error.message)) {
+          throw new Error(decision.error.message);
+        }
+        // Sin el SQL nuevo todavía se puede verificar el resto del draft con
+        // el flujo anterior (pickear primero + el rival elige lado).
+        console.log(
+          '[pendiente] falta aplicar docs/sql/2026-10-21-eleccion-radiant-lastpick.sql',
+        );
+        await rpc(tokenDe(jugadores, ganador), 'elegir_moneda', {
+          p_sala: salaId,
+          p_opcion: 'pickear_primero',
+        });
+        await rpc(tokenDe(jugadores, otro), 'elegir_lado', { p_sala: salaId, p_equipo: 1 });
+        const partes = await participantesDe(salaId);
+        assert(partes.filter((p) => p.es_capitan).length === 2, 'capitanes duplicados');
+        return 'draft en curso (flujo anterior)';
+      }
+
       const despues = await salaPorId(salaId);
       const partes = await participantesDe(salaId);
-      const capitanes = partes.filter((p) => p.es_capitan);
+      const capitan = (id) => partes.find((p) => p.user_id === id);
       assert(despues.picks_estado === 'en_curso', `picks ${despues.picks_estado}`);
-      assert(despues.pick_turno_user_id === ganador, 'el turno no arrancó en el primer pick');
-      assert(capitanes.length === 2, `capitanes ${capitanes.length}`);
-      assert(new Set(capitanes.map((p) => p.equipo)).size === 2, 'capitanes del mismo lado');
-      return 'draft en curso';
+      assert(despues.pick_primer_user_id === ganador, 'el primer pick no quedó en el ganador');
+      assert(despues.pick_turno_user_id === ganador, 'el turno no arrancó en el ganador');
+      assert(capitan(ganador)?.equipo === 1, 'el ganador no quedó en Radiant');
+      assert(capitan(otro)?.equipo === 2, 'el rival no quedó en Dire');
+      return 'Radiant pickea primero';
     });
 
     await paso('5v5: dos picks manuales avanzan el turno', async () => {

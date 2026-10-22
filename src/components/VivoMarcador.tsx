@@ -26,15 +26,27 @@ export default function VivoMarcador({ partida, compacto = false, className = ''
         compacto ? 'px-2.5 py-1.5' : 'p-2.5'
       } ${className}`.trim()}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-          En vivo
-        </span>
-        <span className="text-[11px] font-bold tabular-nums text-slate-300">
-          ⏱ {relojDePartida(partida.duracionSegundos)}
-        </span>
-      </div>
+      {compacto ? (
+        <div className="relative flex items-center justify-center">
+          <span className="absolute left-0 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+            En vivo
+          </span>
+          <span className="text-[11px] font-bold tabular-nums text-slate-200">
+            ⏱ {relojDePartida(partida.duracionSegundos)}
+          </span>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+            En vivo
+          </span>
+          <span className="text-[11px] font-bold tabular-nums text-slate-300">
+            ⏱ {relojDePartida(partida.duracionSegundos)}
+          </span>
+        </div>
+      )}
 
       <div className="mt-1 flex items-center gap-1.5">
         <span className="font-display text-lg font-extrabold leading-none tabular-nums text-emerald-300">

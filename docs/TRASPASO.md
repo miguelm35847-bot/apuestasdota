@@ -115,9 +115,13 @@ Estados de sala: `abierta`, `llena`, `en_juego`, `terminada`, `cancelada`.
 
 Si el usuario aún no los ejecutó, pegarlos en Supabase:
 
-### Multa por abandonar una 5v5 llena (PENDIENTE · 21/10/2026)
+### Elección Radiant/LastPick en 5v5 (PENDIENTE · 21/10/2026)
 
-Ejecutar `docs/sql/2026-10-21-multa-abandono-5v5.sql`, que crea la RPC `salir_de_sala_con_multa`. Mientras no esté aplicada, la sala avisa de la multa pero al salir **no se cobra**: la app detecta que la función no existe y cae en `salir_de_sala` para no dejar al jugador atrapado.
+Ejecutar `docs/sql/2026-10-21-eleccion-radiant-lastpick.sql`, que crea la RPC `elegir_radiant_o_lastpick(p_sala, p_opcion)` (`'radiant'` | `'lastpick'`). Mientras no esté aplicada, el ganador de la moneda ve los dos botones pero al pulsarlos aparece el aviso “Falta aplicar docs/sql/2026-10-21-eleccion-radiant-lastpick.sql…” y la sala sigue en `eleccion` (no se rompe nada).
+
+### Multa por abandonar una 5v5 llena (ya aplicada)
+
+`docs/sql/2026-10-21-multa-abandono-5v5.sql` crea la RPC `salir_de_sala_con_multa`. Si alguna vez falta, la sala avisa de la multa pero al salir **no se cobra**: la app detecta que la función no existe y cae en `salir_de_sala` para no dejar al jugador atrapado. Falta comprobar el cobro real con una sala llena.
 
 ### Columnas de avatar Steam (ya ejecutadas)
 
@@ -1947,4 +1951,29 @@ Opciones para continuar (elegir una):
   - el movimiento de billetera es `ajuste_admin` negativo con `referencia_id` = sala.
 - **UI** (`src/app/salas/[id]/page.tsx`): si `cupo === 10 && estado === 'llena'`, el botón pasa a “Salir de la sala (multa de S/ 2.00)”, se muestra el aviso bajo el botón y se pide confirmación con `ConfirmDialog` (peligro). Si la RPC aún no existe en Supabase, la app cae en `salir_de_sala` y el jugador puede salir igual (sin multa).
 - **Verificado** (sin el SQL aplicado): botón, aviso, diálogo y salida con fallback probados con `qa-p1` en una sala 5v5 llena; `tsc`, `lint`, `build`, `qa:probes` 22/22 y QA visual (1366/390/360) en verde.
-- **Pendiente**: aplicar el SQL y comprobar el cobro real (saldo −S/ 2.00 y la multa en el panel de actividades).
+- **SQL ya aplicado** por el usuario el 21/10/2026. **Pendiente**: comprobar el cobro real (saldo −S/ 2.00 y la multa en el panel de actividades) abandonando una 5v5 llena.
+
+## 17. Flujo 5v5 completo y pulido de tarjetas (21/10/2026)
+
+- **Tarjetas del landing** (`src/components/SalasPublicas.tsx`):
+  - el chip de cupo (`10/10`) pasa a la **cabecera**, junto al estado (antes iba al final de la fila de avatares);
+  - cuando la sala tiene equipos, la fila se renderiza en **dos grupos**: Radiant (con la lista de espera y los slots libres) a la izquierda, un “vs” que ocupa el espacio libre (`flex-1 text-center`, así queda centrado) y Dire con `ml-auto` para pegarse al **extremo derecho**; si en móvil Dire cae a una segunda línea, `ml-auto` lo mantiene a la derecha. Sin equipos se mantiene la fila única con slots libres.
+- **Franja compacta** (`src/components/VivoMarcador.tsx`): el **reloj va al centro** (grid absoluto con “En vivo” a la izquierda) y el score sigue debajo. En la versión grande (sala) el reloj sigue a la derecha.
+- **Aviso al admin cuando todos están listos** (`src/components/NotificationBell.tsx` + `src/lib/sonidos.ts`):
+  - tono nuevo `'listos'` (acorde ascendente C5-E5-B5-E6, más largo que el de verificación);
+  - se dispara desde el canal Realtime de `salas` cuando `verificacion_estado` pasa a `completa` en una sala `cupo = 10` y el usuario es `creado_por`; se deduplica por sala (`listosVistos`) y se reinicia cuando la verificación vuelve a `pendiente`. En 1v1 no suena: allí la moneda se lanza sola y ya suena `'moneda'`.
+- **Admin de la sala** (`src/app/admin/salas/[id]/page.tsx`):
+  - banner verde “✅ Los 10 jugadores confirmaron que están listos. Elige a los dos capitanes y guarda para lanzar la moneda.” cuando `cupo = 10`, verificación `completa`, picks `inactivo` y 10/10 jugadores;
+  - el botón pasa a “Guardar capitanes y lanzar moneda” y se pinta en verde cuando toca; el texto explica que al guardar se lanza la moneda con los avatares;
+  - la tarjeta de verificación indica el siguiente paso; en `eleccion` se muestra `MonedaSorteo` con los dos capitanes.
+- **Sala del jugador** (`src/app/salas/[id]/page.tsx`):
+  - en 5v5 `eleccion` se muestra `MonedaSorteo` con los **avatares de los dos capitanes** y una única decisión: “☀ Radiant · pickeo primero” / “☾ LastPick · Dire”; si no eres el ganador, “Esperando a que X elija…”;
+  - se elimina el paso doble anterior (`elegir_moneda` → `elegir_lado`) para 5v5; la función `elegirRadiantOLastPick` llama a la RPC nueva y traduce el error de “function not found” al aviso de SQL pendiente. El 1v1 sigue igual (`elegir_lado`).
+- **SQL nuevo** (`docs/sql/2026-10-21-eleccion-radiant-lastpick.sql`): RPC `elegir_radiant_o_lastpick(p_sala uuid, p_opcion text)`.
+  - valida sesión, `cupo = 10`, `picks_estado = 'eleccion'`, que quien decide sea `pick_decision_user_id` y que existan los dos capitanes;
+  - `'radiant'` → el ganador queda Radiant y abre el draft; `'lastpick'` → el ganador queda Dire y el rival (Radiant) abre el draft;
+  - asigna `equipo` a los dos capitanes con `set_config('app.picks_operacion','on')` (igual que `pickear_jugador`), limpia `pick_decision_user_id`/`pick_decision_tipo`, fija `pick_primer_user_id` y `pick_turno_user_id` en el capitán de Radiant, `pick_turno_expira_at = now() + 60 s` y pone `picks_estado = 'en_curso'`;
+  - no reescribe `iniciar_picks`, `elegir_moneda`, `elegir_lado` ni `capitan_de_pick`: el resto del draft (serpiente A-B-B-A, 60 s por turno, auto-pick, el elegido va al equipo del capitán) sigue intacto. Se comprobó en vivo que tras una decisión de lado el sistema deja `pick_decision_user_id` y `pick_decision_tipo` en `null`, así que limpiarlos es lo esperado por el esquema.
+- **QA**:
+  - `scripts/qa/flows.mjs`: el escenario 1v1 se actualizó a la verificación automática (llena → `pendiente` → los dos confirman → moneda) y el 5v5 usa la RPC nueva con fallback al flujo anterior + `[pendiente]` si el SQL no está aplicado.
+  - Verificado con datos reales: `llena` → `pendiente` → 10 confirmaciones → `completa` → `iniciar_picks` → `eleccion` (gana `qa-p1`, moneda con los dos capitanes, botones de decisión) y el error guiado al pulsar sin el SQL. `qa:probes` 22/22, `qa:flows` 1v1 y 5v5 en verde, `tsc`/`lint`/`build` en verde. Medición por DOM de la tarjeta: reloj y “vs” exactamente al centro (desvío 0 px) y el último avatar de Dire a 17 px del borde en 1366/390/360.

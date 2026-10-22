@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -244,12 +244,17 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                         </span>
                       )}
                     </div>
-                    <span
-                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${estadoBadge(sala.estado)}`}
-                    >
-                      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
-                      {estadoTexto(sala.estado)}
-                    </span>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <span className="rounded-full bg-white/5 px-2 py-1 text-[11px] font-semibold tabular-nums text-slate-300 ring-1 ring-inset ring-white/10">
+                        {count}/{sala.cupo}
+                      </span>
+                      <span
+                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${estadoBadge(sala.estado)}`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+                        {estadoTexto(sala.estado)}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="mt-3 grid grid-cols-2 gap-2">
@@ -272,78 +277,98 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-start gap-1">
-                    {Array.from({ length: sala.cupo }).map((_, i) => {
-                      const p = ordenados[i];
-                      // Separador entre equipos: Radiant a la izquierda, Dire a la derecha.
-                      const separar =
-                        Boolean(partidaViva) &&
-                        p?.equipo === 2 &&
-                        i > 0 &&
-                        ordenados[i - 1]?.equipo === 1;
+                    {(() => {
+                      const celdaJugador = (p: (typeof ordenados)[number]) => (
+                        <PerfilHover
+                          key={p.user_id}
+                          usuario={{
+                            id: p.user_id,
+                            nick: p.profiles?.nick,
+                            steam_avatar_url: p.profiles?.steam_avatar_url,
+                            steam_nombre: p.profiles?.steam_nombre,
+                            mmr: p.profiles?.mmr,
+                            roles_preferidos: p.profiles?.roles_preferidos,
+                            equipo: p.equipo,
+                          }}
+                          className="inline-block shrink-0"
+                        >
+                          <Link
+                            href={`/jugadores/${p.user_id}`}
+                            aria-label={`Ver perfil de ${p.profiles?.nick ?? 'jugador'}`}
+                            className="flex flex-col items-center gap-0.5 rounded-lg p-0.5 transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
+                          >
+                            <Avatar
+                              nick={p.profiles?.nick ?? '?'}
+                              src={p.profiles?.steam_avatar_url}
+                              size="xs"
+                              ringClass={ringEquipo(p.equipo)}
+                              title={`${p.profiles?.nick ?? 'Usuario'}${
+                                p.profiles?.mmr != null ? ` · MMR ${p.profiles.mmr}` : ''
+                              }${
+                                p.equipo === 1
+                                  ? ' · Radiant'
+                                  : p.equipo === 2
+                                    ? ' · Dire'
+                                    : ' · Espera'
+                              }`}
+                            />
+                            {/* Héroe que está jugando: justo debajo del avatar. */}
+                            <HeroEnSlot
+                              jugador={jugadorVivoDe(partidaViva, p.profiles?.nick)}
+                              className="mt-0.5"
+                            />
+                          </Link>
+                        </PerfilHover>
+                      );
 
+                      const celdaLibre = (clave: string) => (
+                        <div key={clave} className="flex flex-col items-center gap-0.5" title="Slot libre">
+                          <span className="h-6 w-6 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]" />
+                          {/* espacio del icono de héroe para alinear la fila */}
+                          <span className="h-[18px] w-[18px]" />
+                        </div>
+                      );
+
+                      const radiantParts = ordenados.filter((p) => p.equipo === 1);
+                      const direParts = ordenados.filter((p) => p.equipo === 2);
+                      const restoParts = ordenados.filter(
+                        (p) => p.equipo !== 1 && p.equipo !== 2
+                      );
+                      const libres = Math.max(0, sala.cupo - ordenados.length);
+                      const conEquipos = radiantParts.length > 0 || direParts.length > 0;
+
+                      // Sin equipos: jugadores (y slots libres) en una sola fila.
+                      if (!conEquipos) {
+                        return (
+                          <>
+                            {Array.from({ length: sala.cupo }).map((_, i) =>
+                              ordenados[i] ? celdaJugador(ordenados[i]) : celdaLibre(`libre-${i}`)
+                            )}
+                          </>
+                        );
+                      }
+
+                      // Con equipos: Radiant a la izquierda, Dire al extremo derecho.
                       return (
-                        <Fragment key={p ? p.user_id : `libre-${i}`}>
-                          {separar && (
-                            <span className="mx-0.5 self-center rounded bg-white/5 px-1 py-0.5 text-[9px] font-bold uppercase leading-none text-slate-500">
+                        <>
+                          <div className="flex flex-wrap items-start gap-1">
+                            {radiantParts.map(celdaJugador)}
+                            {restoParts.map(celdaJugador)}
+                            {Array.from({ length: libres }).map((_, i) =>
+                              celdaLibre(`libre-${i}`)
+                            )}
+                          </div>
+                          {direParts.length > 0 && (
+                            <span className="min-w-0 flex-1 self-center text-center text-[9px] font-bold uppercase leading-none text-slate-500">
                               vs
                             </span>
                           )}
-                          {p ? (
-                            <PerfilHover
-                              usuario={{
-                                id: p.user_id,
-                                nick: p.profiles?.nick,
-                                steam_avatar_url: p.profiles?.steam_avatar_url,
-                                steam_nombre: p.profiles?.steam_nombre,
-                                mmr: p.profiles?.mmr,
-                                roles_preferidos: p.profiles?.roles_preferidos,
-                                equipo: p.equipo,
-                              }}
-                              className="inline-block shrink-0"
-                            >
-                              <Link
-                                href={`/jugadores/${p.user_id}`}
-                                aria-label={`Ver perfil de ${p.profiles?.nick ?? 'jugador'}`}
-                                className="flex flex-col items-center gap-0.5 rounded-lg p-0.5 transition hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#111827]"
-                              >
-                                <Avatar
-                                  nick={p.profiles?.nick ?? '?'}
-                                  src={p.profiles?.steam_avatar_url}
-                                  size="xs"
-                                  ringClass={ringEquipo(p.equipo)}
-                                  title={`${p.profiles?.nick ?? 'Usuario'}${
-                                    p.profiles?.mmr != null ? ` · MMR ${p.profiles.mmr}` : ''
-                                  }${
-                                    p.equipo === 1
-                                      ? ' · Radiant'
-                                      : p.equipo === 2
-                                        ? ' · Dire'
-                                        : ' · Espera'
-                                  }`}
-                                />
-                                {/* Héroe que está jugando: justo debajo del avatar. */}
-                                <HeroEnSlot
-                                  jugador={jugadorVivoDe(partidaViva, p.profiles?.nick)}
-                                  className="mt-0.5"
-                                />
-                              </Link>
-                            </PerfilHover>
-                          ) : (
-                            <div
-                              className="flex flex-col items-center gap-0.5"
-                              title="Slot libre"
-                            >
-                              <span className="h-6 w-6 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]" />
-                              {/* espacio del icono de héroe para alinear la fila */}
-                              <span className="h-[18px] w-[18px]" />
-                            </div>
-                          )}
-                        </Fragment>
+                          <div className="ml-auto flex flex-wrap items-start justify-end gap-1">
+                            {direParts.map(celdaJugador)}
+                          </div>
+                        </>
                       );
-                    })}
-                    <span className="ml-1 self-center rounded-full bg-white/5 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-slate-300">
-                      {count}/{sala.cupo}
-                    </span>
+                    })()}
                   </div>
 
                   {/* Marcador en vivo de la partida de esta sala. */}
