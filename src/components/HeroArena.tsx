@@ -3,7 +3,7 @@
 import ImportesSala from '@/components/ImportesSala';
 import BotonApostar from '@/components/ApuestasProvider';
 import ApuestasPublicas from '@/components/ApuestasPublicas';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Avatar from '@/components/Avatar';
@@ -138,6 +138,7 @@ function IconWallet({ className = '' }: { className?: string }) {
 
 export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolean }) {
   const { salas, participantes, loading: cargando } = useSalas();
+  const [animacionPausada, setAnimacionPausada] = useState(false);
 
   const totalJugadores = useMemo(
     () => salas.reduce((total, sala) => total + jugadoresDe(sala), 0),
@@ -181,6 +182,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
   );
 
   const alMoverCursor = (event: React.PointerEvent<HTMLElement>) => {
+    if (animacionPausada) return;
     const rect = event.currentTarget.getBoundingClientRect();
     event.currentTarget.style.setProperty('--mx', `${event.clientX - rect.left}px`);
     event.currentTarget.style.setProperty('--my', `${event.clientY - rect.top}px`);
@@ -190,27 +192,32 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
     <section
       onPointerMove={alMoverCursor}
       data-en-juego={destacada?.estado === 'en_juego' ? 'true' : 'false'}
-      className="arena-hero relative isolate overflow-hidden border-b border-white/[0.04] bg-[#05070c]"
+      data-motion={animacionPausada ? 'paused' : 'running'}
+      className="arena-hero arena-hero-banner relative isolate overflow-hidden border-b border-white/[0.04] bg-[#05070c]"
     >
       <Image
-        src="/hero-arena.jpg"
+        src="/hero-arena-v2.webp"
         alt=""
         fill
-        priority
+        preload
         sizes="100vw"
         aria-hidden="true"
-        className="pointer-events-none -z-20 object-cover object-[center_25%] brightness-[1.8] contrast-[1.03]"
+        className="arena-hero-backdrop pointer-events-none -z-20 object-cover object-[center_45%]"
       />
       <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,7,12,0.62)_0%,rgba(5,7,12,0.25)_46%,rgba(5,7,12,0.06)_100%)]"
+        className="arena-hero-mist pointer-events-none absolute -inset-[4%] -z-10"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_54%_60%_at_50%_42%,rgba(5,7,12,0.24),transparent_78%)]"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,7,12,0.28)_0%,rgba(5,7,12,0.16)_46%,rgba(5,7,12,0.03)_100%)]"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(5,7,12,0.55)_0%,transparent_28%,transparent_62%,#070a10_100%)]"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_54%_60%_at_50%_42%,rgba(5,7,12,0.12),transparent_78%)]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(5,7,12,0.28)_0%,transparent_28%,transparent_62%,#070a10_100%)]"
         aria-hidden="true"
       />
       <div className="arena-spotlight -z-10" aria-hidden="true" />
@@ -229,6 +236,18 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
           />
         ))}
       </div>
+      <button
+        type="button"
+        onClick={() => setAnimacionPausada((pausada) => !pausada)}
+        aria-label={animacionPausada ? 'Reanudar animación del fondo' : 'Pausar animación del fondo'}
+        title={animacionPausada ? 'Reanudar animación del fondo' : 'Pausar animación del fondo'}
+        aria-pressed={animacionPausada}
+        className="arena-hero-motion-toggle absolute right-3 top-3 z-20 flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-black/40 text-slate-200 backdrop-blur-sm transition-colors hover:bg-black/65 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-prism-400 motion-reduce:transition-none"
+      >
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3" aria-hidden="true">
+          {animacionPausada ? <path d="m7 4 9 6-9 6V4Z" /> : <path d="M7 4v12M13 4v12" />}
+        </svg>
+      </button>
 
       <div className="relative mx-auto max-w-[1860px] px-4 sm:px-6 lg:px-8 xl:max-w-[1040px] 2xl:max-w-[1200px]">
         <div className="hero-layout grid min-w-0 items-center gap-3 py-2 sm:gap-8 sm:py-10 lg:grid-cols-[minmax(0,1fr)_minmax(400px,440px)] lg:gap-10 lg:py-12 xl:grid-cols-[minmax(0,1fr)_minmax(440px,460px)] xl:gap-12 xl:py-10 2xl:grid-cols-[minmax(0,1fr)_minmax(500px,560px)] 2xl:gap-14">

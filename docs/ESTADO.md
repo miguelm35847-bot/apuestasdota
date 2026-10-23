@@ -6,7 +6,7 @@ Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS
 
 ## Estado actual (23/10/2026)
 
-- Landing pública con hero de imagen única, salas activas e historial; `SalasProvider` comparte salas y participantes con una sola consulta y una sola suscripción Realtime.
+- Landing pública con hero panorámico propio (`hero-arena-v2.webp`, 2172×724, ~206 KiB), Shadow Fiend/Phantom Assassin y centro oscuro. Animación ambiental CSS de fondo, bruma y partículas, con pausa accesible y modo estático para movimiento reducido. Mantiene el tamaño del hero, la destacada y las dos primeras salas completas en PC. Arte y prompt en `docs/HERO-BANNER.md`; cambios locales, publicación pendiente. `SalasProvider` comparte salas y participantes con una sola consulta y una sola suscripción Realtime.
 - Chat general en el landing y chat privado por sala. Cada mensaje ajeno muestra avatar, cabecera con nick + medalla de rango y burbuja separada; la tarjeta del jugador se ancla al avatar.
 - `/perfil` con identidad, Steam, saldo, Recargar/Retirar, resumen y perfil competitivo (MMR único + roles). «Mis partidas» y su contador incluyen solo salas terminadas con resultado; se excluyen canceladas, activas y cierres sin resultado antes del límite de 20. Corrección validada y guardada en el commit `4449f20`; publicación pendiente. Sin acceso directo a `/salas` desde la cabecera.
 - `/jugadores/[id]` público con medalla, stats y últimas partidas; enlaces icon-only a Steam/Dotabuff sin exponer `steam_id`.
