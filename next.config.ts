@@ -46,6 +46,14 @@ const nextConfig: NextConfig = {
             : []),
         ],
       },
+      {
+        source: '/:seccion(admin|api|perfil|recargar|retirar|recuperar|login|register|demo-vivo)/:resto*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
+      {
+        source: '/salas',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
+      },
     ];
   },
   /* config options here */

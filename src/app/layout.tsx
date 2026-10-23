@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import AvisoVerificacion from "@/components/AvisoVerificacion";
 import { DonarProvider } from "@/components/DonarProvider";
 import { ApuestasProvider } from "@/components/ApuestasProvider";
+import { DESCRIPCION_SITIO, NOMBRE_SITIO, REDES_SITIO, TITULO_SITIO, URL_SITIO } from '@/lib/sitio';
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -25,8 +26,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KódigoDota",
-  description: "Plataforma de salas de Dota 2",
+  metadataBase: new URL(URL_SITIO),
+  applicationName: NOMBRE_SITIO,
+  title: { default: TITULO_SITIO, template: `%s | ${NOMBRE_SITIO}` },
+  description: DESCRIPCION_SITIO,
+  robots: { index: true, follow: true },
+  openGraph: REDES_SITIO,
+  twitter: { card: 'summary', title: TITULO_SITIO, description: DESCRIPCION_SITIO, images: ['/kodigodota-icon.png'] },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

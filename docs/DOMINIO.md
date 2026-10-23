@@ -2,7 +2,7 @@
 
 Dominio comprado en Spaceship. Alojamiento: proyecto `kodigodota` en Vercel. Conexión verificada el 23/10/2026: `kodigodota.com` redirige con 308 a `www.kodigodota.com`; ambos dominios están verificados. La dirección principal real usa **www**.
 
-URL Configuration de Supabase corregida por el propietario y comprobada por HTTP: Site URL con www y destino `/recuperar?cambiar=1` aceptados. La comprobación usa un token ficticio inválido y valida la redirección de error; la entrega y uso de un correo real siguen pendientes.
+URL Configuration de Supabase corregida por el propietario y comprobada por HTTP: Site URL con www y destino `/recuperar?cambiar=1` aceptados. El propietario confirmó posteriormente recepción del correo, cambio de contraseña e inicio de sesión correctos.
 
 El dominio es la dirección que escriben tus visitantes. Vercel aloja y ejecuta la web. Los registros DNS indican a qué alojamiento debe ir esa dirección. Al conectarlo se verá la versión publicada en Vercel; los cambios de localhost llegan al dominio cuando se despliegan.
 
