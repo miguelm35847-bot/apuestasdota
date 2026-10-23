@@ -1,0 +1,41 @@
+[
+  {
+    "indexdef": "CREATE INDEX notificaciones_user_created_idx ON public.notificaciones USING btree (user_id, created_at DESC)"
+  },
+  {
+    "indexdef": "CREATE INDEX participantes_sala_verificado_idx ON public.participantes_sala USING btree (sala_id, verificado_at)"
+  },
+  {
+    "indexdef": "CREATE UNIQUE INDEX uq_recarga_operacion ON public.recargas USING btree (lower(TRIM(BOTH FROM numero_operacion))) WHERE (estado = ANY (ARRAY['pendiente'::text, 'aprobada'::text]))"
+  },
+  {
+    "indexdef": "CREATE INDEX idx_mov_user ON public.movimientos_billetera USING btree (user_id, created_at DESC)"
+  },
+  {
+    "indexdef": "CREATE UNIQUE INDEX uq_mov_recarga ON public.movimientos_billetera USING btree (referencia_id) WHERE (tipo = 'recarga'::text)"
+  },
+  {
+    "indexdef": "CREATE UNIQUE INDEX uq_mov_premio ON public.movimientos_billetera USING btree (referencia_id, user_id) WHERE (tipo = 'premio'::text)"
+  },
+  {
+    "indexdef": "CREATE UNIQUE INDEX uq_profiles_nick ON public.profiles USING btree (lower(nick))"
+  },
+  {
+    "indexdef": "CREATE UNIQUE INDEX salas_solo_una_destacada ON public.salas USING btree (destacada) WHERE destacada"
+  },
+  {
+    "indexdef": "CREATE INDEX mensajes_chat_general_idx ON public.mensajes_chat USING btree (created_at DESC) WHERE (sala_id IS NULL)"
+  },
+  {
+    "indexdef": "CREATE INDEX mensajes_chat_sala_idx ON public.mensajes_chat USING btree (sala_id, created_at DESC)"
+  },
+  {
+    "indexdef": "CREATE INDEX actividades_creado_idx ON public.actividades USING btree (creado_en DESC)"
+  },
+  {
+    "indexdef": "CREATE INDEX donaciones_creado_idx ON public.donaciones USING btree (creado_en DESC)"
+  },
+  {
+    "indexdef": "CREATE INDEX apuestas_sala_listado ON public.apuestas_sala USING btree (sala_id, creado_en DESC)"
+  }
+]

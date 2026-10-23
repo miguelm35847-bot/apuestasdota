@@ -1,0 +1,28 @@
+name: Verificación
+on: [push, pull_request]
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx next typegen
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run qa:cierre
+      - run: npm run qa:inicio
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check supabase/functions/arena-worker/index.ts
+      - run: sudo apt-get update && sudo apt-get install -y postgresql
+      - run: PG_BIN=$(pg_config --bindir) npm run qa:apuestas:local
+      - run: PG_BIN=$(pg_config --bindir) npm run qa:apuestas:local -- --schema-real

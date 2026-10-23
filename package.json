@@ -14,6 +14,11 @@
     "qa:seed": "node --env-file-if-exists=.env.local scripts/qa/seed.mjs",
     "qa:cleanup": "node --env-file-if-exists=.env.local scripts/qa/seed.mjs --cleanup",
     "qa:flows": "node --env-file-if-exists=.env.local scripts/qa/flows.mjs",
+    "qa:apuestas:local": "node scripts/qa/apuestas-local.mjs",
+    "qa:apuestas:ui": "node --env-file-if-exists=.env.local scripts/qa/apuestas-ui.mjs",
+    "qa:cierre": "node --experimental-strip-types scripts/qa/cierre.mjs",
+    "qa:landing:ui": "node --env-file-if-exists=.env.local scripts/qa/landing-ui.mjs",
+    "qa:inicio": "node --experimental-strip-types scripts/qa/siguiente-paso.mjs",
     "lint": "eslint"
   },
   "dependencies": {

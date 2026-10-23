@@ -1158,6 +1158,7 @@ function SalaContenido() {
     } else {
       window.dispatchEvent(new Event('saldo:refresh'));
       router.push('/');
+      window.dispatchEvent(new Event('salas:refresh'));
     }
 
     setSaliendo(false);
@@ -1176,6 +1177,7 @@ function SalaContenido() {
       setError(rpcError.message);
     } else {
       setSuccess('Listo. Ahora esperamos a los demás jugadores.');
+      window.dispatchEvent(new Event('verificacion:refresh'));
       cargarSala();
     }
 

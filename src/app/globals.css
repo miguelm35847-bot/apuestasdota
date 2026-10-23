@@ -314,3 +314,24 @@ html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
   background-color: #111827;
   color: #e5e7eb;
 }
+/* Contraste de información secundaria en las superficies Arena. */
+.arena-shell .text-slate-500 { color: #94a3b8; }
+
+/* Todas las fichas del listado comparten tamaño; el hero no usa estas reglas. */
+.salas-rejilla > [data-sala-tarjeta] { height: 380px; padding: 16px; }
+.salas-rejilla > [data-sala-tarjeta] dl > div { padding: 10px; }
+.salas-rejilla > [data-sala-tarjeta] dl dd { font-size: 24px; line-height: 32px; }
+.sala-contenido { scrollbar-width: thin; scrollbar-color: #475569 transparent; }
+@media (min-width: 1024px) {
+  .salas-rejilla > [data-sala-tarjeta] { height: var(--altura-tarjeta, 340px); }
+  /* El alto útil de Chrome es menor que el de la pantalla: compacta solo el listado. */
+  .salas-rejilla[data-compacta] > [data-sala-tarjeta] { padding: 12px; }
+  .salas-rejilla[data-compacta] .sala-cabecera { gap: 4px 8px; }
+  .salas-rejilla[data-compacta] .sala-identidad { display: contents; }
+  .salas-rejilla[data-compacta] .sala-contenido h3 { font-size: 14px; line-height: 20px; }
+  .salas-rejilla[data-compacta] .sala-contenido > dl,
+  .salas-rejilla[data-compacta] .sala-jugadores,
+  .salas-rejilla[data-compacta] .sala-acciones { margin-top: 8px; }
+  .salas-rejilla[data-compacta] dl > div { padding: 8px; }
+  .salas-rejilla[data-compacta] dl dd { font-size: 22px; line-height: 28px; }
+}

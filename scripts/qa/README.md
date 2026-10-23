@@ -67,3 +67,32 @@ npm run qa:cleanup              # borra las cuentas y salas QA
 - `qa:cleanup` usa la función SQL `qa_cleanup()` (incluida en `docs/sql/2026-10-21-qa-hallazgos.sql`), porque `service_role` no tiene DELETE en movimientos, notificaciones, recargas, retiros ni participantes. Hasta aplicar ese SQL, la limpieza falla con un mensaje explícito.
 - Requiere el servidor de QA en `:3001` para los probes HTTP: `npm run qa:serve`.
 - Si `qa:probes` o `qa:flows` fallan, revisa `docs/ESTADO.md`: hay hallazgos de seguridad/picks que dependen de SQL pendiente.
+
+## Apuestas de sala
+
+```powershell
+npm run qa:apuestas:local
+npm run qa:apuestas:local -- --schema-real
+npm run qa:cierre
+npm run qa:apuestas:ui
+```
+
+- `qa:apuestas:local` crea y destruye un clúster PostgreSQL aislado en un directorio temporal y puerto libre; **no carga `.env.local` ni se conecta a Supabase**. Requiere PostgreSQL 16+; `PG_BIN` permite indicar su directorio `bin` (en Windows usa PostgreSQL 18 por defecto). Crea un esquema mínimo compatible, aplica la migración real dos veces y comprueba permisos/RLS, cobros, victorias Radiant/Dire, reembolsos, expiración, reintentos, concurrencia, débitos simultáneos y limpieza QA. No sustituye la validación contra las RPC existentes del servidor real.
+- `qa:apuestas:ui` requiere Chrome CDP y la build en `:3001`. Abre una pestaña propia con sesión y respuestas Supabase **simuladas e interceptadas**: no manda escrituras a la base real. Comprueba landing, hero, datos de partida y modal en 1366×768, 390×844 y 360×800, selección de lado, publicar/cancelar/aceptar, saldo, errores, vacío, SQL pendiente, usuario sin sesión y Escape. Guarda capturas en `qa-artifacts/apuestas/ui/`. `QA_BASE` y `QA_CDP` permiten otros endpoints.
+- Aplicar las migraciones en orden: `2026-10-23-apuestas-salas.sql` (ya aplicada por el usuario) y `2026-10-23-apuestas-publicas-sin-limite.sql` (ampliación). La prueba local aplica ambas y reaplica la ampliación para verificar idempotencia; ahora incluye 66 ofertas del mismo usuario, cruces legibles por anon y comisión inaccesible a los lectores públicos. La UI verifica paginación de todas las listas, múltiples ofertas y ambos avatares/nicks sin sesión. Comprobar con cuentas QA el cierre manual y automático existentes y después ejecutar `qa:cleanup`.
+
+- `--schema-real` restaura los metadatos de `docs/schema/` (sin datos de usuarios), identidad, índices, funciones, triggers, RLS y permisos; reproduce claims de Auth y agrega las migraciones de historial/frecuencia. **23/23 casos**: además de apuestas, verifica cuotas, multa por ambas RPC, donaciones/retiros idempotentes, cierre real, saldo posterior, privacidad y corte a los 25 minutos. No reproduce GoTrue/Storage ni pg_cron/pg_net en Windows.
+- `qa:cierre`: **13/13** validaciones del resultado antes de pagar, sin red ni saldo real. Node 22.18+ para cargar TypeScript sin dependencias adicionales.
+- `docs/sql/2026-10-23-pruebas-revision.sql` es una integración remota explícita dentro de BEGIN/ROLLBACK, ya ejecutada con autorización: todos sus datos de prueba se revierten. No ejecutar `qa:cleanup` sobre usuarios normales ni confundir esos datos temporales con pagos reales.
+- Worker programado: ver `docs/TRASPASO.md`, sección 25. La prueba remota de invocación devolvió 200 con Vault y 401 sin token; el cierre con partida externa real sigue siendo una prueba operativa pendiente.
+- Ejecutar los harnesses de navegador **en serie**: usan el mismo origen/localStorage de Chrome CDP, por lo que `qa --login` y `qa:apuestas:ui` simultáneos pueden interferir en la sesión. UI de apuestas: 16/16, incluido el estado cerrado al minuto 25.
+
+## Landing y siguiente paso
+
+```powershell
+npm run qa:inicio
+npm run qa:landing:ui
+```
+
+- `qa:inicio`: 14 decisiones del recorrido inicial, sin red: Steam/MMR pendientes, MMR 0 válido, sala actual, cupos vacíos, usuarios recurrentes/admin y datos desconocidos. Incluido en CI.
+- `qa:landing:ui`: Chrome CDP y build en `:3001`, ejecutado en serie con el resto de QA visual. 26 escenarios con fixtures HTTP: 1v1/5v5 en los tres estados activos, nombres largos, cruces públicos, mismos importes en destacada/tarjeta, guía inicial, errores/reintento, vacío, rondas de verificación y unión/regreso. Revisa 1366×768, 390×844 y 360×800, sin overflow, superposición del reloj ni SteamID visible y con tarjetas de dimensiones uniformes. A 1920×1080 y 1920×945 (alto útil de Chrome en monitor de 1080 px) comprueba las dos primeras completas sin scroll, importes/roster visibles, margen inferior pequeño, separación de 16 px y continuidad de la rueda sobre las tarjetas para visitante/admin/nuevo usuario. Incluye destacada vacía en tercera posición. Intercepta Supabase y `/api/*`; bloquea escrituras inesperadas. Capturas en `qa-artifacts/landing/ui-<timestamp>/`.

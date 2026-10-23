@@ -556,7 +556,7 @@ export default function PartidaDetalle({ partida, className = '' }: Props) {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
             </span>
-            En vivo
+            Datos de demostración
             <span className="font-semibold normal-case tracking-normal text-slate-500">
               · Partida {partida.matchId}
             </span>

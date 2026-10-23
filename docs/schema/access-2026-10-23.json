@@ -1,0 +1,3294 @@
+{
+  "grants": [
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "notificaciones",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "perfiles_publicos",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "lobbies",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "recargas",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "retiros",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "UPDATE",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "INSERT",
+      "with_hierarchy": "NO"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "donaciones",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT",
+      "with_hierarchy": "YES"
+    }
+  ],
+  "column_grants": [
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "aceptado_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "aceptante_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "auto_cierre",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "cerrada_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "cerrada_por",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "comision",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "comision_bp",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "creado_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "creado_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "creado_por",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "creador_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "cuota",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "cupo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "descripcion",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "destacada",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "detectada_auto",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "dire_score",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "dota_match_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "dota_match_id_esperado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "duracion_segundos",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "emisor_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "equipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "equipo_creador",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "equipo_ganador",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "es_capitan",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "ganador_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "iniciada_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "mensaje",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "mmr",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "modalidad",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "monto",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "nick",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "nombre",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_capitan1",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_capitan2",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_decision_tipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_decision_user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_ganador_moneda",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "pick_orden",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_primer_user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_turno_expira_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_turno_user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "picks_estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "pozo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "preferencia_equipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "premio_por_ganador",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "radiant_score",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "receptor_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "resuelto_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "roles_preferidos",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "sala_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "sala_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "sala_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "sala_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "steam_avatar_url",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "steam_nombre",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "tipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "verificacion_estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "verificacion_expira_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "verificacion_iniciada_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "anon",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "verificado_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "aceptado_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "aceptante_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "auto_cierre",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "baneado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "recargas",
+      "column_name": "captura_path",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "cerrada_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "cerrada_por",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "lobbies",
+      "column_name": "clave",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "comision",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "comision_bp",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "creado_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "creado_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "donaciones",
+      "column_name": "creado_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "creado_por",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "creado_por",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "creador_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "notificaciones",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "recargas",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "retiros",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "cuota",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "cupo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "descripcion",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "descripcion",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "destacada",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "retiros",
+      "column_name": "destino",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "detectada_auto",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "dire_score",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "donaciones",
+      "column_name": "donante_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "dota_match_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "dota_match_id_esperado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "duracion_segundos",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "emisor_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "equipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "equipo_creador",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "equipo_ganador",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "es_capitan",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "recargas",
+      "column_name": "estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "retiros",
+      "column_name": "estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "ganador_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "donaciones",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "notificaciones",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "perfiles_publicos",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "recargas",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "retiros",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "iniciada_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "notificaciones",
+      "column_name": "leida",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "donaciones",
+      "column_name": "mensaje",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "mensaje",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "mensaje",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "notificaciones",
+      "column_name": "mensaje",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "mmr",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "modalidad",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "monto",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "donaciones",
+      "column_name": "monto",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "monto",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "recargas",
+      "column_name": "monto",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "retiros",
+      "column_name": "monto",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "perfiles_publicos",
+      "column_name": "nick",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "nick",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "lobbies",
+      "column_name": "nombre",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "nombre",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "recargas",
+      "column_name": "nota_admin",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "retiros",
+      "column_name": "nota_admin",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "recargas",
+      "column_name": "numero_operacion",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_capitan1",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_capitan2",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_decision_tipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_decision_user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_ganador_moneda",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "pick_orden",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_primer_user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_turno_expira_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_turno_user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "picks_estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "pozo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "preferencia_equipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "premio_por_ganador",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "retiros",
+      "column_name": "procesado_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "retiros",
+      "column_name": "procesado_por",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "radiant_score",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "receptor_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "donaciones",
+      "column_name": "receptor_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "referencia_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "resuelto_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "recargas",
+      "column_name": "revisado_en",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "recargas",
+      "column_name": "revisado_por",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "rol",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "roles_preferidos",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "apuestas_sala",
+      "column_name": "sala_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "lobbies",
+      "column_name": "sala_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "sala_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "sala_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "sala_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "partidas",
+      "column_name": "sala_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "steam_avatar_url",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "steam_nombre",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "actividades",
+      "column_name": "tipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "tipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "notificaciones",
+      "column_name": "tipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "INSERT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "mensajes_chat",
+      "column_name": "user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "notificaciones",
+      "column_name": "user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "recargas",
+      "column_name": "user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "retiros",
+      "column_name": "user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "verificacion_estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "verificacion_expira_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "verificacion_iniciada_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "authenticated",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "verificado_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "auto_cierre",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "baneado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "baneado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "comision_bp",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "creado_por",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "creado_por",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "created_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "cuota",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "cupo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "descripcion",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "destacada",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "dota_match_id_esperado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "equipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "es_capitan",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "iniciada_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "mmr",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "mmr",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "modalidad",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "monto",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "nick",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "nick",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "nombre",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_capitan1",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_capitan2",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_decision_tipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_decision_user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_ganador_moneda",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "pick_orden",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_primer_user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_turno_expira_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "pick_turno_user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "picks_estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "preferencia_equipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "referencia_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "rol",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "rol",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "roles_preferidos",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "roles_preferidos",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "sala_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "steam_avatar_url",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "steam_avatar_url",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "steam_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "steam_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "steam_nombre",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "profiles",
+      "column_name": "steam_nombre",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "UPDATE"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "tipo",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "movimientos_billetera",
+      "column_name": "user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "user_id",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "verificacion_estado",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "verificacion_expira_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "salas",
+      "column_name": "verificacion_iniciada_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    },
+    {
+      "grantee": "service_role",
+      "grantor": "postgres",
+      "table_name": "participantes_sala",
+      "column_name": "verificado_at",
+      "is_grantable": "NO",
+      "table_schema": "public",
+      "table_catalog": "postgres",
+      "privilege_type": "SELECT"
+    }
+  ],
+  "function_grants": [
+    {
+      "anon": false,
+      "signature": "_saldo_de(uuid)",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "es_admin()",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "mi_saldo()",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "actualizar_nick(text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "crear_recarga(bigint,text,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "aprobar_recarga(uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "rechazar_recarga(uuid,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "solicitar_retiro(bigint,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "marcar_retiro_pagado(uuid,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "rechazar_retiro(uuid,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "handle_new_user()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "bloquear_cambios_movimientos()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "cerrar_partida(uuid,bigint,smallint)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "cancelar_sala(uuid,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "crear_sala(text,bigint,integer,integer)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "asignar_equipo(uuid,uuid,smallint)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "ganancias_casa()",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "unirse_a_equipo(uuid,smallint)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "ajuste_admin(uuid,bigint,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "verificar_saldo_no_negativo()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "unirse_a_sala(uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "definir_lobby(uuid,text,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": true,
+      "signature": "capitan_de_pick(uuid,uuid,integer)",
+      "service_role": true,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "expulsar_de_sala(uuid,uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "cancelar_picks(uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": true,
+      "signature": "marcar_inicio_sala()",
+      "service_role": true,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "cerrar_partida_con_detalle(uuid,bigint,integer,integer,integer,integer,boolean)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "admin_destacar_sala(uuid,boolean)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "notificar_usuario(uuid,text,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "marcar_notificaciones_leidas(uuid[])",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "confirmar_verificacion(uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "admin_cancelar_verificacion(uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "notificar_sala_terminada(uuid)",
+      "service_role": true,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "qa_cleanup()",
+      "service_role": true,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "donar_saldo(uuid,integer,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "admin_aplicar_multa(uuid,integer,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "sortear_1v1(uuid)",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "iniciar_sorteo_1v1()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "sorteo_1v1_al_completar()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "proteger_resultado_apostado()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "elegir_preferencia_equipo(uuid,integer)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "salir_de_sala_con_multa(uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "elegir_radiant_o_lastpick(uuid,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": true,
+      "signature": "siguiente_capitan_de_pick(uuid,uuid,integer)",
+      "service_role": true,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "admin_pedir_verificacion(uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": true,
+      "signature": "limitar_turno_pick()",
+      "service_role": true,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "iniciar_verificacion_llenada()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "sincronizar_capitanes()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "pickear_jugador(uuid,uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "auto_pickear_si_vencido(uuid,boolean)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "validar_debito_billetera()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "resolver_apuestas_sala(uuid,integer)",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "apuestas_resultado_trg()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "apuestas_estado_sala_trg()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "aceptar_apuesta_sala(uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "cancelar_apuesta_sala(uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "ganancias_apuestas_casa()",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "crear_apuesta_sala(uuid,integer,uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "validar_ventana_apuesta()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "admin_configurar_cierre(uuid,boolean,bigint)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "salir_de_sala(uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "validar_perfil_dota()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "iniciar_picks(uuid,uuid,uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "elegir_moneda(uuid,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "guardar_perfil_competitivo(integer,text[])",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "guardar_roles_preferidos(text[])",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "admin_editar_mmr(uuid,integer)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "proteger_mmr()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "elegir_lado(uuid,integer)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "bloquear_cambios_en_picks()",
+      "service_role": false,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "admin_renombrar_sala(uuid,text)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "donar_saldo_seguro(uuid,integer,text,uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "solicitar_retiro_seguro(bigint,text,uuid)",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "admin_saldos()",
+      "service_role": false,
+      "authenticated": true
+    },
+    {
+      "anon": false,
+      "signature": "cerrar_partida_auto(uuid,bigint,integer,integer,integer,integer)",
+      "service_role": true,
+      "authenticated": false
+    },
+    {
+      "anon": false,
+      "signature": "procesar_plazos_arena()",
+      "service_role": false,
+      "authenticated": false
+    }
+  ]
+}

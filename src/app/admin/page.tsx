@@ -103,11 +103,15 @@ function AccionCard({
 function AdminDashboard() {
   useArenaBody();
   const [ganancias, setGanancias] = useState<number | null>(null);
+  const [gananciasApuestas, setGananciasApuestas] = useState<number | null>(null);
   const [stats, setStats] = useState<EstadisticasAdmin | null>(null);
 
   useEffect(() => {
     supabase.rpc('ganancias_casa').then(({ data }: { data: number | null }) => {
       setGanancias(data);
+    });
+    supabase.rpc('ganancias_apuestas_casa').then(({ data }) => {
+      if (data !== null) setGananciasApuestas(Number(data));
     });
   }, []);
 
@@ -180,10 +184,11 @@ function AdminDashboard() {
                   Ganancias de la casa
                 </p>
                 <p className="mt-1 font-display text-3xl font-bold tabular-nums text-emerald-300 sm:text-4xl">
-                  {ganancias !== null ? `S/ ${(ganancias / 100).toFixed(2)}` : '…'}
+                  {ganancias !== null ? `S/ ${((ganancias + (gananciasApuestas ?? 0)) / 100).toFixed(2)}` : '…'}
                 </p>
                 <p className="mt-1 text-xs text-slate-400">
-                  Comisión acumulada de partidas finalizadas.
+                  Comisión acumulada de partidas y apuestas finalizadas.
+                  {gananciasApuestas !== null && ` Apuestas: S/ ${(gananciasApuestas / 100).toFixed(2)}.`}
                 </p>
               </div>
             </div>

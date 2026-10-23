@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import PartidaDetalle from '@/components/PartidaDetalle';
+import BotonApostar from '@/components/ApuestasProvider';
+import ApuestasPublicas from '@/components/ApuestasPublicas';
 import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 import { DURACION_MAXIMA_PARTIDA } from '@/lib/vivo';
@@ -213,7 +215,12 @@ function PartidaContenido() {
           </Link>
         </div>
 
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-4">
+          <div><p className="text-sm font-bold text-amber-200">Apuesta por Radiant o Dire</p><p className="mt-1 text-xs text-slate-400">S/ 5.50 por usuario · S/ 10.00 para el ganador</p></div>
+          <BotonApostar sala={sala} />
+        </div>
         <PartidaDetalle partida={partida} />
+        <ApuestasPublicas salaId={sala.id} />
 
         <p className="mx-auto mt-5 max-w-2xl text-center text-[10px] leading-relaxed text-slate-600">
           Vista previa: las estadísticas son de ejemplo y avanzan con el reloj. El marcador

@@ -49,17 +49,19 @@ function EquipoBadge({ equipo }: { equipo: number }) {
 export default function HistorialGlobal() {
   const [partidas, setPartidas] = useState<PartidaGlobal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   async function cargarHistorial() {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('salas')
       .select('*, partidas(*), participantes_sala(user_id, equipo, profiles(nick, steam_avatar_url))')
       .eq('estado', 'terminada')
       .order('created_at', { ascending: false })
       .limit(10);
 
-    if (data) setPartidas(data as unknown as PartidaGlobal[]);
+    setError(!!error);
+    if (!error && data) setPartidas(data as unknown as PartidaGlobal[]);
     setLoading(false);
   }
 
@@ -84,6 +86,8 @@ export default function HistorialGlobal() {
 
       {loading ? (
         <p className="text-sm text-slate-400">Cargando...</p>
+      ) : error ? (
+        <p role="alert" className="text-sm text-amber-200">No se pudo cargar el historial. <button className="underline" onClick={() => void cargarHistorial()}>Reintentar</button></p>
       ) : partidas.length === 0 ? (
         <p className="text-sm text-slate-400">No hay partidas terminadas aún.</p>
       ) : (

@@ -37,8 +37,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No se pudo leer el perfil' }, { status: 500 });
     }
 
+    // El siguiente paso del landing solo necesita saber si hay una vinculación.
+    // La identidad siempre sale de la sesión validada, nunca de un parámetro.
+    const soloEstado = request.nextUrl.searchParams.get('estado') === '1';
+    if (soloEstado && !data) {
+      return NextResponse.json({ error: 'Perfil no disponible' }, { status: 404 });
+    }
+
     return NextResponse.json(
-      { steamId: data?.steam_id ?? null },
+      soloEstado ? { vinculado: !!data?.steam_id } : { steamId: data?.steam_id ?? null },
       { headers: { 'Cache-Control': 'no-store' } }
     );
   } catch {

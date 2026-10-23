@@ -1,5 +1,8 @@
 'use client';
 
+import ImportesSala from '@/components/ImportesSala';
+import BotonApostar from '@/components/ApuestasProvider';
+import ApuestasPublicas from '@/components/ApuestasPublicas';
 import { useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -186,6 +189,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
   return (
     <section
       onPointerMove={alMoverCursor}
+      data-en-juego={destacada?.estado === 'en_juego' ? 'true' : 'false'}
       className="arena-hero relative isolate overflow-hidden border-b border-white/[0.04] bg-[#05070c]"
     >
       <Image
@@ -227,9 +231,9 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
       </div>
 
       <div className="relative mx-auto max-w-[1860px] px-4 sm:px-6 lg:px-8 xl:max-w-[1040px] 2xl:max-w-[1200px]">
-        <div className="grid min-w-0 items-center gap-5 py-4 sm:gap-8 sm:py-10 lg:grid-cols-[minmax(0,1fr)_minmax(400px,440px)] lg:gap-10 lg:py-12 xl:grid-cols-[minmax(0,1fr)_minmax(440px,460px)] xl:gap-12 xl:py-10 2xl:grid-cols-[minmax(0,1fr)_minmax(500px,560px)] 2xl:gap-14">
+        <div className="hero-layout grid min-w-0 items-center gap-3 py-2 sm:gap-8 sm:py-10 lg:grid-cols-[minmax(0,1fr)_minmax(400px,440px)] lg:gap-10 lg:py-12 xl:grid-cols-[minmax(0,1fr)_minmax(440px,460px)] xl:gap-12 xl:py-10 2xl:grid-cols-[minmax(0,1fr)_minmax(500px,560px)] 2xl:gap-14">
           <div className="text-center lg:text-left">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/35 px-3.5 py-1.5 text-[11px] font-semibold text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md sm:text-xs">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/35 px-3.5 py-1.5 text-xs font-semibold text-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md sm:text-xs">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60 motion-reduce:animate-none" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -334,12 +338,12 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
 
               <div className="relative">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                  <span className="text-xs font-semibold text-slate-300">
                     Sala destacada
                   </span>
                   {destacada && (
                     <span
-                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1 ring-inset ${estadoBadge(destacada.estado)}`}
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${estadoBadge(destacada.estado)}`}
                     >
                       <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
                       {estadoTexto(destacada.estado)}
@@ -361,36 +365,19 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                   <>
                     <div className="mt-3 flex min-w-0 items-center gap-2.5">
                       <IconDota className="h-6 w-6 shrink-0" />
-                      <p className="min-w-0 font-display text-xl font-bold leading-tight text-white sm:text-2xl">
+                      <h2 className="min-w-0 break-words font-display text-xl font-bold leading-tight text-white sm:text-2xl">
                         {destacada.nombre}
-                      </p>
+                      </h2>
                     </div>
-                    <p className="mt-1.5 text-[11px] font-medium text-slate-400 sm:text-xs">
+                    <p className="mt-1.5 text-xs font-medium text-slate-400 sm:text-xs">
                       {destacada.modalidad === '1v1' ? '1 vs 1' : '5 vs 5'} ·{' '}
                       {jugadoresDestacada}/{cupoDestacada} jugadores
                     </p>
 
-                    <div className="mt-3 grid grid-cols-2 gap-3 sm:mt-4">
-                      <div className="rounded-xl border border-white/[0.06] bg-black/25 px-3.5 py-2.5">
-                        <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
-                          Cuota
-                        </p>
-                        <p className="mt-1 font-display text-lg font-bold text-white">
-                          {soles(destacada.cuota)}
-                        </p>
-                      </div>
-                      <div className="rounded-xl border border-white/[0.06] bg-black/25 px-3.5 py-2.5">
-                        <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
-                          Premio por ganador
-                        </p>
-                        <p className="mt-1 font-display text-lg font-bold text-amber-300">
-                          {soles(premioPorGanadorDe(destacada))}
-                        </p>
-                      </div>
-                    </div>
+                    <ImportesSala entrada={destacada.cuota} premio={premioPorGanadorDe(destacada)} className="mt-3" />
 
-                    <div className="mt-3 sm:mt-4">
-                      <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                    <div className="hero-roster mt-3 sm:mt-4">
+                      <div className="flex items-center justify-between text-xs font-medium text-slate-400">
                         <span>Jugadores</span>
                         <span className="tabular-nums text-slate-300">
                           {jugadoresDestacada}/{cupoDestacada}
@@ -451,7 +438,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                         })}
                       </div>
                       {jugadoresDestacada === 0 && (
-                        <p className="mt-2 text-[11px] text-slate-500">Sé el primero en unirte</p>
+                        <p className="mt-2 text-xs text-slate-500">Sé el primero en unirte</p>
                       )}
                     </div>
 
@@ -461,15 +448,17 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                       </div>
                     )}
 
+                    {destacada.estado === 'en_juego' && <ApuestasPublicas salaId={destacada.id} compacto />}
+                    {destacada.estado === 'en_juego' && <BotonApostar sala={destacada} className="mt-3 w-full" />}
                     <Link
                       href={
                         destacada.estado === 'en_juego'
                           ? `/salas/${destacada.id}/partida`
                           : isAuthenticated
                             ? `/salas/${destacada.id}`
-                            : '/login'
+                            : `/login?next=${encodeURIComponent(`/salas/${destacada.id}`)}`
                       }
-                      className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-3 text-sm font-bold text-[#070a10] shadow-[0_0_38px_-16px_rgba(255,255,255,0.8)] transition hover:bg-slate-200 sm:mt-5"
+                      className={`mt-3 flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-prism-400 ${destacada.estado === 'en_juego' ? 'border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10' : 'bg-prism-600 text-white hover:bg-prism-700'}`}
                     >
                       {destacada.estado === 'en_juego'
                         ? 'Ver datos de la partida'
@@ -485,13 +474,13 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                       No hay salas activas ahora
                     </p>
                     <p className="mx-auto mt-1 max-w-[16rem] text-xs text-slate-400">
-                      Crea una cuenta y arma la primera sala 1v1 o 5v5.
+                      Las próximas salas aparecerán aquí. Mientras tanto, conoce cómo jugar.
                     </p>
                     <Link
-                      href={isAuthenticated ? '/salas' : '/register'}
+                      href="/como-jugar"
                       className="mt-5 inline-flex rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#070a10] transition hover:bg-slate-200"
                     >
-                      {isAuthenticated ? 'Ver salas' : 'Crear cuenta'}
+                      Cómo jugar
                     </Link>
                   </div>
                 )}
@@ -514,7 +503,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
           <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
             <IconDota className="h-5 w-5 shrink-0 opacity-65" />
             <div>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-xs">
                 Salas activas
               </p>
               <p className="font-display mt-0.5 text-lg font-bold tabular-nums text-white">
@@ -525,7 +514,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
           <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
             <IconUsers className="h-5 w-5 shrink-0 text-slate-400" />
             <div>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-xs">
                 Jugadores
               </p>
               <p className="font-display mt-0.5 text-lg font-bold tabular-nums text-white">
@@ -536,7 +525,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
           <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
             <IconCoin className="h-5 w-5 shrink-0 text-amber-300" />
             <div>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-xs">
                 En juego
               </p>
               <p className="font-display mt-0.5 whitespace-nowrap text-lg font-bold tabular-nums text-amber-300">
@@ -547,7 +536,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
           <div className="flex items-center gap-3 px-4 py-3 sm:px-5 sm:py-4">
             <IconWallet className="h-5 w-5 shrink-0 text-slate-400" />
             <div>
-              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-xs">
                 Pagos
               </p>
               <p className="font-display mt-0.5 whitespace-nowrap text-lg font-bold text-white">

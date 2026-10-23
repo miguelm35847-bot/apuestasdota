@@ -1,0 +1,4 @@
+[functions.arena-worker]
+# Autenticación propia mediante token aleatorio guardado en Vault, comprobado
+# por validar_trabajador_arena (solo service_role). Nunca es un endpoint anónimo.
+verify_jwt = false

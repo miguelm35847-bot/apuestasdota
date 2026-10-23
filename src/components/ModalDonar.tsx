@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, useRef, type FormEvent } from 'react';
 import { supabase } from '@/lib/supabase';
 import Avatar from '@/components/Avatar';
 import { formatoSoles } from '@/lib/actividades';
@@ -17,6 +17,7 @@ type Props = {
  * El padre lo monta solo cuando está abierto, así que cada vez empieza limpio.
  */
 export default function ModalDonar({ receptor, onCerrar, onListo }: Props) {
+  const peticion=useRef<{id:string;datos:string}|null>(null);
   const [monto, setMonto] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [saldo, setSaldo] = useState<number | null>(null);
@@ -53,7 +54,10 @@ export default function ModalDonar({ receptor, onCerrar, onListo }: Props) {
     setEnviando(true);
     setError(null);
 
-    const { error: rpcError } = await supabase.rpc('donar_saldo', {
+    const datos=JSON.stringify([receptor!.id,centavos,mensaje.trim()]);
+    if(peticion.current?.datos!==datos)peticion.current={id:crypto.randomUUID(),datos};
+    const { error: rpcError } = await supabase.rpc('donar_saldo_seguro', {
+      p_peticion:peticion.current.id,
       p_receptor: receptor!.id,
       p_monto: centavos,
       p_mensaje: mensaje.trim() || null,

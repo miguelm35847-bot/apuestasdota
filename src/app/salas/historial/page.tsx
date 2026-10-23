@@ -1,9 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
@@ -47,52 +45,38 @@ function formatearDuracion(segundos: number) {
 
 export default function HistorialPage() {
   useArenaBody();
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
   const [salas, setSalas] = useState<SalaTerminada[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pagina, setPagina] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, authLoading, router]);
-
-  async function cargarHistorial() {
+  const cargarHistorial = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, count, error } = await supabase
       .from('salas')
-      .select('*, partidas(*), participantes_sala(user_id, equipo, profiles(nick, steam_avatar_url))')
+      .select('*, partidas(*), participantes_sala(user_id, equipo, profiles(nick, steam_avatar_url))', { count: 'exact' })
       .eq('estado', 'terminada')
       .order('created_at', { ascending: false })
-      .limit(20);
+      .range(pagina * 20, pagina * 20 + 19);
 
+    setTotal(count ?? 0); setError(error ? 'No se pudo consultar el historial.' : '');
     if (data) setSalas(data as unknown as SalaTerminada[]);
     setLoading(false);
-  }
+  }, [pagina]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial desde Supabase
-    if (user) void cargarHistorial();
-  }, [user]);
-
-  if (authLoading) {
-    return (
-      <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
-        <p>Cargando...</p>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
+    void cargarHistorial();
+  }, [cargarHistorial]);
 
   return (
     <div className="arena-shell min-h-screen bg-[#0a0e17] text-slate-100">
       <Navbar titulo="Historial de partidas" />
 
       <main className="mx-auto max-w-5xl px-4 py-8">
+        {error && <p role="alert">{error} <button onClick={() => void cargarHistorial()} className="underline">Reintentar</button></p>}
+        <nav className="mb-4 flex justify-between"><button disabled={loading || pagina===0} onClick={() => setPagina(p=>p-1)}>Anterior</button><span>{pagina+1} / {Math.max(1,Math.ceil(total/20))}</span><button disabled={loading || (pagina+1)*20>=total} onClick={() => setPagina(p=>p+1)}>Siguiente</button></nav>
         {loading ? (
           <p className="text-slate-500">Cargando historial...</p>
         ) : salas.length === 0 ? (

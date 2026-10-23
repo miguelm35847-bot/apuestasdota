@@ -63,29 +63,10 @@ export default function AdminJugadoresPage() {
   }, [user, authLoading, router]);
 
   const cargarSaldos = useCallback(async () => {
+    const { data, error } = await supabase.rpc('admin_saldos');
+    if (error) { setError('No se pudieron consultar los saldos.'); return; }
     const acumulado: Record<string, number> = {};
-    const tam = 1000;
-
-    for (let desde = 0; ; desde += tam) {
-      const { data, error: saldosError } = await supabase
-        .from('movimientos_billetera')
-        .select('user_id, monto')
-        .range(desde, desde + tam - 1);
-
-      if (saldosError) {
-        console.error('Error cargando saldos:', saldosError);
-        break;
-      }
-
-      const filas = (data ?? []) as { user_id: string; monto: number }[];
-      for (const fila of filas) {
-        if (!fila.user_id) continue;
-        acumulado[fila.user_id] = (acumulado[fila.user_id] ?? 0) + Number(fila.monto);
-      }
-
-      if (filas.length < tam) break;
-    }
-
+    for (const fila of (data ?? []) as {user_id:string; saldo:number}[]) acumulado[fila.user_id] = Number(fila.saldo);
     setSaldos(acumulado);
   }, []);
 
@@ -141,7 +122,7 @@ export default function AdminJugadoresPage() {
     const numero = valorMmr.trim() === '' ? null : Number(valorMmr);
 
     if (numero === null || !Number.isInteger(numero) || numero < 0 || numero > 20000) {
-      setError('El MMR debe ser un número entero entre 0 y 20000');
+      setError('El MMR debe ser un nÃºmero entero entre 0 y 20000');
       return;
     }
 
@@ -234,15 +215,15 @@ export default function AdminJugadoresPage() {
       const { error: notifError } = await supabase.rpc('notificar_usuario', {
         p_user: accion.jugador.id,
         p_tipo: 'recarga_aprobada',
-        p_mensaje: `Se acreditó una recarga manual de ${formatSoles(montoCentimos)} a tu saldo.`,
+        p_mensaje: `Se acreditÃ³ una recarga manual de ${formatSoles(montoCentimos)} a tu saldo.`,
       });
       if (notifError) {
-        console.error('Error creando notificación de recarga:', notifError.message);
-        setAviso('El saldo se acreditó, pero no se pudo crear la notificación al jugador.');
+        console.error('Error creando notificaciÃ³n de recarga:', notifError.message);
+        setAviso('El saldo se acreditÃ³, pero no se pudo crear la notificaciÃ³n al jugador.');
       }
     } else {
       // La RPC aplica el movimiento, deja la multa en el panel de actividades y
-      // notifica al jugador, todo en una sola operación.
+      // notifica al jugador, todo en una sola operaciÃ³n.
       const { error: rpcError } = await supabase.rpc('admin_aplicar_multa', {
         p_user: accion.jugador.id,
         p_monto: montoCentimos,
@@ -285,7 +266,7 @@ export default function AdminJugadoresPage() {
     return (
       <div className="arena-shell flex min-h-screen items-center justify-center bg-[#0a0e17] text-slate-300">
         <div className="text-center">
-          <p className="text-rose-300">No tienes permisos para ver esta página</p>
+          <p className="text-rose-300">No tienes permisos para ver esta pÃ¡gina</p>
           <Link href="/" className="mt-4 inline-block text-prism-300 hover:underline">
             Volver al inicio
           </Link>
@@ -528,7 +509,7 @@ export default function AdminJugadoresPage() {
                     {accion.jugador.nick ?? 'Usuario'}
                   </p>
                   <p className="text-xs text-slate-400">
-                    Saldo actual: {saldoAccion === undefined ? '—' : formatSoles(saldoAccion)}
+                    Saldo actual: {saldoAccion === undefined ? 'â€”' : formatSoles(saldoAccion)}
                   </p>
                 </div>
               </div>
@@ -568,7 +549,7 @@ export default function AdminJugadoresPage() {
                       maxLength={200}
                       value={motivoMulta}
                       onChange={(e) => setMotivoMulta(e.target.value)}
-                      placeholder="Ej: incumplió la regla de pausas"
+                      placeholder="Ej: incumpliÃ³ la regla de pausas"
                       className="mt-1 w-full resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-prism-400 focus:outline-none focus:ring-2 focus:ring-prism-500/20"
                     />
                     <p className="mt-1 text-right text-[11px] text-slate-500">
@@ -580,12 +561,12 @@ export default function AdminJugadoresPage() {
                 <p className="text-xs leading-relaxed text-slate-400">
                   {accion.tipo === 'recarga' ? (
                     <>
-                      No se pedirá motivo; quedará registrado como{' '}
+                      No se pedirÃ¡ motivo; quedarÃ¡ registrado como{' '}
                       <span className="font-semibold text-slate-200">Recarga manual</span>.
                     </>
                   ) : (
                     <>
-                      Se descontará del saldo del jugador.
+                      Se descontarÃ¡ del saldo del jugador.
                       {quedaNegativo && (
                         <span className="font-semibold text-amber-300">
                           {' '}

@@ -86,8 +86,8 @@ export default function ChatPanel({
 
     // Respaldo por si Realtime no está habilitado en Supabase
     const interval = setInterval(() => {
-      void cargarMensajes();
-    }, 5000);
+      if (!document.hidden) void cargarMensajes();
+    }, 30000);
 
     return () => {
       clearInterval(interval);

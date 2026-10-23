@@ -19,6 +19,8 @@ type SalasContextValue = {
   salas: SalaPublica[];
   participantes: Record<string, ParticipantePublico[]>;
   loading: boolean;
+  error: string | null;
+  reintentar: () => void;
 };
 
 const SalasContext = createContext<SalasContextValue | null>(null);
@@ -27,6 +29,7 @@ export function SalasProvider({ children }: { children: ReactNode }) {
   const [salas, setSalas] = useState<SalaPublica[]>([]);
   const [participantes, setParticipantes] = useState<Record<string, ParticipantePublico[]>>({});
   const [loading, setLoading] = useState(true);
+  const [errorCarga, setErrorCarga] = useState<string | null>(null);
   const refresco = useRef<ReturnType<typeof setTimeout> | null>(null);
   const solicitud = useRef(0);
 
@@ -42,10 +45,12 @@ export function SalasProvider({ children }: { children: ReactNode }) {
     if (actual !== solicitud.current) return;
 
     if (error) {
+      setErrorCarga('No se pudieron consultar las salas.');
       setLoading(false);
       return;
     }
 
+    setErrorCarga(null);
     const filas = (data ?? []) as unknown as SalaPublica[];
     setSalas(filas);
 
@@ -56,7 +61,7 @@ export function SalasProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const { data: parts } = await supabase
+    const { data: parts, error: errorParts } = await supabase
       .from('participantes_sala')
       .select(
         'sala_id, user_id, equipo, profiles(nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos)'
@@ -66,6 +71,7 @@ export function SalasProvider({ children }: { children: ReactNode }) {
 
     if (actual !== solicitud.current) return;
 
+    if (errorParts) { setErrorCarga('No se pudieron actualizar los jugadores.'); setLoading(false); return; }
     const mapa: Record<string, ParticipantePublico[]> = {};
     ((parts ?? []) as unknown as ParticipantePublico[]).forEach((participante) => {
       if (!mapa[participante.sala_id]) mapa[participante.sala_id] = [];
@@ -95,18 +101,22 @@ export function SalasProvider({ children }: { children: ReactNode }) {
       )
       .subscribe();
 
-    const interval = setInterval(() => cargar(), 5000);
+    const interval = setInterval(() => { if (!document.hidden) void cargar(); }, 30000);
+    window.addEventListener('salas:refresh', refrescar);
+    window.addEventListener('pageshow', refrescar);
 
     return () => {
       if (refresco.current) clearTimeout(refresco.current);
       clearInterval(interval);
+      window.removeEventListener('salas:refresh', refrescar);
+      window.removeEventListener('pageshow', refrescar);
       supabase.removeChannel(channel);
     };
   }, [cargar]);
 
   const value = useMemo(
-    () => ({ salas, participantes, loading }),
-    [salas, participantes, loading]
+    () => ({ salas, participantes, loading, error: errorCarga, reintentar: () => { void cargar(); } }),
+    [salas, participantes, loading, errorCarga, cargar]
   );
 
   return <SalasContext.Provider value={value}>{children}</SalasContext.Provider>;

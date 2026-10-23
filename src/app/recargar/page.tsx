@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import Navbar from '@/components/Navbar';
+import SoportePagos from '@/components/SoportePagos';
 import SaldoDisplay from '@/components/SaldoDisplay';
 import { useArenaBody } from '@/lib/useArenaBody';
 
@@ -348,6 +349,7 @@ export default function RecargarPage() {
             </div>
           )}
         </div>
+        <div className="mt-6"><SoportePagos /></div>
       </main>
     </div>
   );

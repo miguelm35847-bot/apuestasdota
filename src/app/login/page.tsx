@@ -30,6 +30,8 @@ export default function LoginPage() {
       // Verificar el rol del usuario
       const { data: isAdmin } = await supabase.rpc('es_admin');
 
+      const next = new URLSearchParams(window.location.search).get('next');
+      if (next && next.startsWith('/') && !next.startsWith('//') && !next.includes('\\')) { router.push(next); return; }
       if (isAdmin === true) {
         router.push('/admin');
       } else {
@@ -110,6 +112,7 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <a href="/recuperar" className="block text-center text-sm text-prism-300">¿Olvidaste tu contraseña?</a>
         <p className="text-center text-sm text-slate-400">
           ¿No tienes cuenta?{' '}
           <a href="/register" className="font-semibold text-prism-300 hover:text-prism-200 hover:underline">

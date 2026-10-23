@@ -1,0 +1,1584 @@
+{
+  "views": [
+    {
+      "name": "perfiles_publicos",
+      "options": [
+        "security_invoker=true"
+      ],
+      "definition": " SELECT id,\n    nick\n   FROM profiles;"
+    }
+  ],
+  "tables": [
+    {
+      "rls": true,
+      "name": "notificaciones",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "tipo",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "mensaje",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "leida",
+          "type": "boolean",
+          "default": "false",
+          "notnull": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "participantes_sala",
+      "columns": [
+        {
+          "name": "sala_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "equipo",
+          "type": "smallint",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "name": "es_capitan",
+          "type": "boolean",
+          "default": "false",
+          "notnull": true
+        },
+        {
+          "name": "pick_orden",
+          "type": "integer",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "verificado_at",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "preferencia_equipo",
+          "type": "smallint",
+          "default": null,
+          "notnull": false
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "partidas",
+      "columns": [
+        {
+          "name": "sala_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "dota_match_id",
+          "type": "bigint",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "equipo_ganador",
+          "type": "smallint",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "pozo",
+          "type": "bigint",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "comision",
+          "type": "bigint",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "premio_por_ganador",
+          "type": "bigint",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "cerrada_por",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "cerrada_en",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "name": "duracion_segundos",
+          "type": "integer",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "radiant_score",
+          "type": "integer",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "dire_score",
+          "type": "integer",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "detectada_auto",
+          "type": "boolean",
+          "default": "false",
+          "notnull": true
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "lobbies",
+      "columns": [
+        {
+          "name": "sala_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "nombre",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "clave",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "recargas",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "monto",
+          "type": "bigint",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "numero_operacion",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "captura_path",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "estado",
+          "type": "text",
+          "default": "'pendiente'::text",
+          "notnull": true
+        },
+        {
+          "name": "nota_admin",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "revisado_por",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "revisado_en",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "retiros",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "monto",
+          "type": "bigint",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "destino",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "estado",
+          "type": "text",
+          "default": "'solicitado'::text",
+          "notnull": true
+        },
+        {
+          "name": "nota_admin",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "procesado_por",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "procesado_en",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "movimientos_billetera",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "default": null,
+          "notnull": true,
+          "identity": "a"
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "tipo",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "monto",
+          "type": "bigint",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "referencia_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "descripcion",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "creado_por",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "profiles",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "nick",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "steam_id",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "rol",
+          "type": "text",
+          "default": "'jugador'::text",
+          "notnull": true
+        },
+        {
+          "name": "baneado",
+          "type": "boolean",
+          "default": "false",
+          "notnull": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "name": "steam_avatar_url",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "steam_nombre",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "mmr",
+          "type": "integer",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "roles_preferidos",
+          "type": "text[]",
+          "default": "'{}'::text[]",
+          "notnull": true
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "salas",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true
+        },
+        {
+          "name": "nombre",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "cuota",
+          "type": "bigint",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "cupo",
+          "type": "integer",
+          "default": "10",
+          "notnull": true
+        },
+        {
+          "name": "comision_bp",
+          "type": "integer",
+          "default": "1500",
+          "notnull": true
+        },
+        {
+          "name": "estado",
+          "type": "text",
+          "default": "'abierta'::text",
+          "notnull": true
+        },
+        {
+          "name": "creado_por",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "name": "modalidad",
+          "type": "text",
+          "default": "'5v5'::text",
+          "notnull": true
+        },
+        {
+          "name": "picks_estado",
+          "type": "text",
+          "default": "'inactivo'::text",
+          "notnull": true
+        },
+        {
+          "name": "pick_capitan1",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "pick_capitan2",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "pick_ganador_moneda",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "pick_decision_user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "pick_decision_tipo",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "pick_primer_user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "pick_turno_user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "pick_turno_expira_at",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "iniciada_at",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "destacada",
+          "type": "boolean",
+          "default": "false",
+          "notnull": true
+        },
+        {
+          "name": "verificacion_estado",
+          "type": "text",
+          "default": "'inactiva'::text",
+          "notnull": true
+        },
+        {
+          "name": "verificacion_iniciada_at",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "verificacion_expira_at",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "auto_cierre",
+          "type": "boolean",
+          "default": "true",
+          "notnull": true
+        },
+        {
+          "name": "dota_match_id_esperado",
+          "type": "bigint",
+          "default": null,
+          "notnull": false
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "mensajes_chat",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true
+        },
+        {
+          "name": "sala_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "mensaje",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "actividades",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true
+        },
+        {
+          "name": "tipo",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "emisor_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "receptor_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "monto",
+          "type": "integer",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "descripcion",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "donaciones",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notnull": true
+        },
+        {
+          "name": "donante_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "receptor_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "monto",
+          "type": "integer",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "mensaje",
+          "type": "text",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "peticiones_dinero",
+      "columns": [
+        {
+          "name": "user_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "operacion",
+          "type": "text",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "datos",
+          "type": "jsonb",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "resultado",
+          "type": "jsonb",
+          "default": null,
+          "notnull": true
+        }
+      ]
+    },
+    {
+      "rls": true,
+      "name": "apuestas_sala",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "sala_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "creador_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "equipo_creador",
+          "type": "integer",
+          "default": null,
+          "notnull": true
+        },
+        {
+          "name": "aceptante_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "estado",
+          "type": "text",
+          "default": "'pendiente'::text",
+          "notnull": true
+        },
+        {
+          "name": "ganador_id",
+          "type": "uuid",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "comision",
+          "type": "integer",
+          "default": "0",
+          "notnull": true
+        },
+        {
+          "name": "creado_en",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notnull": true
+        },
+        {
+          "name": "aceptado_en",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        },
+        {
+          "name": "resuelto_en",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notnull": false
+        }
+      ]
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "qual": "((id = auth.uid()) OR es_admin())",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "perfil propio o admin",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((user_id = auth.uid()) OR es_admin())",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "movimientos_billetera",
+      "permissive": "PERMISSIVE",
+      "policyname": "movimientos propios o admin",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((user_id = auth.uid()) OR es_admin())",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "recargas",
+      "permissive": "PERMISSIVE",
+      "policyname": "recargas propias o admin",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((user_id = auth.uid()) OR es_admin())",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "retiros",
+      "permissive": "PERMISSIVE",
+      "policyname": "retiros propios o admin",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "salas",
+      "permissive": "PERMISSIVE",
+      "policyname": "salas visibles",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "participantes_sala",
+      "permissive": "PERMISSIVE",
+      "policyname": "participantes visibles",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "partidas",
+      "permissive": "PERMISSIVE",
+      "policyname": "partidas visibles",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "tablename": "salas",
+      "permissive": "PERMISSIVE",
+      "policyname": "salas_lectura_publica",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "tablename": "participantes_sala",
+      "permissive": "PERMISSIVE",
+      "policyname": "participantes_lectura_publica",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "tablename": "profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "profiles_lectura_publica",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "tablename": "partidas",
+      "permissive": "PERMISSIVE",
+      "policyname": "partidas_lectura_publica",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(sala_id IS NULL)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "mensajes_chat",
+      "permissive": "PERMISSIVE",
+      "policyname": "mensajes_chat_lectura_general",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((sala_id IS NOT NULL) AND (es_admin() OR (EXISTS ( SELECT 1\n   FROM participantes_sala p\n  WHERE ((p.sala_id = mensajes_chat.sala_id) AND (p.user_id = auth.uid()))))))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "mensajes_chat",
+      "permissive": "PERMISSIVE",
+      "policyname": "mensajes_chat_lectura_sala",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "mensajes_chat",
+      "permissive": "PERMISSIVE",
+      "policyname": "mensajes_chat_insert_general",
+      "schemaname": "public",
+      "with_check": "((user_id = auth.uid()) AND (sala_id IS NULL))"
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "mensajes_chat",
+      "permissive": "PERMISSIVE",
+      "policyname": "mensajes_chat_insert_sala",
+      "schemaname": "public",
+      "with_check": "((user_id = auth.uid()) AND (sala_id IS NOT NULL) AND (es_admin() OR (EXISTS ( SELECT 1\n   FROM participantes_sala p\n  WHERE ((p.sala_id = mensajes_chat.sala_id) AND (p.user_id = auth.uid()))))))"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(user_id = auth.uid())",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "notificaciones",
+      "permissive": "PERMISSIVE",
+      "policyname": "notificaciones_lectura_propia",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(es_admin() OR (EXISTS ( SELECT 1\n   FROM participantes_sala p\n  WHERE ((p.sala_id = lobbies.sala_id) AND (p.user_id = auth.uid())))))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "lobbies",
+      "permissive": "PERMISSIVE",
+      "policyname": "lobbies_solo_participantes",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "tablename": "actividades",
+      "permissive": "PERMISSIVE",
+      "policyname": "actividades_lectura_publica",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((donante_id = auth.uid()) OR (receptor_id = auth.uid()))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "donaciones",
+      "permissive": "PERMISSIVE",
+      "policyname": "donaciones_lectura_propia",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(estado = ANY (ARRAY['aceptada'::text, 'liquidada'::text, 'reembolsada'::text]))",
+      "roles": [
+        "anon",
+        "authenticated"
+      ],
+      "tablename": "apuestas_sala",
+      "permissive": "PERMISSIVE",
+      "policyname": "apuestas_cruces_publicos",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((estado = 'pendiente'::text) OR (creador_id = auth.uid()) OR (aceptante_id = auth.uid()) OR es_admin())",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "apuestas_sala",
+      "permissive": "PERMISSIVE",
+      "policyname": "apuestas_lectura",
+      "schemaname": "public",
+      "with_check": null
+    }
+  ],
+  "triggers": [
+    "CREATE TRIGGER movimientos_inmutables BEFORE DELETE OR UPDATE ON public.movimientos_billetera FOR EACH ROW EXECUTE FUNCTION bloquear_cambios_movimientos()",
+    "CREATE TRIGGER proteger_mmr BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION proteger_mmr()",
+    "CREATE TRIGGER marcar_inicio_sala_trg BEFORE UPDATE ON public.salas FOR EACH ROW EXECUTE FUNCTION marcar_inicio_sala()",
+    "CREATE TRIGGER sorteo_1v1_al_completar AFTER UPDATE ON public.salas FOR EACH ROW EXECUTE FUNCTION sorteo_1v1_al_completar()",
+    "CREATE TRIGGER sincronizar_capitanes AFTER INSERT OR UPDATE OF pick_capitan1, pick_capitan2 ON public.salas FOR EACH ROW EXECUTE FUNCTION sincronizar_capitanes()",
+    "CREATE TRIGGER bloquear_cambios_en_picks_delete BEFORE DELETE ON public.participantes_sala FOR EACH ROW EXECUTE FUNCTION bloquear_cambios_en_picks()",
+    "CREATE TRIGGER bloquear_cambios_en_picks_update BEFORE UPDATE ON public.participantes_sala FOR EACH ROW EXECUTE FUNCTION bloquear_cambios_en_picks()",
+    "CREATE TRIGGER iniciar_verificacion_llenada AFTER INSERT ON public.participantes_sala FOR EACH ROW EXECUTE FUNCTION iniciar_verificacion_llenada()",
+    "CREATE TRIGGER sorteo_1v1_sync AFTER INSERT OR DELETE ON public.participantes_sala FOR EACH ROW EXECUTE FUNCTION iniciar_sorteo_1v1()",
+    "CREATE TRIGGER validar_perfil_dota BEFORE INSERT ON public.participantes_sala FOR EACH ROW EXECUTE FUNCTION validar_perfil_dota()",
+    "CREATE TRIGGER movimientos_sin_truncate BEFORE TRUNCATE ON public.movimientos_billetera FOR EACH STATEMENT EXECUTE FUNCTION bloquear_cambios_movimientos()",
+    "CREATE TRIGGER trg_saldo_no_negativo BEFORE INSERT ON public.movimientos_billetera FOR EACH ROW EXECUTE FUNCTION verificar_saldo_no_negativo()",
+    "CREATE TRIGGER limitar_turno_pick BEFORE INSERT OR UPDATE OF pick_turno_expira_at ON public.salas FOR EACH ROW EXECUTE FUNCTION limitar_turno_pick()",
+    "CREATE TRIGGER validar_debito_billetera_trg BEFORE INSERT ON public.movimientos_billetera FOR EACH ROW EXECUTE FUNCTION validar_debito_billetera()",
+    "CREATE TRIGGER apuestas_resultado AFTER INSERT ON public.partidas FOR EACH ROW EXECUTE FUNCTION apuestas_resultado_trg()",
+    "CREATE TRIGGER apuestas_estado_sala AFTER UPDATE OF estado ON public.salas FOR EACH ROW EXECUTE FUNCTION apuestas_estado_sala_trg()",
+    "CREATE TRIGGER proteger_resultado_apostado_trg BEFORE DELETE OR UPDATE ON public.partidas FOR EACH ROW EXECUTE FUNCTION proteger_resultado_apostado()",
+    "CREATE TRIGGER validar_ventana_apuesta_trg BEFORE INSERT OR UPDATE ON public.apuestas_sala FOR EACH ROW EXECUTE FUNCTION validar_ventana_apuesta()"
+  ],
+  "functions": [
+    "CREATE OR REPLACE FUNCTION public._saldo_de(p_user uuid)\n RETURNS bigint\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\n  select coalesce(sum(monto), 0)::bigint from public.movimientos_billetera where user_id = p_user;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.es_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\n  select exists (select 1 from public.profiles where id = auth.uid() and rol = 'admin');\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.mi_saldo()\n RETURNS bigint\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\n  select coalesce(sum(monto), 0)::bigint from public.movimientos_billetera where user_id = auth.uid();\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.actualizar_nick(p_nick text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if auth.uid() is null then raise exception 'No autenticado'; end if;\r\n  if p_nick is null or char_length(trim(p_nick)) not between 3 and 20 then\r\n    raise exception 'El nick debe tener entre 3 y 20 caracteres';\r\n  end if;\r\n  update public.profiles set nick = trim(p_nick) where id = auth.uid();\r\nexception when unique_violation then\r\n  raise exception 'Ese nick ya está en uso';\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.crear_recarga(p_monto bigint, p_numero_operacion text, p_captura_path text)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_uid uuid := auth.uid();\r\n  v_id  uuid;\r\nbegin\r\n  if v_uid is null then raise exception 'No autenticado'; end if;\r\n  if exists (select 1 from profiles where id = v_uid and baneado) then\r\n    raise exception 'Cuenta baneada';\r\n  end if;\r\n  if p_monto is null or p_monto < 100 then raise exception 'Monto mínimo: S/ 1.00'; end if;\r\n  if p_monto > 50000 then raise exception 'Monto máximo por recarga: S/ 500.00'; end if;\r\n  if p_numero_operacion is null or char_length(trim(p_numero_operacion)) < 4 then\r\n    raise exception 'Número de operación inválido';\r\n  end if;\r\n\r\n  insert into recargas (user_id, monto, numero_operacion, captura_path)\r\n  values (v_uid, p_monto, trim(p_numero_operacion), p_captura_path)\r\n  returning id into v_id;\r\n  return v_id;\r\nexception when unique_violation then\r\n  raise exception 'Ese número de operación ya fue registrado';\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.aprobar_recarga(p_recarga uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare r recargas%rowtype;\r\nbegin\r\n  if not es_admin() then raise exception 'Solo administradores'; end if;\r\n  select * into r from recargas where id = p_recarga for update;\r\n  if not found then raise exception 'La recarga no existe'; end if;\r\n  if r.estado <> 'pendiente' then raise exception 'La recarga ya fue procesada'; end if;\r\n\r\n  insert into movimientos_billetera (user_id, tipo, monto, referencia_id, descripcion, creado_por)\r\n  values (r.user_id, 'recarga', r.monto, r.id, 'Recarga Yape/Plin, operación ' || r.numero_operacion, auth.uid());\r\n\r\n  update recargas\r\n     set estado = 'aprobada', revisado_por = auth.uid(), revisado_en = now()\r\n   where id = r.id;\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.rechazar_recarga(p_recarga uuid, p_nota text DEFAULT NULL::text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if not es_admin() then raise exception 'Solo administradores'; end if;\r\n  update recargas\r\n     set estado = 'rechazada', nota_admin = p_nota, revisado_por = auth.uid(), revisado_en = now()\r\n   where id = p_recarga and estado = 'pendiente';\r\n  if not found then raise exception 'La recarga no existe o ya fue procesada'; end if;\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.solicitar_retiro(p_monto bigint, p_destino text)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_uid uuid := auth.uid();\r\n  v_id  uuid;\r\nbegin\r\n  if v_uid is null then raise exception 'No autenticado'; end if;\r\n  -- Bloquea la fila del jugador: evita dos retiros/entradas simultáneos que gasten el mismo saldo\r\n  perform 1 from profiles where id = v_uid and not baneado for no key update;\r\n  if not found then raise exception 'Cuenta no disponible'; end if;\r\n\r\n  if p_monto is null or p_monto < 500 then raise exception 'Retiro mínimo: S/ 5.00'; end if;\r\n  if p_destino is null or char_length(trim(p_destino)) < 6 then raise exception 'Destino inválido'; end if;\r\n  if _saldo_de(v_uid) < p_monto then raise exception 'Saldo insuficiente'; end if;\r\n\r\n  insert into retiros (user_id, monto, destino) values (v_uid, p_monto, trim(p_destino))\r\n  returning id into v_id;\r\n\r\n  insert into movimientos_billetera (user_id, tipo, monto, referencia_id, descripcion)\r\n  values (v_uid, 'retiro', -p_monto, v_id, 'Solicitud de retiro');\r\n  return v_id;\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.marcar_retiro_pagado(p_retiro uuid, p_nota text DEFAULT NULL::text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if not es_admin() then raise exception 'Solo administradores'; end if;\r\n  update retiros\r\n     set estado = 'pagado', nota_admin = p_nota, procesado_por = auth.uid(), procesado_en = now()\r\n   where id = p_retiro and estado = 'solicitado';\r\n  if not found then raise exception 'El retiro no existe o ya fue procesado'; end if;\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.rechazar_retiro(p_retiro uuid, p_nota text DEFAULT NULL::text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare r retiros%rowtype;\r\nbegin\r\n  if not es_admin() then raise exception 'Solo administradores'; end if;\r\n  update retiros\r\n     set estado = 'rechazado', nota_admin = p_nota, procesado_por = auth.uid(), procesado_en = now()\r\n   where id = p_retiro and estado = 'solicitado'\r\n  returning * into r;\r\n  if not found then raise exception 'El retiro no existe o ya fue procesado'; end if;\r\n\r\n  insert into movimientos_billetera (user_id, tipo, monto, referencia_id, descripcion, creado_por)\r\n  values (r.user_id, 'reembolso', r.monto, r.id, 'Retiro rechazado: devolución', auth.uid());\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.handle_new_user()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  insert into public.profiles (id, nick)\r\n  values (\r\n    new.id,\r\n    coalesce(nullif(trim(new.raw_user_meta_data->>'nick'), ''), 'jugador_' || substr(new.id::text, 1, 8))\r\n  );\r\n  return new;\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.bloquear_cambios_movimientos()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  raise exception 'Los movimientos de la billetera no se pueden modificar ni borrar';\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.cerrar_partida(p_sala uuid, p_dota_match_id bigint, p_equipo_ganador smallint)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s            salas%rowtype;\r\n  v_total      int;\r\n  v_sin_equipo int;\r\n  v_ganadores  int;\r\n  v_mitad      int;\r\n  v_pozo       bigint;\r\n  v_com        bigint;\r\n  v_neto       bigint;\r\n  v_premio     bigint;\r\n  v_sobrante   bigint;\r\nbegin\r\n  if not es_admin() then raise exception 'Solo administradores'; end if;\r\n  if p_equipo_ganador not in (1, 2) then raise exception 'Equipo ganador inválido'; end if;\r\n\r\n  select * into s from salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.estado <> 'en_juego' then raise exception 'La sala debe estar en juego'; end if;\r\n\r\n  select count(*),\r\n         count(*) filter (where equipo is null),\r\n         count(*) filter (where equipo = p_equipo_ganador)\r\n    into v_total, v_sin_equipo, v_ganadores\r\n    from participantes_sala where sala_id = p_sala;\r\n\r\n  v_mitad := s.cupo / 2;\r\n  if v_total <> s.cupo or v_sin_equipo > 0 then raise exception 'Faltan jugadores o hay equipos sin asignar'; end if;\r\n  if v_ganadores <> v_mitad then raise exception 'Los equipos no están balanceados'; end if;\r\n\r\n  v_pozo     := s.cuota * s.cupo;\r\n  v_com      := (v_pozo * s.comision_bp) / 10000;\r\n  v_neto     := v_pozo - v_com;\r\n  v_premio   := v_neto / v_mitad;\r\n  v_sobrante := v_neto - v_premio * v_mitad;     -- céntimos que sobran por redondeo: van a la casa\r\n\r\n  insert into movimientos_billetera (user_id, tipo, monto, referencia_id, descripcion, creado_por)\r\n  select user_id, 'premio', v_premio, s.id, 'Premio sala ' || s.nombre, auth.uid()\r\n    from participantes_sala\r\n   where sala_id = p_sala and equipo = p_equipo_ganador;\r\n\r\n  insert into partidas (sala_id, dota_match_id, equipo_ganador, pozo, comision, premio_por_ganador, cerrada_por)\r\n  values (s.id, p_dota_match_id, p_equipo_ganador, v_pozo, v_com + v_sobrante, v_premio, auth.uid());\r\n\r\n  update salas set estado = 'terminada' where id = s.id;\r\nexception when unique_violation then\r\n  raise exception 'Ese ID de partida de Dota ya fue usado en otra sala';\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.cancelar_sala(p_sala uuid, p_motivo text DEFAULT NULL::text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare s salas%rowtype;\r\nbegin\r\n  if not es_admin() then raise exception 'Solo administradores'; end if;\r\n  select * into s from salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.estado not in ('abierta', 'llena', 'en_juego') then\r\n    raise exception 'Esta sala ya no se puede cancelar';\r\n  end if;\r\n\r\n  insert into movimientos_billetera (user_id, tipo, monto, referencia_id, descripcion, creado_por)\r\n  select user_id, 'reembolso', s.cuota, s.id,\r\n         'Sala cancelada: ' || coalesce(p_motivo, 'sin motivo'), auth.uid()\r\n    from participantes_sala where sala_id = p_sala;\r\n\r\n  update salas set estado = 'cancelada' where id = p_sala;\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.crear_sala(p_nombre text, p_cuota bigint, p_cupo integer DEFAULT 10, p_comision_bp integer DEFAULT 1500)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_id uuid;\r\n  v_modalidad text;\r\nbegin\r\n  if not es_admin() then raise exception 'Solo administradores'; end if;\r\n  if p_nombre is null or trim(p_nombre) = '' then\r\n    raise exception 'Escribe un nombre para la sala';\r\n  end if;\r\n  if p_cuota is null or p_cuota <= 0 then\r\n    raise exception 'Cuota inválida';\r\n  end if;\r\n  if p_cupo not in (2, 10) then\r\n    raise exception 'Cupo inválido: usa 2 (1v1) o 10 (5v5)';\r\n  end if;\r\n\r\n  v_modalidad := case when p_cupo = 2 then '1v1' else '5v5' end;\r\n\r\n  insert into salas (nombre, cuota, cupo, comision_bp, modalidad, creado_por)\r\n  values (trim(p_nombre), p_cuota, p_cupo, coalesce(p_comision_bp, 1500), v_modalidad, auth.uid())\r\n  returning id into v_id;\r\n\r\n  return v_id;\r\nend\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.asignar_equipo(p_sala uuid, p_user uuid, p_equipo smallint)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s salas%rowtype;\r\n  v_count int;\r\nbegin\r\n  if not es_admin() then raise exception 'Solo administradores'; end if;\r\n  if p_equipo is not null and p_equipo not in (1, 2) then\r\n    raise exception 'Equipo inválido';\r\n  end if;\r\n\r\n  select * into s from salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.estado not in ('abierta', 'llena') then\r\n    raise exception 'La sala no acepta cambios';\r\n  end if;\r\n\r\n  if p_equipo is not null then\r\n    select count(*) into v_count\r\n      from participantes_sala\r\n     where sala_id = p_sala and equipo = p_equipo and user_id <> p_user;\r\n\r\n    if v_count >= s.cupo / 2 then\r\n      raise exception 'Ese equipo está lleno';\r\n    end if;\r\n  end if;\r\n\r\n  update participantes_sala set equipo = p_equipo\r\n   where sala_id = p_sala and user_id = p_user;\r\n\r\n  if not found then\r\n    raise exception 'Ese jugador no está en la sala';\r\n  end if;\r\nend\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.ganancias_casa()\n RETURNS bigint\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if not es_admin() then raise exception 'Solo administradores'; end if;\r\n  return (select coalesce(sum(comision), 0)::bigint from partidas);\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.unirse_a_equipo(p_sala uuid, p_equipo smallint)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_uid uuid := auth.uid();\r\n  s salas%rowtype;\r\n  v_count int;\r\nbegin\r\n  if v_uid is null then raise exception 'No autenticado'; end if;\r\n  if p_equipo is not null and p_equipo not in (1, 2) then\r\n    raise exception 'Equipo inválido';\r\n  end if;\r\n\r\n  select * into s from salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.estado not in ('abierta', 'llena') then\r\n    raise exception 'La sala no acepta cambios';\r\n  end if;\r\n\r\n  if not exists (\r\n    select 1 from participantes_sala where sala_id = p_sala and user_id = v_uid\r\n  ) then\r\n    raise exception 'No estás en esta sala';\r\n  end if;\r\n\r\n  if p_equipo is not null then\r\n    select count(*) into v_count\r\n      from participantes_sala\r\n     where sala_id = p_sala and equipo = p_equipo and user_id <> v_uid;\r\n\r\n    if v_count >= s.cupo / 2 then\r\n      raise exception 'Ese equipo está lleno';\r\n    end if;\r\n  end if;\r\n\r\n  update participantes_sala set equipo = p_equipo\r\n   where sala_id = p_sala and user_id = v_uid;\r\nend\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.ajuste_admin(p_user uuid, p_monto bigint, p_motivo text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if not es_admin() then raise exception 'Solo administradores'; end if;\r\n  if p_monto is null or p_monto = 0 then raise exception 'Monto inválido'; end if;\r\n  if p_motivo is null or char_length(trim(p_motivo)) < 5 then raise exception 'Escribe el motivo del ajuste'; end if;\r\n\r\n  perform 1 from profiles where id = p_user for no key update;\r\n  if not found then raise exception 'El usuario no existe'; end if;\r\n  if p_monto < 0 and _saldo_de(p_user) + p_monto < 0 then\r\n    raise exception 'El ajuste dejaría el saldo en negativo';\r\n  end if;\r\n\r\n  insert into movimientos_billetera (user_id, tipo, monto, descripcion, creado_por)\r\n  values (p_user, 'ajuste_admin', p_monto, trim(p_motivo), auth.uid());\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.verificar_saldo_no_negativo()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare v_saldo bigint;\r\nbegin\r\n  if new.monto >= 0 then return new; end if;  -- ingresos no necesitan verificación\r\n  perform 1 from public.profiles where id = new.user_id for no key update;  -- evita carreras\r\n  select coalesce(sum(monto), 0) into v_saldo\r\n    from public.movimientos_billetera where user_id = new.user_id;\r\n  if v_saldo + new.monto < 0 then\r\n    raise exception 'Saldo insuficiente';\r\n  end if;\r\n  return new;\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.unirse_a_sala(p_sala uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_uid uuid := auth.uid();\r\n  s     salas%rowtype;\r\n  v_n   int;\r\nbegin\r\n  if v_uid is null then raise exception 'No autenticado'; end if;\r\n  perform 1 from profiles where id = v_uid and not baneado for no key update;\r\n  if not found then raise exception 'Cuenta no disponible'; end if;\r\n\r\n  perform 1 from profiles where id = v_uid and steam_id is not null;\r\n  if not found then raise exception 'Debes vincular tu cuenta de Steam primero'; end if;\r\n\r\n  if exists (\r\n    select 1 from participantes_sala ps\r\n    join salas s2 on s2.id = ps.sala_id\r\n    where ps.user_id = v_uid and s2.estado in ('abierta', 'llena', 'en_juego')\r\n  ) then\r\n    raise exception 'Ya estás en otra sala. Sal de ella primero.';\r\n  end if;\r\n\r\n  select * into s from salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.estado <> 'abierta' then raise exception 'La sala no está abierta'; end if;\r\n  if exists (select 1 from participantes_sala where sala_id = p_sala and user_id = v_uid) then\r\n    raise exception 'Ya estás en esta sala';\r\n  end if;\r\n\r\n  select count(*) into v_n from participantes_sala where sala_id = p_sala;\r\n  if v_n >= s.cupo then raise exception 'La sala está llena'; end if;\r\n  if _saldo_de(v_uid) < s.cuota then raise exception 'Saldo insuficiente'; end if;\r\n\r\n  insert into movimientos_billetera (user_id, tipo, monto, referencia_id, descripcion)\r\n  values (v_uid, 'entrada_sala', -s.cuota, s.id, 'Entrada a sala ' || s.nombre);\r\n  insert into participantes_sala (sala_id, user_id) values (p_sala, v_uid);\r\n\r\n  if v_n + 1 >= s.cupo then\r\n    update salas set estado = 'llena' where id = p_sala;\r\n  end if;\r\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.definir_lobby(p_sala uuid, p_nombre text, p_clave text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s salas%rowtype;\r\n  v_total int;\r\n  v_sin int;\r\n  v_radiant int;\r\n  v_dire int;\r\nbegin\r\n  if not es_admin() then raise exception 'Solo administradores'; end if;\r\n  if p_nombre is null or trim(p_nombre) = '' then\r\n    raise exception 'Escribe el nombre del lobby';\r\n  end if;\r\n  if p_clave is null or trim(p_clave) = '' then\r\n    raise exception 'Escribe la clave del lobby';\r\n  end if;\r\n\r\n  select * into s from salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.estado not in ('llena', 'en_juego') then\r\n    raise exception 'La sala debe estar llena';\r\n  end if;\r\n\r\n  select count(*),\r\n         count(*) filter (where equipo is null),\r\n         count(*) filter (where equipo = 1),\r\n         count(*) filter (where equipo = 2)\r\n    into v_total, v_sin, v_radiant, v_dire\r\n    from participantes_sala\r\n   where sala_id = p_sala;\r\n\r\n  if v_total <> s.cupo then\r\n    raise exception 'Faltan jugadores para iniciar';\r\n  end if;\r\n  if v_sin > 0 then\r\n    raise exception 'Hay jugadores en lista de espera';\r\n  end if;\r\n  if v_radiant <> s.cupo / 2 or v_dire <> s.cupo / 2 then\r\n    raise exception 'Los equipos no están balanceados';\r\n  end if;\r\n\r\n  insert into lobbies (sala_id, nombre, clave)\r\n  values (p_sala, trim(p_nombre), trim(p_clave))\r\n  on conflict (sala_id) do update\r\n    set nombre = excluded.nombre, clave = excluded.clave;\r\n\r\n  update salas set estado = 'en_juego' where id = p_sala;\r\n\r\n  insert into notificaciones (user_id, tipo, mensaje)\r\n  select user_id,\r\n         'partida_iniciada',\r\n         'La partida de \"' || s.nombre || '\" comenzó. Lobby: ' ||\r\n         trim(p_nombre) || ' | Clave: ' || trim(p_clave)\r\n    from participantes_sala\r\n   where sala_id = p_sala;\r\nend\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.capitan_de_pick(p_primer uuid, p_otro uuid, p_num integer)\n RETURNS uuid\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO 'public'\nAS $function$\r\n  select case\r\n    when p_num is null or p_num < 1 or p_primer is null or p_otro is null then null\r\n    when (((p_num - 1) / 2) % 2) = 0 then\r\n      case when ((p_num - 1) % 2) = 0 then p_primer else p_otro end\r\n    else\r\n      case when ((p_num - 1) % 2) = 0 then p_otro else p_primer end\r\n  end;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.expulsar_de_sala(p_sala uuid, p_user uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s salas%rowtype;\r\nbegin\r\n  if not es_admin() then raise exception 'Solo administradores'; end if;\r\n\r\n  select * into s from salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.estado not in ('abierta', 'llena') then\r\n    raise exception 'No se puede expulsar en este estado';\r\n  end if;\r\n\r\n  delete from participantes_sala where sala_id = p_sala and user_id = p_user;\r\n  if not found then raise exception 'Ese jugador no está en la sala'; end if;\r\n\r\n  insert into movimientos_billetera (user_id, tipo, monto, referencia_id, descripcion, creado_por)\r\n  values (p_user, 'reembolso', s.cuota, s.id, 'Expulsión de sala ' || s.nombre, auth.uid());\r\n\r\n  if s.estado = 'llena' then\r\n    update salas set estado = 'abierta' where id = p_sala;\r\n  end if;\r\n\r\n  insert into notificaciones (user_id, tipo, mensaje)\r\n  values (p_user, 'expulsado_sala', 'El administrador te sacó de la sala \"' || s.nombre || '\". Se te devolvió la cuota.');\r\nend\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.cancelar_picks(p_sala uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s public.salas%rowtype;\r\nbegin\r\n  if not public.es_admin() then raise exception 'Solo administradores'; end if;\r\n\r\n  select * into s from public.salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.estado = 'en_juego' then raise exception 'La partida ya está en juego'; end if;\r\n  if s.picks_estado = 'inactivo' then return; end if;\r\n\r\n  perform set_config('app.picks_operacion', 'on', true);\r\n\r\n  update public.participantes_sala\r\n  set equipo = null, es_capitan = false, pick_orden = null\r\n  where sala_id = p_sala;\r\n\r\n  update public.salas\r\n  set picks_estado = 'inactivo',\r\n      pick_capitan1 = null,\r\n      pick_capitan2 = null,\r\n      pick_ganador_moneda = null,\r\n      pick_decision_user_id = null,\r\n      pick_decision_tipo = null,\r\n      pick_primer_user_id = null,\r\n      pick_turno_user_id = null,\r\n      pick_turno_expira_at = null\r\n  where id = p_sala;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.marcar_inicio_sala()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if new.estado = 'en_juego' and old.estado is distinct from 'en_juego' then\r\n    new.iniciada_at := now();\r\n  end if;\r\n  return new;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.cerrar_partida_con_detalle(p_sala uuid, p_dota_match_id bigint, p_equipo_ganador integer, p_duracion integer DEFAULT NULL::integer, p_radiant_score integer DEFAULT NULL::integer, p_dire_score integer DEFAULT NULL::integer, p_auto boolean DEFAULT false)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s public.salas%rowtype;\r\nbegin\r\n  if not public.es_admin() then\r\n    raise exception 'Solo administradores';\r\n  end if;\r\n\r\n  select * into s from public.salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.estado <> 'en_juego' then raise exception 'La sala no está en juego'; end if;\r\n  if p_dota_match_id is null or p_dota_match_id <= 0 then\r\n    raise exception 'ID de partida inválido';\r\n  end if;\r\n  if p_equipo_ganador not in (1, 2) then\r\n    raise exception 'Equipo ganador inválido';\r\n  end if;\r\n\r\n  perform public.cerrar_partida(p_sala, p_dota_match_id, p_equipo_ganador);\r\n\r\n  update public.partidas\r\n  set duracion_segundos = coalesce(p_duracion, duracion_segundos),\r\n      radiant_score = coalesce(p_radiant_score, radiant_score),\r\n      dire_score = coalesce(p_dire_score, dire_score),\r\n      detectada_auto = coalesce(p_auto, false)\r\n  where sala_id = p_sala and dota_match_id = p_dota_match_id;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.admin_destacar_sala(p_sala uuid, p_destacar boolean DEFAULT true)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if auth.uid() is null then raise exception 'No autenticado'; end if;\r\n  if not exists (\r\n    select 1 from public.profiles\r\n    where id = auth.uid() and rol = 'admin'\r\n  ) then\r\n    raise exception 'Solo un administrador puede elegir la sala destacada';\r\n  end if;\r\n\r\n  if p_destacar then\r\n    if not exists (\r\n      select 1 from public.salas\r\n      where id = p_sala\r\n        and estado in ('abierta', 'llena', 'en_juego')\r\n    ) then\r\n      raise exception 'Sala no encontrada o no está activa';\r\n    end if;\r\n\r\n    update public.salas\r\n    set destacada = false\r\n    where destacada = true and id <> p_sala;\r\n\r\n    update public.salas\r\n    set destacada = true\r\n    where id = p_sala;\r\n  else\r\n    update public.salas\r\n    set destacada = false\r\n    where id = p_sala;\r\n  end if;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.notificar_usuario(p_user uuid, p_tipo text, p_mensaje text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if not public.es_admin() then\r\n    raise exception 'Solo administradores';\r\n  end if;\r\n\r\n  if p_user is null or p_tipo is null or p_mensaje is null then\r\n    raise exception 'Datos incompletos';\r\n  end if;\r\n\r\n  if length(p_mensaje) > 500 then\r\n    raise exception 'Mensaje demasiado largo';\r\n  end if;\r\n\r\n  if not exists (select 1 from public.profiles where id = p_user) then\r\n    raise exception 'El usuario no existe';\r\n  end if;\r\n\r\n  insert into public.notificaciones (user_id, tipo, mensaje)\r\n  values (p_user, p_tipo, p_mensaje);\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.marcar_notificaciones_leidas(p_ids uuid[] DEFAULT NULL::uuid[])\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if auth.uid() is null then\r\n    raise exception 'Debes iniciar sesión';\r\n  end if;\r\n\r\n  if p_ids is null then\r\n    update public.notificaciones\r\n    set leida = true\r\n    where user_id = auth.uid() and leida = false;\r\n  else\r\n    update public.notificaciones\r\n    set leida = true\r\n    where user_id = auth.uid() and id = any(p_ids);\r\n  end if;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.confirmar_verificacion(p_sala uuid)\n RETURNS integer\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_uid uuid := auth.uid();\r\n  v_estado text;\r\n  v_expira timestamptz;\r\n  v_creado_por uuid;\r\n  v_nombre text;\r\n  v_socios int;\r\n  v_listos int;\r\nbegin\r\n  if v_uid is null then\r\n    raise exception 'Debes iniciar sesión';\r\n  end if;\r\n\r\n  select s.verificacion_estado, s.verificacion_expira_at, s.creado_por, s.nombre\r\n    into v_estado, v_expira, v_creado_por, v_nombre\r\n  from public.salas s\r\n  where s.id = p_sala;\r\n\r\n  if v_estado is null then\r\n    raise exception 'La sala no existe';\r\n  end if;\r\n\r\n  -- Ya estaba completa: respuesta idempotente.\r\n  if v_estado = 'completa' then\r\n    select count(*) into v_listos\r\n    from public.participantes_sala\r\n    where sala_id = p_sala and verificado_at is not null;\r\n    return v_listos;\r\n  end if;\r\n\r\n  if v_estado <> 'pendiente' then\r\n    raise exception 'No hay una verificación pendiente';\r\n  end if;\r\n\r\n  if v_expira is not null and v_expira < now() then\r\n    update public.salas\r\n    set verificacion_estado = 'inactiva', verificacion_expira_at = null\r\n    where id = p_sala and verificacion_estado = 'pendiente';\r\n    raise exception 'La verificación expiró. Pide una nueva.';\r\n  end if;\r\n\r\n  if not exists (\r\n    select 1 from public.participantes_sala where sala_id = p_sala and user_id = v_uid\r\n  ) then\r\n    raise exception 'No perteneces a esta sala';\r\n  end if;\r\n\r\n  -- Permite escribir `verificado_at` aunque la sala esté en fase de picks.\r\n  perform set_config('app.picks_operacion', 'on', true);\r\n\r\n  update public.participantes_sala\r\n  set verificado_at = now()\r\n  where sala_id = p_sala and user_id = v_uid and verificado_at is null;\r\n\r\n  select count(*) into v_socios\r\n  from public.participantes_sala\r\n  where sala_id = p_sala;\r\n\r\n  select count(*) into v_listos\r\n  from public.participantes_sala\r\n  where sala_id = p_sala and verificado_at is not null;\r\n\r\n  if v_listos >= v_socios then\r\n    update public.salas\r\n    set verificacion_estado = 'completa', verificacion_expira_at = null\r\n    where id = p_sala and verificacion_estado = 'pendiente';\r\n\r\n    if v_creado_por is not null then\r\n      insert into public.notificaciones (user_id, tipo, mensaje)\r\n      values (\r\n        v_creado_por,\r\n        'verificacion_completa',\r\n        'Todos los jugadores de la sala \"' || v_nombre || '\" confirmaron que están listos.'\r\n      );\r\n    end if;\r\n  end if;\r\n\r\n  return v_listos;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.admin_cancelar_verificacion(p_sala uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if not public.es_admin() then\r\n    raise exception 'Solo administradores';\r\n  end if;\r\n\r\n  -- Permite limpiar las marcas aunque la sala esté en fase de picks.\r\n  perform set_config('app.picks_operacion', 'on', true);\r\n\r\n  update public.participantes_sala\r\n  set verificado_at = null\r\n  where sala_id = p_sala;\r\n\r\n  update public.salas\r\n  set verificacion_estado = 'inactiva',\r\n      verificacion_iniciada_at = null,\r\n      verificacion_expira_at = null\r\n  where id = p_sala;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.notificar_sala_terminada(p_sala uuid)\n RETURNS integer\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_nombre text;\r\n  v_avisados int;\r\nbegin\r\n  -- Solo el admin o el servidor (service_role) pueden avisar el fin de partida.\r\n  if not (public.es_admin() or auth.role() = 'service_role') then\r\n    raise exception 'Solo administradores';\r\n  end if;\r\n\r\n  select nombre into v_nombre\r\n  from public.salas\r\n  where id = p_sala;\r\n\r\n  if v_nombre is null then\r\n    raise exception 'La sala no existe';\r\n  end if;\r\n\r\n  insert into public.notificaciones (user_id, tipo, mensaje)\r\n  select ps.user_id,\r\n         'partida_finalizada',\r\n         'La partida de la sala \"' || v_nombre || '\" terminó. Se repartieron los premios.'\r\n  from public.participantes_sala ps\r\n  where ps.sala_id = p_sala;\r\n\r\n  get diagnostics v_avisados = row_count;\r\n  return v_avisados;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.qa_cleanup()\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_ids uuid[];\r\n  v_salas uuid[];\r\n  v_perfiles int;\r\n  v_salas_n int;\r\n  v_auth int;\r\nbegin\r\n  select coalesce(array_agg(id), '{}') into v_ids from public.profiles where nick like 'qa-%';\r\n  select coalesce(array_agg(id), '{}') into v_salas from public.salas\r\n    where nombre like 'QA %' or creado_por = any(v_ids);\r\n  v_salas_n := coalesce(array_length(v_salas, 1), 0);\r\n\r\n  delete from public.peticiones_dinero where user_id = any(v_ids); delete from public.apuestas_sala where sala_id = any(v_salas)\r\n    or creador_id = any(v_ids) or aceptante_id = any(v_ids);\r\n  alter table public.movimientos_billetera disable trigger user;\r\n  delete from public.movimientos_billetera where user_id = any(v_ids) or creado_por = any(v_ids);\r\n  alter table public.movimientos_billetera enable trigger user;\r\n  delete from public.notificaciones where user_id = any(v_ids);\r\n  delete from public.recargas where user_id = any(v_ids);\r\n  delete from public.retiros where user_id = any(v_ids);\r\n  delete from public.mensajes_chat where user_id = any(v_ids) or sala_id = any(v_salas);\r\n  update public.salas set picks_estado = 'inactivo'\r\n    where id = any(v_salas) and picks_estado = 'en_curso';\r\n  alter table public.participantes_sala disable trigger user;\r\n  delete from public.participantes_sala where user_id = any(v_ids) or sala_id = any(v_salas);\r\n  alter table public.participantes_sala enable trigger user;\r\n  delete from public.lobbies where sala_id = any(v_salas);\r\n  delete from public.partidas where sala_id = any(v_salas);\r\n  delete from public.salas where id = any(v_salas);\r\n  delete from public.profiles where id = any(v_ids);\r\n  get diagnostics v_perfiles = row_count;\r\n  delete from auth.users where id = any(v_ids);\r\n  get diagnostics v_auth = row_count;\r\n  return jsonb_build_object('perfiles', v_perfiles, 'salas', v_salas_n, 'auth', v_auth);\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.donar_saldo(p_receptor uuid, p_monto integer, p_mensaje text DEFAULT NULL::text)\n RETURNS integer\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_donante uuid := auth.uid();\r\n  v_saldo integer;\r\n  v_donacion uuid;\r\n  v_mensaje text;\r\nbegin\r\n  if v_donante is null then\r\n    raise exception 'Debes iniciar sesión';\r\n  end if;\r\n\r\n  if p_receptor is null or p_monto is null then\r\n    raise exception 'Datos incompletos';\r\n  end if;\r\n\r\n  if p_monto <= 0 then\r\n    raise exception 'El monto debe ser mayor a S/ 0.00';\r\n  end if;\r\n\r\n  if p_receptor = v_donante then\r\n    raise exception 'No puedes donarte saldo a ti mismo';\r\n  end if;\r\n\r\n  if not exists (select 1 from public.profiles where id = p_receptor) then\r\n    raise exception 'El usuario no existe';\r\n  end if;\r\n\r\n  if exists (select 1 from public.profiles where id = p_receptor and baneado) then\r\n    raise exception 'No puedes donar a una cuenta baneada';\r\n  end if;\r\n\r\n  if exists (select 1 from public.profiles where id = v_donante and baneado) then\r\n    raise exception 'Tu cuenta está baneada';\r\n  end if;\r\n\r\n  v_mensaje := nullif(btrim(coalesce(p_mensaje, '')), '');\r\n\r\n  -- Bloquea la fila del donante: dos donaciones simultáneas del mismo usuario\r\n  -- no pueden gastar dos veces el mismo saldo.\r\n  perform 1 from public.profiles where id = v_donante for update;\r\n\r\n  v_saldo := public._saldo_de(v_donante);\r\n\r\n  if v_saldo < p_monto then\r\n    raise exception 'Saldo insuficiente: tienes % y quieres donar %',\r\n      format('S/ %s', (v_saldo / 100.0)::numeric(12, 2)),\r\n      format('S/ %s', (p_monto / 100.0)::numeric(12, 2));\r\n  end if;\r\n\r\n  insert into public.donaciones (donante_id, receptor_id, monto, mensaje)\r\n  values (v_donante, p_receptor, p_monto, v_mensaje)\r\n  returning id into v_donacion;\r\n\r\n  insert into public.movimientos_billetera\r\n    (user_id, tipo, monto, referencia_id, descripcion, creado_por)\r\n  values\r\n    (v_donante, 'donacion_enviada', -p_monto, v_donacion, 'Donación enviada', v_donante);\r\n\r\n  insert into public.movimientos_billetera\r\n    (user_id, tipo, monto, referencia_id, descripcion, creado_por)\r\n  values\r\n    (p_receptor, 'donacion_recibida', p_monto, v_donacion, 'Donación recibida', v_donante);\r\n\r\n  insert into public.actividades (tipo, emisor_id, receptor_id, monto, descripcion)\r\n  values ('donacion', v_donante, p_receptor, p_monto, v_mensaje);\r\n\r\n  insert into public.notificaciones (user_id, tipo, mensaje)\r\n  values (\r\n    p_receptor,\r\n    'donacion_recibida',\r\n    'Recibiste una donación de ' || format('S/ %s', (p_monto / 100.0)::numeric(12, 2)) || '.'\r\n  );\r\n\r\n  return public._saldo_de(v_donante);\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.admin_aplicar_multa(p_user uuid, p_monto integer, p_motivo text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_motivo text;\r\nbegin\r\n  if not public.es_admin() then\r\n    raise exception 'Solo administradores';\r\n  end if;\r\n\r\n  if p_user is null or p_monto is null then\r\n    raise exception 'Datos incompletos';\r\n  end if;\r\n\r\n  if p_monto <= 0 then\r\n    raise exception 'El monto debe ser mayor a S/ 0.00';\r\n  end if;\r\n\r\n  if p_user = auth.uid() then\r\n    raise exception 'No puedes multar tu propia cuenta';\r\n  end if;\r\n\r\n  v_motivo := btrim(coalesce(p_motivo, ''));\r\n\r\n  if v_motivo = '' then\r\n    raise exception 'Escribe el motivo de la multa';\r\n  end if;\r\n\r\n  -- El movimiento del saldo lo hace `ajuste_admin` (mismo control de saldo,\r\n  -- tipo de movimiento y auditoría que usa el resto del sistema).\r\n  perform public.ajuste_admin(p_user, -p_monto, 'Multa: ' || v_motivo);\r\n\r\n  insert into public.actividades (tipo, emisor_id, receptor_id, monto, descripcion)\r\n  values ('multa', auth.uid(), p_user, p_monto, v_motivo);\r\n\r\n  insert into public.notificaciones (user_id, tipo, mensaje)\r\n  values (\r\n    p_user,\r\n    'multa',\r\n    'Se aplicó una multa de ' || format('S/ %s', (p_monto / 100.0)::numeric(12, 2)) ||\r\n      '. Motivo: ' || v_motivo\r\n  );\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.sortear_1v1(p_sala uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s public.salas%rowtype;\r\n  v_total int;\r\n  v_ids uuid[];\r\n  v_ganador uuid;\r\nbegin\r\n  select * into s from public.salas where id = p_sala for update;\r\n  if not found then return; end if;\r\n  if s.cupo <> 2 then return; end if;\r\n  if s.estado not in ('abierta', 'llena') then return; end if;\r\n  if s.picks_estado <> 'inactivo' then return; end if;\r\n\r\n  -- Si los equipos ya están asignados no se vuelve a sortear.\r\n  if exists (\r\n    select 1 from public.participantes_sala\r\n    where sala_id = p_sala and equipo is not null\r\n  ) then\r\n    return;\r\n  end if;\r\n\r\n  -- La moneda espera a que ambos confirmen \"Estoy listo\".\r\n  if s.verificacion_estado = 'pendiente' then return; end if;\r\n\r\n  select count(*), array_agg(user_id order by created_at)\r\n    into v_total, v_ids\r\n  from public.participantes_sala\r\n  where sala_id = p_sala;\r\n\r\n  if v_total <> 2 then return; end if;\r\n\r\n  v_ganador := v_ids[case when random() < 0.5 then 1 else 2 end];\r\n\r\n  update public.salas\r\n  set picks_estado = 'eleccion',\r\n      pick_capitan1 = v_ids[1],\r\n      pick_capitan2 = v_ids[2],\r\n      pick_ganador_moneda = v_ganador,\r\n      pick_decision_user_id = v_ganador,\r\n      pick_decision_tipo = 'lado',\r\n      pick_primer_user_id = null,\r\n      pick_turno_user_id = null,\r\n      pick_turno_expira_at = null\r\n  where id = p_sala;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.iniciar_sorteo_1v1()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_sala_id uuid;\r\n  s public.salas%rowtype;\r\n  v_total int;\r\nbegin\r\n  if TG_OP = 'DELETE' then\r\n    v_sala_id := old.sala_id;\r\n  else\r\n    v_sala_id := new.sala_id;\r\n  end if;\r\n\r\n  select * into s from public.salas where id = v_sala_id for update;\r\n  if not found then\r\n    if TG_OP = 'DELETE' then return old; else return new; end if;\r\n  end if;\r\n\r\n  -- Solo aplica a salas 1v1\r\n  if s.cupo <> 2 then\r\n    if TG_OP = 'DELETE' then return old; else return new; end if;\r\n  end if;\r\n\r\n  select count(*) into v_total\r\n  from public.participantes_sala\r\n  where sala_id = v_sala_id;\r\n\r\n  if v_total = 2 then\r\n    -- No sorts while the verification is pending: the coin waits for \"I'm ready\".\r\n    perform public.sortear_1v1(v_sala_id);\r\n  elsif v_total < 2 then\r\n    -- Si alguien sale antes de decidir, se limpia el sorteo para el próximo que entre\r\n    if s.picks_estado <> 'inactivo' and s.estado <> 'en_juego' then\r\n      perform set_config('app.picks_operacion', 'on', true);\r\n\r\n      update public.salas\r\n      set picks_estado = 'inactivo',\r\n          pick_capitan1 = null,\r\n          pick_capitan2 = null,\r\n          pick_ganador_moneda = null,\r\n          pick_decision_user_id = null,\r\n          pick_decision_tipo = null,\r\n          pick_primer_user_id = null,\r\n          pick_turno_user_id = null,\r\n          pick_turno_expira_at = null\r\n      where id = v_sala_id;\r\n\r\n      update public.participantes_sala\r\n      set equipo = null, es_capitan = false, pick_orden = null\r\n      where sala_id = v_sala_id;\r\n    end if;\r\n  end if;\r\n\r\n  if TG_OP = 'DELETE' then return old; else return new; end if;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.sorteo_1v1_al_completar()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if new.verificacion_estado is distinct from 'completa' then return new; end if;\r\n  if old.verificacion_estado is not distinct from 'completa' then return new; end if;\r\n\r\n  perform public.sortear_1v1(new.id);\r\n  return new;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.proteger_resultado_apostado()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if exists (select 1 from public.apuestas_sala where sala_id = old.sala_id and estado = 'liquidada') then\r\n    if tg_op = 'DELETE' then raise exception 'No se puede borrar un resultado con apuestas pagadas'; end if;\r\n    if new.equipo_ganador is distinct from old.equipo_ganador or new.sala_id is distinct from old.sala_id then\r\n      raise exception 'No se puede cambiar un resultado con apuestas pagadas';\r\n    end if;\r\n  end if;\r\n  if tg_op = 'DELETE' then return old; end if;\r\n  return new;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.elegir_preferencia_equipo(p_sala uuid, p_equipo integer)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if auth.uid() is null then\r\n    raise exception 'Debes iniciar sesión';\r\n  end if;\r\n\r\n  if p_equipo is not null and p_equipo not in (1, 2) then\r\n    raise exception 'Lado inválido';\r\n  end if;\r\n\r\n  if not exists (\r\n    select 1 from public.participantes_sala\r\n    where sala_id = p_sala and user_id = auth.uid()\r\n  ) then\r\n    raise exception 'No perteneces a esta sala';\r\n  end if;\r\n\r\n  -- Solo existe durante la fase en la que los capitanes eligen jugadores.\r\n  if not exists (\r\n    select 1 from public.salas\r\n    where id = p_sala and picks_estado in ('eleccion', 'en_curso')\r\n  ) then\r\n    raise exception 'Solo se puede elegir lado durante la fase de picks';\r\n  end if;\r\n\r\n  -- El trigger `bloquear_cambios_en_picks` congela a los participantes durante\r\n  -- los picks: marcamos la operación para poder escribir la preferencia.\r\n  perform set_config('app.picks_operacion', 'on', true);\r\n\r\n  update public.participantes_sala\r\n  set preferencia_equipo = p_equipo\r\n  where sala_id = p_sala and user_id = auth.uid();\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.salir_de_sala_con_multa(p_sala uuid)\n RETURNS integer\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\ndeclare s public.salas%rowtype; multa integer:=0;\nbegin\n select * into s from public.salas where id=p_sala for update;\n if s.cupo=10 and s.estado='llena' then multa:=least(200,greatest(0,public._saldo_de(auth.uid())+s.cuota)); end if;\n perform public.salir_de_sala(p_sala);\n return multa;\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.elegir_radiant_o_lastpick(p_sala uuid, p_opcion text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s public.salas%rowtype;\r\n  v_uid uuid := auth.uid();\r\n  v_cap1 uuid;\r\n  v_cap2 uuid;\r\n  v_rival uuid;\r\n  v_radiant uuid;\r\n  v_dire uuid;\r\nbegin\r\n  if v_uid is null then\r\n    raise exception 'Debes iniciar sesión';\r\n  end if;\r\n\r\n  if p_opcion is null or p_opcion not in ('radiant', 'lastpick') then\r\n    raise exception 'Opción inválida: usa radiant o lastpick';\r\n  end if;\r\n\r\n  select * into s from public.salas where id = p_sala for update;\r\n  if not found then\r\n    raise exception 'La sala no existe';\r\n  end if;\r\n\r\n  if s.cupo <> 10 then\r\n    raise exception 'Esta decisión es solo para salas 5v5';\r\n  end if;\r\n\r\n  if s.picks_estado <> 'eleccion' then\r\n    raise exception 'La moneda no está esperando una decisión';\r\n  end if;\r\n\r\n  if s.pick_decision_user_id is distinct from v_uid then\r\n    raise exception 'Solo el ganador de la moneda puede decidir';\r\n  end if;\r\n\r\n  v_cap1 := s.pick_capitan1;\r\n  v_cap2 := s.pick_capitan2;\r\n\r\n  if v_cap1 is null or v_cap2 is null then\r\n    raise exception 'Faltan los capitanes';\r\n  end if;\r\n\r\n  v_rival := case when v_cap1 = v_uid then v_cap2 else v_cap1 end;\r\n\r\n  if p_opcion = 'radiant' then\r\n    -- El ganador toma Radiant y abre el draft.\r\n    v_radiant := v_uid;\r\n    v_dire := v_rival;\r\n  else\r\n    -- Last pick: el ganador toma Dire; el rival se queda Radiant y abre.\r\n    v_radiant := v_rival;\r\n    v_dire := v_uid;\r\n  end if;\r\n\r\n  -- La fase de picks congela `participantes_sala`; esto abre la excepción.\r\n  perform set_config('app.picks_operacion', 'on', true);\r\n\r\n  update public.participantes_sala\r\n  set equipo = 1\r\n  where sala_id = p_sala and user_id = v_radiant;\r\n\r\n  update public.participantes_sala\r\n  set equipo = 2\r\n  where sala_id = p_sala and user_id = v_dire;\r\n\r\n  update public.salas\r\n  set picks_estado = 'en_curso',\r\n      pick_decision_user_id = null,\r\n      pick_decision_tipo = null,\r\n      -- Quien abre el draft es siempre el capitán de Radiant.\r\n      pick_primer_user_id = v_radiant,\r\n      pick_turno_user_id = v_radiant,\r\n      pick_turno_expira_at = now() + interval '60 seconds'\r\n  where id = p_sala;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.siguiente_capitan_de_pick(p_primer uuid, p_otro uuid, p_pick integer)\n RETURNS uuid\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO 'public'\nAS $function$\r\n  select case\r\n    when p_pick is null or p_pick <= 1 or p_pick >= 8 then p_primer\r\n    when p_pick in (2, 3, 6, 7) then p_otro\r\n    else p_primer\r\n  end;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.admin_pedir_verificacion(p_sala uuid)\n RETURNS integer\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_cupo int;\r\n  v_estado text;\r\n  v_socios int;\r\nbegin\r\n  if not public.es_admin() then\r\n    raise exception 'Solo administradores';\r\n  end if;\r\n\r\n  select s.cupo, s.estado into v_cupo, v_estado\r\n  from public.salas s\r\n  where s.id = p_sala\r\n  for update;\r\n\r\n  if v_cupo is null then\r\n    raise exception 'La sala no existe';\r\n  end if;\r\n\r\n  if v_estado in ('terminada', 'cancelada') then\r\n    raise exception 'La sala ya terminó';\r\n  end if;\r\n\r\n  select count(*) into v_socios\r\n  from public.participantes_sala\r\n  where sala_id = p_sala;\r\n\r\n  -- Se puede pedir con la sala incompleta: solo hace falta alguien a quien avisar.\r\n  if v_socios = 0 then\r\n    raise exception 'La sala todavía no tiene jugadores';\r\n  end if;\r\n\r\n  -- El trigger `bloquear_cambios_en_picks` congela a los participantes durante\r\n  -- la fase de picks. La verificación solo escribe `verificado_at`, así que\r\n  -- se marca la operación para poder pedir la confirmación en cualquier fase.\r\n  perform set_config('app.picks_operacion', 'on', true);\r\n\r\n  update public.participantes_sala\r\n  set verificado_at = null\r\n  where sala_id = p_sala;\r\n\r\n  update public.salas\r\n  set verificacion_estado = 'pendiente',\r\n      verificacion_iniciada_at = now(),\r\n      verificacion_expira_at = now() + interval '15 minutes'\r\n  where id = p_sala;\r\n\r\n  return v_socios;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.limitar_turno_pick()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if new.pick_turno_expira_at is not null\r\n     and new.pick_turno_expira_at > now() + interval '45 seconds' then\r\n    new.pick_turno_expira_at := now() + interval '45 seconds';\r\n  end if;\r\n  return new;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.iniciar_verificacion_llenada()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_cupo int;\r\n  v_estado text;\r\n  v_verificacion text;\r\n  v_total int;\r\nbegin\r\n  if TG_OP <> 'INSERT' then return new; end if;\r\n\r\n  select s.cupo, s.estado, s.verificacion_estado\r\n    into v_cupo, v_estado, v_verificacion\r\n  from public.salas s\r\n  where s.id = new.sala_id;\r\n\r\n  if v_cupo is null then return new; end if;\r\n  if v_estado in ('terminada', 'cancelada') then return new; end if;\r\n\r\n  -- Ya se estaba pidiendo: no se reinicia (no se pierden las confirmaciones).\r\n  if v_verificacion = 'pendiente' then return new; end if;\r\n\r\n  -- Se había completado y entra alguien nuevo: vuelve a pedirse sin borrar a\r\n  -- los que ya confirmaron; el recién llegado ve el aviso y confirma.\r\n  if v_verificacion = 'completa' then\r\n    update public.salas\r\n    set verificacion_estado = 'pendiente',\r\n        verificacion_expira_at = now() + interval '15 minutes'\r\n    where id = new.sala_id;\r\n    return new;\r\n  end if;\r\n\r\n  select count(*) into v_total\r\n  from public.participantes_sala\r\n  where sala_id = new.sala_id;\r\n\r\n  if v_total < v_cupo then return new; end if;\r\n\r\n  update public.salas\r\n  set verificacion_estado = 'pendiente',\r\n      verificacion_iniciada_at = now(),\r\n      verificacion_expira_at = now() + interval '15 minutes'\r\n  where id = new.sala_id;\r\n\r\n  return new;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.sincronizar_capitanes()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  -- El trigger de la fase de picks congela los cambios de participantes: esta\r\n  -- sincronización es interna y debe poder escribir.\r\n  perform set_config('app.picks_operacion', 'on', true);\r\n\r\n  update public.participantes_sala ps\r\n  set es_capitan = coalesce(\r\n        ps.user_id = new.pick_capitan1 or ps.user_id = new.pick_capitan2,\r\n        false\r\n      )\r\n  where ps.sala_id = new.id\r\n    and ps.es_capitan is distinct from coalesce(\r\n          ps.user_id = new.pick_capitan1 or ps.user_id = new.pick_capitan2,\r\n          false\r\n        );\r\n\r\n  return new;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.pickear_jugador(p_sala uuid, p_user uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s public.salas%rowtype;\r\n  v_equipo_capitan int;\r\n  v_equipo_objetivo int;\r\n  v_hechos int;\r\n  v_otro uuid;\r\n  v_siguiente uuid;\r\n  v_orden int;\r\nbegin\r\n  if auth.uid() is null then raise exception 'No autenticado'; end if;\r\n\r\n  select * into s from public.salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.picks_estado <> 'en_curso' then raise exception 'La fase de picks no está activa'; end if;\r\n  if s.pick_turno_user_id is distinct from auth.uid() then raise exception 'No es tu turno de pickear'; end if;\r\n  if p_user = auth.uid() then raise exception 'No puedes pickearte a ti mismo'; end if;\r\n  if s.pick_primer_user_id is null then raise exception 'Falta el primer pick del sorteo'; end if;\r\n\r\n  select equipo into v_equipo_objetivo\r\n  from public.participantes_sala\r\n  where sala_id = p_sala and user_id = p_user;\r\n\r\n  if not found then raise exception 'Ese jugador no está en la sala'; end if;\r\n  if v_equipo_objetivo is not null then raise exception 'Ese jugador ya fue elegido'; end if;\r\n\r\n  select equipo into v_equipo_capitan\r\n  from public.participantes_sala\r\n  where sala_id = p_sala and user_id = s.pick_turno_user_id;\r\n\r\n  if v_equipo_capitan is null then raise exception 'El capitán no tiene equipo asignado'; end if;\r\n\r\n  perform set_config('app.picks_operacion', 'on', true);\r\n\r\n  select coalesce(max(pick_orden), 0) + 1 into v_orden\r\n  from public.participantes_sala\r\n  where sala_id = p_sala and pick_orden is not null;\r\n\r\n  update public.participantes_sala\r\n  set equipo = v_equipo_capitan, pick_orden = v_orden\r\n  where sala_id = p_sala and user_id = p_user;\r\n\r\n  -- Solo cuentan los jugadores elegidos: los dos capitanes ya estaban en su equipo.\r\n  select count(*) into v_hechos\r\n  from public.participantes_sala\r\n  where sala_id = p_sala\r\n    and equipo is not null\r\n    and user_id is distinct from s.pick_capitan1\r\n    and user_id is distinct from s.pick_capitan2;\r\n\r\n  if v_hechos >= 8 then\r\n    update public.salas\r\n    set picks_estado = 'terminado',\r\n        pick_turno_user_id = null,\r\n        pick_turno_expira_at = null\r\n    where id = p_sala;\r\n  else\r\n    v_otro := case\r\n      when s.pick_primer_user_id = s.pick_capitan1 then s.pick_capitan2\r\n      else s.pick_capitan1\r\n    end;\r\n    v_siguiente := public.siguiente_capitan_de_pick(s.pick_primer_user_id, v_otro, v_hechos + 1);\r\n    update public.salas\r\n    set pick_turno_user_id = v_siguiente,\r\n        pick_turno_expira_at = now() + interval '45 seconds'\r\n    where id = p_sala;\r\n  end if;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.auto_pickear_si_vencido(p_sala uuid, p_forzar boolean DEFAULT false)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s public.salas%rowtype;\r\n  v_equipo_capitan int;\r\n  v_otro uuid;\r\n  v_siguiente uuid;\r\n  v_hechos int;\r\n  v_orden int;\r\n  v_target uuid;\r\nbegin\r\n  if auth.uid() is null then raise exception 'Debes iniciar sesión'; end if;\r\n\r\n  select * into s from public.salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.picks_estado <> 'en_curso' then raise exception 'La fase de picks no está activa'; end if;\r\n\r\n  if p_forzar then\r\n    if not public.es_admin() then raise exception 'Solo administradores pueden forzar el auto-pick'; end if;\r\n  elsif s.pick_turno_expira_at is null or now() < s.pick_turno_expira_at then\r\n    raise exception 'El turno aún no vence';\r\n  end if;\r\n\r\n  select equipo into v_equipo_capitan\r\n  from public.participantes_sala\r\n  where sala_id = p_sala and user_id = s.pick_turno_user_id;\r\n\r\n  if v_equipo_capitan is null then raise exception 'El capitán no tiene equipo asignado'; end if;\r\n\r\n  -- Elige al disponible con más MMR (desempate: el que entró antes).\r\n  select ps.user_id into v_target\r\n  from public.participantes_sala ps\r\n  left join public.profiles pr on pr.id = ps.user_id\r\n  where ps.sala_id = p_sala\r\n    and ps.equipo is null\r\n    and ps.user_id is distinct from s.pick_capitan1\r\n    and ps.user_id is distinct from s.pick_capitan2\r\n  order by coalesce(pr.mmr, 0) desc, ps.created_at asc\r\n  limit 1;\r\n\r\n  if v_target is null then\r\n    update public.salas\r\n    set picks_estado = 'terminado',\r\n        pick_turno_user_id = null,\r\n        pick_turno_expira_at = null\r\n    where id = p_sala;\r\n    return;\r\n  end if;\r\n\r\n  perform set_config('app.picks_operacion', 'on', true);\r\n\r\n  select coalesce(max(pick_orden), 0) + 1 into v_orden\r\n  from public.participantes_sala\r\n  where sala_id = p_sala and pick_orden is not null;\r\n\r\n  update public.participantes_sala\r\n  set equipo = v_equipo_capitan, pick_orden = v_orden\r\n  where sala_id = p_sala and user_id = v_target;\r\n\r\n  select count(*) into v_hechos\r\n  from public.participantes_sala\r\n  where sala_id = p_sala\r\n    and equipo is not null\r\n    and user_id is distinct from s.pick_capitan1\r\n    and user_id is distinct from s.pick_capitan2;\r\n\r\n  if v_hechos >= 8 then\r\n    update public.salas\r\n    set picks_estado = 'terminado',\r\n        pick_turno_user_id = null,\r\n        pick_turno_expira_at = null\r\n    where id = p_sala;\r\n  else\r\n    v_otro := case\r\n      when s.pick_primer_user_id = s.pick_capitan1 then s.pick_capitan2\r\n      else s.pick_capitan1\r\n    end;\r\n    v_siguiente := public.siguiente_capitan_de_pick(s.pick_primer_user_id, v_otro, v_hechos + 1);\r\n    update public.salas\r\n    set pick_turno_user_id = v_siguiente,\r\n        pick_turno_expira_at = now() + interval '45 seconds'\r\n    where id = p_sala;\r\n  end if;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.validar_debito_billetera()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if new.monto < 0 then\r\n    perform 1 from public.profiles where id = new.user_id for update;\r\n    if public._saldo_de(new.user_id)::bigint + new.monto::bigint < 0 then\r\n      raise exception 'Saldo insuficiente para realizar la operación';\r\n    end if;\r\n  end if;\r\n  return new;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.resolver_apuestas_sala(p_sala uuid, p_equipo integer)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  a public.apuestas_sala%rowtype;\r\n  v_ganador uuid;\r\nbegin\r\n  if p_equipo is not null and p_equipo not in (1, 2) then raise exception 'Resultado inválido'; end if;\r\n  perform 1 from public.salas where id = p_sala for update;\r\n  for a in select * from public.apuestas_sala\r\n    where sala_id = p_sala and estado in ('pendiente', 'aceptada') order by id for update\r\n  loop\r\n    if a.estado = 'pendiente' then\r\n      update public.apuestas_sala set estado = 'expirada', resuelto_en = now() where id = a.id;\r\n    elsif p_equipo is null then\r\n      insert into public.movimientos_billetera(user_id, tipo, monto, referencia_id, descripcion, creado_por) values\r\n        (a.creador_id, 'apuesta_reembolso', 550, a.id, 'Apuesta reembolsada: sala cancelada', auth.uid()),\r\n        (a.aceptante_id, 'apuesta_reembolso', 550, a.id, 'Apuesta reembolsada: sala cancelada', auth.uid());\r\n      update public.apuestas_sala set estado = 'reembolsada', resuelto_en = now() where id = a.id;\r\n    else\r\n      v_ganador := case when a.equipo_creador = p_equipo then a.creador_id else a.aceptante_id end;\r\n      insert into public.movimientos_billetera(user_id, tipo, monto, referencia_id, descripcion, creado_por)\r\n        values (v_ganador, 'apuesta_premio', 1000, a.id, 'Premio de apuesta: ' || case when p_equipo = 1 then 'Radiant' else 'Dire' end, auth.uid());\r\n      update public.apuestas_sala set estado = 'liquidada', ganador_id = v_ganador, comision = 100, resuelto_en = now() where id = a.id;\r\n    end if;\r\n    if a.estado = 'aceptada' then\r\n      insert into public.notificaciones(user_id, tipo, mensaje)\r\n        select id, 'apuesta_resultado', 'Apuesta en \"' || (select nombre from public.salas where id = p_sala) || '\": ' ||\r\n          case when p_equipo is null then 'sala cancelada, recibiste S/ 5.50 de reembolso.'\r\n            when id = v_ganador then 'ganaste, recibiste S/ 10.00.' else 'perdiste tu aporte de S/ 5.50.' end\r\n        from public.profiles where id in (a.creador_id, a.aceptante_id);\r\n    end if;\r\n  end loop;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.apuestas_resultado_trg()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  perform public.resolver_apuestas_sala(new.sala_id, new.equipo_ganador);\r\n  return new;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.apuestas_estado_sala_trg()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare v_equipo integer;\r\nbegin\r\n  if new.estado = 'cancelada' and old.estado is distinct from 'cancelada' then\r\n    perform public.resolver_apuestas_sala(new.id, null);\r\n  elsif new.estado = 'terminada' and old.estado is distinct from 'terminada' then\r\n    select equipo_ganador into v_equipo from public.partidas where sala_id = new.id;\r\n    if found then\r\n      perform public.resolver_apuestas_sala(new.id, v_equipo);\r\n    else\r\n      -- Algunos cierres actualizan la sala antes de insertar el resultado.\r\n      -- Las aceptadas se pagan con el trigger de partidas, en esa transacción.\r\n      update public.apuestas_sala set estado = 'expirada', resuelto_en = now()\r\n        where sala_id = new.id and estado = 'pendiente';\r\n    end if;\r\n  end if;\r\n  return new;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.aceptar_apuesta_sala(p_apuesta uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_user uuid := auth.uid();\r\n  v_sala uuid;\r\n  v_estado text;\r\n  a public.apuestas_sala%rowtype;\r\nbegin\r\n  if v_user is null then raise exception 'Debes iniciar sesión'; end if;\r\n  select sala_id into v_sala from public.apuestas_sala where id = p_apuesta;\r\n  if not found then raise exception 'La apuesta no existe'; end if;\r\n  -- Mismo orden en creación, aceptación, cancelación y cierre: sala → apuesta → perfiles.\r\n  select estado into v_estado from public.salas where id = v_sala for update;\r\n  select * into a from public.apuestas_sala where id = p_apuesta for update;\r\n  if a.aceptante_id = v_user and a.estado in ('aceptada', 'liquidada', 'reembolsada') then return; end if;\r\n  if a.creador_id = v_user then raise exception 'No puedes aceptar tu propia apuesta'; end if;\r\n  if v_estado <> 'en_juego' or exists (select 1 from public.partidas where sala_id = v_sala) then\r\n    raise exception 'La partida ya no admite apuestas';\r\n  end if;\r\n  if a.estado <> 'pendiente' then raise exception 'Esta oferta ya no está disponible'; end if;\r\n  -- Orden estable para aceptar simultáneamente apuestas cruzadas en distintas salas.\r\n  perform id from public.profiles where id in (a.creador_id, v_user) order by id for update;\r\n  if not exists (select 1 from public.profiles where id = v_user and not coalesce(baneado, false))\r\n     or exists (select 1 from public.profiles where id = a.creador_id and baneado) then\r\n    raise exception 'Una de las cuentas no puede apostar';\r\n  end if;\r\n  if public._saldo_de(v_user) < 550 then raise exception 'Necesitas S/ 5.50 de saldo'; end if;\r\n  if public._saldo_de(a.creador_id) < 550 then raise exception 'El creador ya no tiene saldo suficiente'; end if;\r\n  insert into public.movimientos_billetera(user_id, tipo, monto, referencia_id, descripcion, creado_por) values\r\n    (a.creador_id, 'apuesta_aporte', -550, a.id, 'Apuesta: ' || case when a.equipo_creador = 1 then 'Radiant' else 'Dire' end, v_user),\r\n    (v_user, 'apuesta_aporte', -550, a.id, 'Apuesta: ' || case when a.equipo_creador = 1 then 'Dire' else 'Radiant' end, v_user);\r\n  update public.apuestas_sala set aceptante_id = v_user, estado = 'aceptada', aceptado_en = now() where id = a.id;\r\n  insert into public.notificaciones(user_id, tipo, mensaje)\r\n    select id, 'apuesta_aceptada', 'Apuesta confirmada en \"' || (select nombre from public.salas where id = v_sala) || '\": aportaste S/ 5.50 a ' ||\r\n      case when (id = a.creador_id and a.equipo_creador = 1) or (id = v_user and a.equipo_creador = 2) then 'Radiant' else 'Dire' end || '. Premio total: S/ 10.00.'\r\n    from public.profiles where id in (a.creador_id, v_user);\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.cancelar_apuesta_sala(p_apuesta uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_sala uuid;\r\n  a public.apuestas_sala%rowtype;\r\nbegin\r\n  if auth.uid() is null then raise exception 'Debes iniciar sesión'; end if;\r\n  select sala_id into v_sala from public.apuestas_sala where id = p_apuesta;\r\n  if not found then raise exception 'La apuesta no existe'; end if;\r\n  perform 1 from public.salas where id = v_sala for update;\r\n  select * into a from public.apuestas_sala where id = p_apuesta for update;\r\n  if a.creador_id <> auth.uid() then raise exception 'Solo puedes cancelar tus propias ofertas'; end if;\r\n  if a.estado = 'cancelada' then return; end if;\r\n  if a.estado <> 'pendiente' then raise exception 'Solo puedes cancelar ofertas sin aceptar'; end if;\r\n  update public.apuestas_sala set estado = 'cancelada', resuelto_en = now() where id = a.id;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.ganancias_apuestas_casa()\n RETURNS bigint\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if not public.es_admin() then raise exception 'Solo administradores'; end if;\r\n  return (select coalesce(sum(comision), 0) from public.apuestas_sala where estado = 'liquidada');\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.crear_apuesta_sala(p_sala uuid, p_equipo integer, p_id uuid)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_user uuid := auth.uid();\r\n  v_estado text;\r\n  v_anterior public.apuestas_sala%rowtype;\r\nbegin\r\n  if v_user is null then raise exception 'Debes iniciar sesión'; end if;\r\n  if p_id is null or p_sala is null or p_equipo is null or p_equipo not in (1, 2) then\r\n    raise exception 'Selecciona Radiant o Dire';\r\n  end if;\r\n  select estado into v_estado from public.salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  select * into v_anterior from public.apuestas_sala where id = p_id;\r\n  if found then\r\n    if v_anterior.creador_id = v_user and v_anterior.sala_id = p_sala and v_anterior.equipo_creador = p_equipo then\r\n      return p_id;\r\n    end if;\r\n    raise exception 'Identificador de apuesta inválido';\r\n  end if;\r\n  if v_estado <> 'en_juego' or exists (select 1 from public.partidas where sala_id = p_sala) then\r\n    raise exception 'Las apuestas solo están disponibles durante la partida';\r\n  end if;\r\n  perform 1 from public.profiles where id = v_user and not coalesce(baneado, false) for update;\r\n  if not found then raise exception 'Tu cuenta no puede apostar'; end if;\r\n  if public._saldo_de(v_user) < 550 then raise exception 'Necesitas S/ 5.50 de saldo'; end if;\r\n  insert into public.apuestas_sala(id, sala_id, creador_id, equipo_creador)\r\n    values (p_id, p_sala, v_user, p_equipo);\r\n  return p_id;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.validar_ventana_apuesta()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\ndeclare s public.salas%rowtype;\nbegin\n if (tg_op='INSERT' and new.estado='pendiente') or (tg_op='UPDATE' and new.estado='aceptada' and old.estado='pendiente') then\n  select * into s from public.salas where id=new.sala_id for update;\n  if s.estado<>'en_juego' or s.iniciada_at is null or clock_timestamp() >= s.iniciada_at + interval '25 minutes'\n     or exists(select 1 from public.partidas where sala_id=s.id) then\n   raise exception 'Apuestas cerradas: solo se admiten durante los primeros 25 minutos de la partida';\n  end if;\n  if exists(select 1 from public.participantes_sala where sala_id=s.id and user_id in (new.creador_id,new.aceptante_id)) then\n   raise exception 'Los jugadores de esta partida no pueden apostar en su propia sala';\n  end if;\n end if;\n return new;\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.admin_configurar_cierre(p_sala uuid, p_auto boolean, p_match bigint DEFAULT NULL::bigint)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nbegin\n if not public.es_admin() then raise exception 'Solo administradores'; end if;\n if p_match is not null and p_match<=0 then raise exception 'ID de partida inválido'; end if;\n update public.salas set auto_cierre=p_auto,dota_match_id_esperado=p_match where id=p_sala and estado='en_juego';\n if not found then raise exception 'La sala no está en juego'; end if;\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.salir_de_sala(p_sala uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\ndeclare s public.salas%rowtype; u uuid:=auth.uid(); multa integer:=0;\nbegin\n if u is null then raise exception 'No autenticado'; end if;\n select * into s from public.salas where id=p_sala for update;\n if not found then raise exception 'La sala no existe'; end if;\n if s.estado not in ('abierta','llena') then raise exception 'No puedes salir de esta sala ahora'; end if;\n perform 1 from public.profiles where id=u for update;\n delete from public.participantes_sala where sala_id=p_sala and user_id=u;\n if not found then raise exception 'No estás en esta sala'; end if;\n insert into public.movimientos_billetera(user_id,tipo,monto,referencia_id,descripcion)\n values(u,'reembolso',s.cuota,s.id,'Salida de sala '||s.nombre);\n if s.cupo=10 and s.estado='llena' then\n  multa:=least(200,greatest(0,public._saldo_de(u)));\n  if multa>0 then\n   insert into public.movimientos_billetera(user_id,tipo,monto,referencia_id,descripcion,creado_por)\n   values(u,'ajuste_admin',-multa,s.id,'Multa: abandonó una sala 5v5 llena',u);\n   insert into public.actividades(tipo,emisor_id,receptor_id,monto,descripcion)\n   values('multa',u,u,multa,'Abandonó una sala 5v5 llena');\n   insert into public.notificaciones(user_id,tipo,mensaje)\n   values(u,'multa','Multa por abandonar una sala 5v5 llena: S/ '||(multa/100.0)::numeric(12,2));\n  end if;\n end if;\n if s.estado='llena' then update public.salas set estado='abierta' where id=s.id; end if;\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.validar_perfil_dota()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if not exists (\r\n    select 1 from public.profiles\r\n    where id = new.user_id and mmr is not null\r\n  ) then\r\n    raise exception 'Completa tu MMR en Mi perfil antes de unirte a una sala';\r\n  end if;\r\n  return new;\r\nend\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.iniciar_picks(p_sala uuid, p_capitan1 uuid, p_capitan2 uuid)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s public.salas%rowtype;\r\n  v_total int;\r\n  v_ganador uuid;\r\nbegin\r\n  if not public.es_admin() then raise exception 'Solo administradores'; end if;\r\n\r\n  select * into s from public.salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.estado not in ('abierta','llena') then raise exception 'La sala no está en espera'; end if;\r\n  if s.cupo <> 10 then raise exception 'La fase de picks es solo para 5v5'; end if;\r\n  if s.picks_estado <> 'inactivo' then raise exception 'La fase de picks ya inició'; end if;\r\n\r\n  select count(*) into v_total from public.participantes_sala where sala_id = p_sala;\r\n  if v_total <> 10 then raise exception 'La sala debe estar llena (10 jugadores)'; end if;\r\n  if p_capitan1 = p_capitan2 then raise exception 'Los capitanes deben ser diferentes'; end if;\r\n\r\n  if not exists (select 1 from public.participantes_sala where sala_id = p_sala and user_id = p_capitan1) then\r\n    raise exception 'El capitán 1 no está en la sala';\r\n  end if;\r\n  if not exists (select 1 from public.participantes_sala where sala_id = p_sala and user_id = p_capitan2) then\r\n    raise exception 'El capitán 2 no está en la sala';\r\n  end if;\r\n\r\n  update public.participantes_sala\r\n  set equipo = null, es_capitan = false, pick_orden = null\r\n  where sala_id = p_sala;\r\n\r\n  v_ganador := case when random() < 0.5 then p_capitan1 else p_capitan2 end;\r\n\r\n  update public.salas\r\n  set picks_estado = 'eleccion',\r\n      pick_capitan1 = p_capitan1,\r\n      pick_capitan2 = p_capitan2,\r\n      pick_ganador_moneda = v_ganador,\r\n      pick_decision_user_id = v_ganador,\r\n      pick_decision_tipo = 'moneda',\r\n      pick_primer_user_id = null,\r\n      pick_turno_user_id = null,\r\n      pick_turno_expira_at = null\r\n  where id = p_sala;\r\n\r\n  return v_ganador;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.elegir_moneda(p_sala uuid, p_opcion text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s public.salas%rowtype;\r\n  v_otro uuid;\r\nbegin\r\n  if auth.uid() is null then raise exception 'No autenticado'; end if;\r\n\r\n  select * into s from public.salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.picks_estado <> 'eleccion' or s.pick_decision_tipo <> 'moneda' then\r\n    raise exception 'No es momento de elegir';\r\n  end if;\r\n  if s.pick_decision_user_id is distinct from auth.uid() then raise exception 'No es tu turno de elegir'; end if;\r\n  if p_opcion not in ('pickear_primero','lado') then raise exception 'Opción inválida'; end if;\r\n\r\n  v_otro := case when s.pick_decision_user_id = s.pick_capitan1 then s.pick_capitan2 else s.pick_capitan1 end;\r\n\r\n  if p_opcion = 'pickear_primero' then\r\n    update public.salas\r\n    set pick_primer_user_id = s.pick_decision_user_id,\r\n        pick_decision_user_id = v_otro,\r\n        pick_decision_tipo = 'lado'\r\n    where id = p_sala;\r\n  else\r\n    update public.salas\r\n    set pick_primer_user_id = v_otro,\r\n        pick_decision_user_id = s.pick_decision_user_id,\r\n        pick_decision_tipo = 'lado'\r\n    where id = p_sala;\r\n  end if;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.guardar_perfil_competitivo(p_mmr integer, p_roles text[] DEFAULT '{}'::text[])\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_mmr integer;\r\nbegin\r\n  if auth.uid() is null then raise exception 'No autenticado'; end if;\r\n\r\n  select mmr into v_mmr from public.profiles where id = auth.uid() for update;\r\n  if not found then raise exception 'Perfil no encontrado'; end if;\r\n\r\n  if coalesce(array_length(p_roles, 1), 0) > 3 then\r\n    raise exception 'Elige como máximo 3 roles';\r\n  end if;\r\n  if p_roles is not null\r\n     and not (p_roles <@ array['carry','mid','off','roamer','support']::text[]) then\r\n    raise exception 'Rol inválido';\r\n  end if;\r\n\r\n  if v_mmr is null then\r\n    if p_mmr is null or p_mmr < 0 or p_mmr > 20000 then\r\n      raise exception 'El MMR debe estar entre 0 y 20000';\r\n    end if;\r\n    update public.profiles\r\n    set mmr = p_mmr,\r\n        roles_preferidos = coalesce(p_roles, '{}'::text[])\r\n    where id = auth.uid();\r\n  else\r\n    if p_mmr is distinct from v_mmr then\r\n      raise exception 'El MMR ya fue registrado y no se puede cambiar. Contacta a un administrador.';\r\n    end if;\r\n    update public.profiles\r\n    set roles_preferidos = coalesce(p_roles, '{}'::text[])\r\n    where id = auth.uid();\r\n  end if;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.guardar_roles_preferidos(p_roles text[])\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if auth.uid() is null then raise exception 'No autenticado'; end if;\r\n  if coalesce(array_length(p_roles, 1), 0) > 3 then\r\n    raise exception 'Elige como máximo 3 roles';\r\n  end if;\r\n  if p_roles is not null\r\n     and not (p_roles <@ array['carry','mid','off','roamer','support']::text[]) then\r\n    raise exception 'Rol inválido';\r\n  end if;\r\n\r\n  update public.profiles\r\n  set roles_preferidos = coalesce(p_roles, '{}'::text[])\r\n  where id = auth.uid();\r\n  if not found then raise exception 'Perfil no encontrado'; end if;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.admin_editar_mmr(p_user uuid, p_mmr integer)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if auth.uid() is null then raise exception 'No autenticado'; end if;\r\n  if not exists (\r\n    select 1 from public.profiles\r\n    where id = auth.uid() and rol = 'admin'\r\n  ) then\r\n    raise exception 'Solo un administrador puede editar el MMR';\r\n  end if;\r\n  if p_mmr is null or p_mmr < 0 or p_mmr > 20000 then\r\n    raise exception 'El MMR debe estar entre 0 y 20000';\r\n  end if;\r\n\r\n  update public.profiles set mmr = p_mmr where id = p_user;\r\n  if not found then raise exception 'Usuario no encontrado'; end if;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.proteger_mmr()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if new.mmr is distinct from old.mmr and old.mmr is not null then\r\n    -- Sin usuario autenticado = proceso interno (service role / migración).\r\n    if auth.uid() is null then return new; end if;\r\n    if not exists (\r\n      select 1 from public.profiles\r\n      where id = auth.uid() and rol = 'admin'\r\n    ) then\r\n      raise exception 'El MMR ya fue registrado y no se puede cambiar. Contacta a un administrador.';\r\n    end if;\r\n  end if;\r\n  return new;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.elegir_lado(p_sala uuid, p_equipo integer)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s public.salas%rowtype;\r\n  v_otro uuid;\r\n  v_equipo_otro int;\r\nbegin\r\n  if auth.uid() is null then raise exception 'No autenticado'; end if;\r\n\r\n  select * into s from public.salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.picks_estado <> 'eleccion' or s.pick_decision_tipo <> 'lado' then\r\n    raise exception 'No es momento de elegir lado';\r\n  end if;\r\n  if s.pick_decision_user_id is distinct from auth.uid() then raise exception 'No es tu turno de elegir'; end if;\r\n  if p_equipo not in (1,2) then raise exception 'Equipo inválido'; end if;\r\n\r\n  v_otro := case when s.pick_decision_user_id = s.pick_capitan1 then s.pick_capitan2 else s.pick_capitan1 end;\r\n  v_equipo_otro := case when p_equipo = 1 then 2 else 1 end;\r\n\r\n  perform set_config('app.picks_operacion', 'on', true);\r\n\r\n  if s.cupo = 2 then\r\n    -- 1v1: el ganador elige su lado y el otro va al contrario. El sorteo queda cerrado.\r\n    update public.participantes_sala\r\n    set equipo = p_equipo, es_capitan = false, pick_orden = null\r\n    where sala_id = p_sala and user_id = s.pick_decision_user_id;\r\n\r\n    update public.participantes_sala\r\n    set equipo = v_equipo_otro, es_capitan = false, pick_orden = null\r\n    where sala_id = p_sala and user_id = v_otro;\r\n\r\n    update public.salas\r\n    set picks_estado = 'terminado',\r\n        pick_capitan1 = null,\r\n        pick_capitan2 = null,\r\n        pick_ganador_moneda = null,\r\n        pick_decision_user_id = null,\r\n        pick_decision_tipo = null,\r\n        pick_primer_user_id = null,\r\n        pick_turno_user_id = null,\r\n        pick_turno_expira_at = null\r\n    where id = p_sala;\r\n    return;\r\n  end if;\r\n\r\n  update public.participantes_sala\r\n  set es_capitan = true, equipo = p_equipo, pick_orden = 0\r\n  where sala_id = p_sala and user_id = s.pick_decision_user_id;\r\n\r\n  update public.participantes_sala\r\n  set es_capitan = true, equipo = v_equipo_otro, pick_orden = 0\r\n  where sala_id = p_sala and user_id = v_otro;\r\n\r\n  update public.salas\r\n  set picks_estado = 'en_curso',\r\n      pick_decision_user_id = null,\r\n      pick_decision_tipo = null,\r\n      pick_turno_user_id = s.pick_primer_user_id,\r\n      pick_turno_expira_at = now() + interval '60 seconds'\r\n  where id = p_sala;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.bloquear_cambios_en_picks()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_estado text;\r\n  v_cupo int;\r\n  v_sala_id uuid;\r\nbegin\r\n  if coalesce(current_setting('app.picks_operacion', true), '') = 'on' then\r\n    if TG_OP = 'DELETE' then return old; end if;\r\n    return new;\r\n  end if;\r\n\r\n  v_sala_id := case when TG_OP = 'DELETE' then old.sala_id else new.sala_id end;\r\n\r\n  select picks_estado, cupo into v_estado, v_cupo\r\n  from public.salas where id = v_sala_id;\r\n\r\n  if v_estado in ('eleccion', 'en_curso') then\r\n    if TG_OP = 'DELETE' and v_cupo = 2 then\r\n      return old;\r\n    end if;\r\n    raise exception 'La fase de picks está activa; espera a que termine';\r\n  end if;\r\n\r\n  if TG_OP = 'DELETE' then return old; end if;\r\n  return new;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.admin_renombrar_sala(p_sala uuid, p_nombre text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  v_nombre text;\r\nbegin\r\n  if auth.uid() is null then raise exception 'No autenticado'; end if;\r\n  if not exists (\r\n    select 1 from public.profiles\r\n    where id = auth.uid() and rol = 'admin'\r\n  ) then\r\n    raise exception 'Solo un administrador puede renombrar la sala';\r\n  end if;\r\n\r\n  v_nombre := btrim(coalesce(p_nombre, ''));\r\n  if char_length(v_nombre) < 3 or char_length(v_nombre) > 60 then\r\n    raise exception 'El nombre debe tener entre 3 y 60 caracteres';\r\n  end if;\r\n\r\n  update public.salas\r\n  set nombre = v_nombre\r\n  where id = p_sala\r\n    and estado in ('abierta', 'llena', 'en_juego');\r\n\r\n  if not found then\r\n    raise exception 'Sala no encontrada o no se puede renombrar en este estado';\r\n  end if;\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.donar_saldo_seguro(p_receptor uuid, p_monto integer, p_mensaje text, p_peticion uuid)\n RETURNS integer\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\ndeclare anterior public.peticiones_dinero%rowtype; datos jsonb:=jsonb_build_array(p_receptor,p_monto,p_mensaje); saldo integer;\nbegin\n if auth.uid() is null or p_peticion is null then raise exception 'Debes iniciar sesión'; end if;\n perform 1 from public.profiles where id=auth.uid() for update;\n select * into anterior from public.peticiones_dinero where user_id=auth.uid() and id=p_peticion;\n if found then\n  if anterior.operacion<>'donar' or anterior.datos<>datos then raise exception 'Petición incompatible'; end if;\n  return (anterior.resultado #>> '{}')::integer;\n end if;\n saldo:=public.donar_saldo(p_receptor,p_monto,p_mensaje);\n insert into public.peticiones_dinero values(auth.uid(),p_peticion,'donar',datos,to_jsonb(saldo));\n return saldo;\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.solicitar_retiro_seguro(p_monto bigint, p_destino text, p_peticion uuid)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\ndeclare anterior public.peticiones_dinero%rowtype; datos jsonb:=jsonb_build_array(p_monto,p_destino); retiro uuid;\nbegin\n if auth.uid() is null or p_peticion is null then raise exception 'Debes iniciar sesión'; end if;\n perform 1 from public.profiles where id=auth.uid() for update;\n select * into anterior from public.peticiones_dinero where user_id=auth.uid() and id=p_peticion;\n if found then\n  if anterior.operacion<>'retirar' or anterior.datos<>datos then raise exception 'Petición incompatible'; end if;\n  return (anterior.resultado #>> '{}')::uuid;\n end if;\n retiro:=public.solicitar_retiro(p_monto,p_destino);\n insert into public.peticiones_dinero values(auth.uid(),p_peticion,'retirar',datos,to_jsonb(retiro));\n return retiro;\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.admin_saldos()\n RETURNS TABLE(user_id uuid, saldo bigint)\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nbegin\n if not public.es_admin() then raise exception 'Solo administradores'; end if;\n return query select m.user_id,coalesce(sum(m.monto),0)::bigint from public.movimientos_billetera m group by m.user_id;\nend $function$\n",
+    "CREATE OR REPLACE FUNCTION public.cerrar_partida_auto(p_sala uuid, p_dota_match_id bigint, p_equipo_ganador integer, p_duracion integer, p_radiant_score integer, p_dire_score integer)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\ndeclare\r\n  s public.salas%rowtype;\r\n  v_admin uuid;\r\nbegin\r\n  if auth.role() <> 'service_role' then\r\n    raise exception 'No autorizado';\r\n  end if;\r\n\r\n  select * into s from public.salas where id = p_sala for update;\r\n  if not found then raise exception 'La sala no existe'; end if;\r\n  if s.estado <> 'en_juego' then raise exception 'La sala no está en juego'; end if;\r\n  if not s.auto_cierre or s.dota_match_id_esperado is distinct from p_dota_match_id then raise exception 'Cierre automático desactivado o partida no asociada'; end if; if exists (select 1 from public.partidas where sala_id = p_sala) then\r\n    raise exception 'La partida ya fue cerrada';\r\n  end if;\r\n\r\n  -- Reutiliza el cierre oficial con contexto de admin.\r\n  select id into v_admin\r\n  from public.profiles\r\n  where rol = 'admin' and coalesce(baneado, false) = false\r\n  order by (id = s.creado_por) desc\r\n  limit 1;\r\n\r\n  if v_admin is null then\r\n    raise exception 'No hay un administrador disponible para cerrar la partida';\r\n  end if;\r\n\r\n  perform set_config('request.jwt.claim.sub', v_admin::text, true);\r\n  perform set_config('request.jwt.claim.role', 'authenticated', true);\r\n  perform set_config(\r\n    'request.jwt.claims',\r\n    json_build_object('sub', v_admin, 'role', 'authenticated')::text,\r\n    true\r\n  );\r\n\r\n  perform public.cerrar_partida_con_detalle(\r\n    p_sala,\r\n    p_dota_match_id,\r\n    p_equipo_ganador,\r\n    p_duracion,\r\n    p_radiant_score,\r\n    p_dire_score,\r\n    true\r\n  );\r\nend;\r\n$function$\n",
+    "CREATE OR REPLACE FUNCTION public.procesar_plazos_arena()\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\ndeclare s record; administrador uuid;\nbegin\n -- Bloqueo compartido con aceptar/crear: primero sala y después sus apuestas.\n for s in select id from public.salas where estado='en_juego' and iniciada_at<=clock_timestamp()-interval '25 minutes' order by id for update skip locked loop\n  update public.apuestas_sala set estado='expirada',resuelto_en=clock_timestamp() where sala_id=s.id and estado='pendiente';\n end loop;\n for s in select id,creado_por from public.salas where picks_estado='en_curso' and pick_turno_expira_at<=clock_timestamp() order by id for update skip locked loop\n  select id into administrador from public.profiles where rol='admin' and not baneado order by (id=s.creado_por) desc limit 1;\n  if administrador is not null then\n   perform set_config('request.jwt.claim.sub',administrador::text,true);\n   perform set_config('request.jwt.claims',json_build_object('sub',administrador,'role','authenticated')::text,true);\n   begin perform public.auto_pickear_si_vencido(s.id,false);\n   exception when others then raise warning 'No se pudo ejecutar el auto-pick de sala %: %',s.id,sqlerrm;\n   end;\n  end if;\n end loop;\nend $function$\n"
+  ],
+  "constraints": [
+    {
+      "name": "notificaciones_pkey",
+      "table": "notificaciones",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "notificaciones_tipo_check",
+      "table": "notificaciones",
+      "definition": "CHECK ((tipo = ANY (ARRAY['recarga_aprobada'::text, 'recarga_rechazada'::text, 'retiro_pagado'::text, 'retiro_rechazado'::text, 'partida_iniciada'::text, 'expulsado_sala'::text, 'multa'::text, 'verificacion_sala'::text, 'verificacion_completa'::text, 'partida_finalizada'::text, 'donacion_recibida'::text, 'apuesta_aceptada'::text, 'apuesta_resultado'::text]))) NOT VALID"
+    },
+    {
+      "name": "notificaciones_user_id_fkey",
+      "table": "notificaciones",
+      "definition": "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "participantes_sala_equipo_check",
+      "table": "participantes_sala",
+      "definition": "CHECK ((equipo = ANY (ARRAY[1, 2])))"
+    },
+    {
+      "name": "participantes_sala_pkey",
+      "table": "participantes_sala",
+      "definition": "PRIMARY KEY (sala_id, user_id)"
+    },
+    {
+      "name": "participantes_sala_preferencia_equipo_check",
+      "table": "participantes_sala",
+      "definition": "CHECK (((preferencia_equipo IS NULL) OR (preferencia_equipo = ANY (ARRAY[1, 2])))) NOT VALID"
+    },
+    {
+      "name": "participantes_sala_sala_id_fkey",
+      "table": "participantes_sala",
+      "definition": "FOREIGN KEY (sala_id) REFERENCES salas(id)"
+    },
+    {
+      "name": "participantes_sala_user_id_fkey",
+      "table": "participantes_sala",
+      "definition": "FOREIGN KEY (user_id) REFERENCES profiles(id)"
+    },
+    {
+      "name": "partidas_cerrada_por_fkey",
+      "table": "partidas",
+      "definition": "FOREIGN KEY (cerrada_por) REFERENCES profiles(id)"
+    },
+    {
+      "name": "partidas_dota_match_id_key",
+      "table": "partidas",
+      "definition": "UNIQUE (dota_match_id)"
+    },
+    {
+      "name": "partidas_equipo_ganador_check",
+      "table": "partidas",
+      "definition": "CHECK ((equipo_ganador = ANY (ARRAY[1, 2])))"
+    },
+    {
+      "name": "partidas_pkey",
+      "table": "partidas",
+      "definition": "PRIMARY KEY (sala_id)"
+    },
+    {
+      "name": "partidas_sala_id_fkey",
+      "table": "partidas",
+      "definition": "FOREIGN KEY (sala_id) REFERENCES salas(id)"
+    },
+    {
+      "name": "lobbies_pkey",
+      "table": "lobbies",
+      "definition": "PRIMARY KEY (sala_id)"
+    },
+    {
+      "name": "lobbies_sala_id_fkey",
+      "table": "lobbies",
+      "definition": "FOREIGN KEY (sala_id) REFERENCES salas(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "recargas_estado_check",
+      "table": "recargas",
+      "definition": "CHECK ((estado = ANY (ARRAY['pendiente'::text, 'aprobada'::text, 'rechazada'::text])))"
+    },
+    {
+      "name": "recargas_monto_check",
+      "table": "recargas",
+      "definition": "CHECK ((monto > 0))"
+    },
+    {
+      "name": "recargas_pkey",
+      "table": "recargas",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "recargas_revisado_por_fkey",
+      "table": "recargas",
+      "definition": "FOREIGN KEY (revisado_por) REFERENCES profiles(id)"
+    },
+    {
+      "name": "recargas_user_id_fkey",
+      "table": "recargas",
+      "definition": "FOREIGN KEY (user_id) REFERENCES profiles(id)"
+    },
+    {
+      "name": "retiros_estado_check",
+      "table": "retiros",
+      "definition": "CHECK ((estado = ANY (ARRAY['solicitado'::text, 'pagado'::text, 'rechazado'::text])))"
+    },
+    {
+      "name": "retiros_monto_check",
+      "table": "retiros",
+      "definition": "CHECK ((monto > 0))"
+    },
+    {
+      "name": "retiros_pkey",
+      "table": "retiros",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "retiros_procesado_por_fkey",
+      "table": "retiros",
+      "definition": "FOREIGN KEY (procesado_por) REFERENCES profiles(id)"
+    },
+    {
+      "name": "retiros_user_id_fkey",
+      "table": "retiros",
+      "definition": "FOREIGN KEY (user_id) REFERENCES profiles(id)"
+    },
+    {
+      "name": "movimientos_billetera_creado_por_fkey",
+      "table": "movimientos_billetera",
+      "definition": "FOREIGN KEY (creado_por) REFERENCES profiles(id)"
+    },
+    {
+      "name": "movimientos_billetera_monto_check",
+      "table": "movimientos_billetera",
+      "definition": "CHECK ((monto <> 0))"
+    },
+    {
+      "name": "movimientos_billetera_pkey",
+      "table": "movimientos_billetera",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "movimientos_billetera_tipo_check",
+      "table": "movimientos_billetera",
+      "definition": "CHECK ((tipo = ANY (ARRAY['recarga'::text, 'retiro'::text, 'entrada_sala'::text, 'reembolso'::text, 'premio'::text, 'ajuste_admin'::text, 'donacion_enviada'::text, 'donacion_recibida'::text, 'apuesta_aporte'::text, 'apuesta_premio'::text, 'apuesta_reembolso'::text]))) NOT VALID"
+    },
+    {
+      "name": "movimientos_billetera_user_id_fkey",
+      "table": "movimientos_billetera",
+      "definition": "FOREIGN KEY (user_id) REFERENCES profiles(id)"
+    },
+    {
+      "name": "signo_correcto",
+      "table": "movimientos_billetera",
+      "definition": "CHECK ((((tipo = ANY (ARRAY['recarga'::text, 'premio'::text, 'reembolso'::text, 'donacion_recibida'::text, 'apuesta_premio'::text, 'apuesta_reembolso'::text])) AND (monto > 0)) OR ((tipo = ANY (ARRAY['entrada_sala'::text, 'retiro'::text, 'donacion_enviada'::text, 'apuesta_aporte'::text])) AND (monto < 0)) OR (tipo = 'ajuste_admin'::text))) NOT VALID"
+    },
+    {
+      "name": "profiles_id_fkey",
+      "table": "profiles",
+      "definition": "FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "profiles_max_roles",
+      "table": "profiles",
+      "definition": "CHECK ((COALESCE(array_length(roles_preferidos, 1), 0) <= 3))"
+    },
+    {
+      "name": "profiles_mmr_rango",
+      "table": "profiles",
+      "definition": "CHECK (((mmr IS NULL) OR ((mmr >= 0) AND (mmr <= 20000))))"
+    },
+    {
+      "name": "profiles_nick_check",
+      "table": "profiles",
+      "definition": "CHECK (((char_length(nick) >= 3) AND (char_length(nick) <= 20)))"
+    },
+    {
+      "name": "profiles_pkey",
+      "table": "profiles",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "profiles_rol_check",
+      "table": "profiles",
+      "definition": "CHECK ((rol = ANY (ARRAY['jugador'::text, 'admin'::text])))"
+    },
+    {
+      "name": "profiles_roles_validos",
+      "table": "profiles",
+      "definition": "CHECK ((roles_preferidos <@ ARRAY['carry'::text, 'mid'::text, 'off'::text, 'roamer'::text, 'support'::text]))"
+    },
+    {
+      "name": "profiles_steam_id_key",
+      "table": "profiles",
+      "definition": "UNIQUE (steam_id)"
+    },
+    {
+      "name": "salas_comision_bp_check",
+      "table": "salas",
+      "definition": "CHECK (((comision_bp >= 0) AND (comision_bp <= 5000)))"
+    },
+    {
+      "name": "salas_creado_por_fkey",
+      "table": "salas",
+      "definition": "FOREIGN KEY (creado_por) REFERENCES profiles(id)"
+    },
+    {
+      "name": "salas_cuota_check",
+      "table": "salas",
+      "definition": "CHECK ((cuota > 0))"
+    },
+    {
+      "name": "salas_cupo_check",
+      "table": "salas",
+      "definition": "CHECK ((((cupo >= 2) AND (cupo <= 10)) AND ((cupo % 2) = 0)))"
+    },
+    {
+      "name": "salas_estado_check",
+      "table": "salas",
+      "definition": "CHECK ((estado = ANY (ARRAY['abierta'::text, 'llena'::text, 'en_juego'::text, 'terminada'::text, 'cancelada'::text])))"
+    },
+    {
+      "name": "salas_modalidad_check",
+      "table": "salas",
+      "definition": "CHECK ((modalidad = ANY (ARRAY['1v1'::text, '5v5'::text])))"
+    },
+    {
+      "name": "salas_pick_decision_tipo_check",
+      "table": "salas",
+      "definition": "CHECK (((pick_decision_tipo IS NULL) OR (pick_decision_tipo = ANY (ARRAY['moneda'::text, 'lado'::text]))))"
+    },
+    {
+      "name": "salas_picks_estado_check",
+      "table": "salas",
+      "definition": "CHECK ((picks_estado = ANY (ARRAY['inactivo'::text, 'eleccion'::text, 'en_curso'::text, 'terminado'::text])))"
+    },
+    {
+      "name": "salas_pkey",
+      "table": "salas",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "salas_verificacion_estado_check",
+      "table": "salas",
+      "definition": "CHECK ((verificacion_estado = ANY (ARRAY['inactiva'::text, 'pendiente'::text, 'completa'::text]))) NOT VALID"
+    },
+    {
+      "name": "mensajes_chat_mensaje_largo",
+      "table": "mensajes_chat",
+      "definition": "CHECK (((char_length(btrim(mensaje)) >= 1) AND (char_length(btrim(mensaje)) <= 500)))"
+    },
+    {
+      "name": "mensajes_chat_pkey",
+      "table": "mensajes_chat",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "mensajes_chat_sala_id_fkey",
+      "table": "mensajes_chat",
+      "definition": "FOREIGN KEY (sala_id) REFERENCES salas(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "mensajes_chat_user_id_fkey",
+      "table": "mensajes_chat",
+      "definition": "FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "actividades_emisor_id_fkey",
+      "table": "actividades",
+      "definition": "FOREIGN KEY (emisor_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "actividades_monto_check",
+      "table": "actividades",
+      "definition": "CHECK ((monto > 0))"
+    },
+    {
+      "name": "actividades_pkey",
+      "table": "actividades",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "actividades_receptor_id_fkey",
+      "table": "actividades",
+      "definition": "FOREIGN KEY (receptor_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "actividades_tipo_check",
+      "table": "actividades",
+      "definition": "CHECK ((tipo = ANY (ARRAY['donacion'::text, 'multa'::text])))"
+    },
+    {
+      "name": "donaciones_distintos",
+      "table": "donaciones",
+      "definition": "CHECK ((donante_id <> receptor_id))"
+    },
+    {
+      "name": "donaciones_donante_id_fkey",
+      "table": "donaciones",
+      "definition": "FOREIGN KEY (donante_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "donaciones_mensaje_check",
+      "table": "donaciones",
+      "definition": "CHECK ((char_length(mensaje) <= 200))"
+    },
+    {
+      "name": "donaciones_monto_check",
+      "table": "donaciones",
+      "definition": "CHECK ((monto > 0))"
+    },
+    {
+      "name": "donaciones_pkey",
+      "table": "donaciones",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "donaciones_receptor_id_fkey",
+      "table": "donaciones",
+      "definition": "FOREIGN KEY (receptor_id) REFERENCES profiles(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "peticiones_dinero_pkey",
+      "table": "peticiones_dinero",
+      "definition": "PRIMARY KEY (user_id, id)"
+    },
+    {
+      "name": "peticiones_dinero_user_id_fkey",
+      "table": "peticiones_dinero",
+      "definition": "FOREIGN KEY (user_id) REFERENCES profiles(id)"
+    },
+    {
+      "name": "apuestas_sala_aceptante_id_fkey",
+      "table": "apuestas_sala",
+      "definition": "FOREIGN KEY (aceptante_id) REFERENCES profiles(id)"
+    },
+    {
+      "name": "apuestas_sala_check",
+      "table": "apuestas_sala",
+      "definition": "CHECK (((aceptante_id IS NULL) OR (aceptante_id <> creador_id)))"
+    },
+    {
+      "name": "apuestas_sala_check1",
+      "table": "apuestas_sala",
+      "definition": "CHECK ((((estado = ANY (ARRAY['pendiente'::text, 'cancelada'::text, 'expirada'::text])) AND (aceptante_id IS NULL)) OR ((estado = ANY (ARRAY['aceptada'::text, 'liquidada'::text, 'reembolsada'::text])) AND (aceptante_id IS NOT NULL))))"
+    },
+    {
+      "name": "apuestas_sala_check2",
+      "table": "apuestas_sala",
+      "definition": "CHECK ((((estado = 'liquidada'::text) AND (ganador_id IS NOT NULL) AND ((ganador_id = creador_id) OR (ganador_id = aceptante_id)) AND (comision = 100)) OR ((estado <> 'liquidada'::text) AND (ganador_id IS NULL) AND (comision = 0))))"
+    },
+    {
+      "name": "apuestas_sala_creador_id_fkey",
+      "table": "apuestas_sala",
+      "definition": "FOREIGN KEY (creador_id) REFERENCES profiles(id)"
+    },
+    {
+      "name": "apuestas_sala_equipo_creador_check",
+      "table": "apuestas_sala",
+      "definition": "CHECK ((equipo_creador = ANY (ARRAY[1, 2])))"
+    },
+    {
+      "name": "apuestas_sala_estado_check",
+      "table": "apuestas_sala",
+      "definition": "CHECK ((estado = ANY (ARRAY['pendiente'::text, 'aceptada'::text, 'cancelada'::text, 'expirada'::text, 'liquidada'::text, 'reembolsada'::text])))"
+    },
+    {
+      "name": "apuestas_sala_ganador_id_fkey",
+      "table": "apuestas_sala",
+      "definition": "FOREIGN KEY (ganador_id) REFERENCES profiles(id)"
+    },
+    {
+      "name": "apuestas_sala_pkey",
+      "table": "apuestas_sala",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "apuestas_sala_sala_id_fkey",
+      "table": "apuestas_sala",
+      "definition": "FOREIGN KEY (sala_id) REFERENCES salas(id)"
+    }
+  ]
+}

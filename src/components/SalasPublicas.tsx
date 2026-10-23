@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -12,6 +12,9 @@ import Avatar from '@/components/Avatar';
 import FormularioCrearSala from '@/components/FormularioCrearSala';
 import PerfilHover from '@/components/PerfilHover';
 import HeroEnSlot from '@/components/HeroEnSlot';
+import ImportesSala from '@/components/ImportesSala';
+import BotonApostar from '@/components/ApuestasProvider';
+import ApuestasPublicas from '@/components/ApuestasPublicas';
 import VivoMarcador from '@/components/VivoMarcador';
 import { duracionDesdeInicio } from '@/lib/vivo';
 import { jugadorVivoDe, partidaVivaMock } from '@/lib/vivoMock';
@@ -42,13 +45,34 @@ function estadoTexto(estado: string) {
 export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: boolean }) {
   const { user } = useAuth();
   const router = useRouter();
-  const { salas: todasLasSalas, participantes, loading } = useSalas();
+  const { salas: todasLasSalas, participantes, loading, error: errorCarga, reintentar } = useSalas();
   const salas = todasLasSalas.slice(0, 10);
   const [procesando, setProcesando] = useState<string | null>(null);
   const [aviso, setAviso] = useState<{ mensaje: string; tipo: 'success' | 'error' } | null>(null);
   const [esAdmin, setEsAdmin] = useState(false);
   const [showCrear, setShowCrear] = useState(false);
   const [destacandoId, setDestacandoId] = useState<string | null>(null);
+  const rejilla = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const nodo = rejilla.current;
+    if (!nodo) return;
+    // Usa el espacio real bajo el hero, incluso si cambian su título o las fuentes.
+    const ajustar = () => {
+      const superior = nodo.getBoundingClientRect().top + window.scrollY;
+      const altura = Math.max(220, window.innerHeight - superior - 16);
+      nodo.toggleAttribute('data-compacta', altura < 300);
+      if (nodo.style.getPropertyValue('--altura-tarjeta') !== `${altura}px`) {
+        nodo.style.setProperty('--altura-tarjeta', `${altura}px`);
+      }
+    };
+    const observer = new ResizeObserver(ajustar);
+    observer.observe(nodo);
+    for (const elemento of document.querySelectorAll('.arena-hero, .arena-nav, .salas-cabecera')) observer.observe(elemento);
+    window.addEventListener('resize', ajustar);
+    ajustar();
+    return () => { observer.disconnect(); window.removeEventListener('resize', ajustar); };
+  }, [loading, salas.length]);
 
   useEffect(() => {
     if (!user) return;
@@ -104,6 +128,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
       setAviso({ mensaje: traducido ?? error.message, tipo: 'error' });
       setProcesando(null);
     } else {
+      setProcesando(null);
       // Avisa al Navbar para que refresque el saldo al instante
       window.dispatchEvent(new Event('saldo:refresh'));
       router.push(`/salas/${salaId}`);
@@ -111,20 +136,20 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
   }
 
   return (
-    <div>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+    <div id="salas-lista" className="scroll-mt-24 font-sans">
+      <div className="salas-cabecera mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-display text-2xl font-bold tracking-tight text-white sm:text-3xl">
           Salas activas
         </h2>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-500/30">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-500/30">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
             En vivo
           </span>
           {esAdmin && (
             <button
               onClick={() => setShowCrear(true)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[11px] font-bold text-[#070a10] shadow-[0_0_28px_-14px_rgba(255,255,255,0.7)] transition hover:bg-slate-200"
+              className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-[#070a10] shadow-[0_0_28px_-14px_rgba(255,255,255,0.7)] transition hover:bg-slate-200"
             >
               <span aria-hidden="true">+</span>
               Crear sala
@@ -133,25 +158,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
         </div>
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-medium text-slate-500">
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-          Radiant
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
-          Dire
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-slate-500" />
-          Lista de espera
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full border-2 border-dashed border-white/20" />
-          Libre
-        </span>
-      </div>
-
+      {errorCarga && <p role="alert" className="mb-3 text-sm text-amber-200">{errorCarga} <button onClick={reintentar} className="underline">Reintentar</button></p>}
       {loading ? (
         <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-6 text-sm text-slate-400 shadow-arena-soft">
           Cargando salas...
@@ -164,7 +171,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 2xl:grid-cols-2">
+        <div ref={rejilla} className="salas-rejilla grid items-start gap-4 lg:grid-cols-2">
           {salas.map((sala, index) => {
             const count = sala.participantes_sala?.[0]?.count ?? 0;
             const parts = participantes[sala.id] ?? [];
@@ -197,6 +204,8 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
             return (
               <div
                 key={sala.id}
+                data-sala-tarjeta={sala.id}
+                data-estado={sala.estado}
                 className={`arena-card group relative flex flex-col overflow-hidden rounded-2xl border bg-[#0a0f17] p-4 shadow-arena-soft transition hover:-translate-y-0.5 hover:border-white/20 hover:shadow-arena ${
                   sala.destacada ? 'border-amber-400/25' : 'border-white/10'
                 }`}
@@ -229,9 +238,10 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                   className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"
                   aria-hidden="true"
                 />
-                <div className="relative flex-1">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-2">
+                <div role="region" aria-label={`Detalles de ${sala.nombre}`} tabIndex={0} className="sala-contenido relative min-h-0 flex-1 overflow-y-auto overscroll-auto pr-1 focus-visible:outline-2 focus-visible:outline-prism-400">
+                  <div className="sala-cabecera flex flex-wrap items-start justify-between gap-2">
+                    <div className="sala-identidad flex flex-wrap items-center gap-2">
+                      <div className="flex w-full min-w-0 items-start gap-2">
                       <Image
                         src="/dota2.svg"
                         alt=""
@@ -240,24 +250,25 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                         aria-hidden="true"
                         className="h-4 w-4 shrink-0"
                       />
-                      <h3 className="font-display text-base font-bold tracking-tight text-white sm:text-lg">
+                      <h3 className="min-w-0 flex-1 break-words font-display text-base font-bold leading-snug tracking-tight text-white">
                         {sala.nombre}
                       </h3>
-                      <span className="rounded-full bg-prism-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-prism-300 ring-1 ring-inset ring-prism-500/30">
+                      </div>
+                      <span className="rounded-full bg-prism-500/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-prism-300 ring-1 ring-inset ring-prism-500/30">
                         {sala.modalidad ?? (sala.cupo === 2 ? '1v1' : '5v5')}
                       </span>
                       {sala.destacada && (
-                        <span className="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-300 ring-1 ring-inset ring-amber-500/30">
+                        <span className="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-300 ring-1 ring-inset ring-amber-500/30">
                           ★ Destacada
                         </span>
                       )}
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
-                      <span className="rounded-full bg-white/5 px-2 py-1 text-[11px] font-semibold tabular-nums text-slate-300 ring-1 ring-inset ring-white/10">
-                        {count}/{sala.cupo}
+                      <span className="rounded-full bg-white/5 px-2 py-1 text-xs font-semibold tabular-nums text-slate-300 ring-1 ring-inset ring-white/10">
+                        {count}/{sala.cupo} jugadores
                       </span>
                       <span
-                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ring-inset ${estadoBadge(sala.estado)}`}
+                        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${estadoBadge(sala.estado)}`}
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
                         {estadoTexto(sala.estado)}
@@ -265,26 +276,9 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                     </div>
                   </div>
 
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    <div className="rounded-lg border border-white/[0.06] bg-black/25 px-3 py-1.5">
-                      <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
-                        Cuota
-                      </p>
-                      <p className="font-display text-sm font-bold text-white">
-                        S/ {(sala.cuota / 100).toFixed(2)}
-                      </p>
-                    </div>
-                    <div className="rounded-lg border border-white/[0.06] bg-black/25 px-3 py-1.5">
-                      <p className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">
-                        Por ganador
-                      </p>
-                      <p className="font-display text-sm font-bold text-amber-300">
-                        S/ {(premioPorGanador / 100).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
+                  <ImportesSala entrada={sala.cuota} premio={premioPorGanador} className="mt-3" />
 
-                  <div className="mt-3 flex flex-wrap items-start gap-1">
+                  <div className="sala-jugadores mt-3 flex flex-wrap items-start gap-1">
                     {(() => {
                       const celdaJugador = (p: (typeof ordenados)[number]) => (
                         <PerfilHover
@@ -308,7 +302,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                             <Avatar
                               nick={p.profiles?.nick ?? '?'}
                               src={p.profiles?.steam_avatar_url}
-                              size="xs"
+                              size="md"
                               ringClass={ringEquipo(p.equipo)}
                               title={`${p.profiles?.nick ?? 'Usuario'}${
                                 p.profiles?.mmr != null ? ` · MMR ${p.profiles.mmr}` : ''
@@ -331,9 +325,9 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
 
                       const celdaLibre = (clave: string) => (
                         <div key={clave} className="flex flex-col items-center gap-0.5" title="Slot libre">
-                          <span className="h-6 w-6 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]" />
+                          <span className="h-8 w-8 rounded-full border-2 border-dashed border-white/10 bg-white/[0.02]" />
                           {/* espacio del icono de héroe para alinear la fila */}
-                          <span className="h-[18px] w-[18px]" />
+                          {partidaViva && <span className="h-[18px] w-[18px]" />}
                         </div>
                       );
 
@@ -360,6 +354,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                       return (
                         <>
                           <div className="flex flex-wrap items-start gap-1">
+                            <span className="w-full text-xs font-semibold text-emerald-300">Radiant</span>
                             {radiantParts.map(celdaJugador)}
                             {restoParts.map(celdaJugador)}
                             {Array.from({ length: libres }).map((_, i) =>
@@ -372,6 +367,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                             </span>
                           )}
                           <div className="ml-auto flex flex-wrap items-start justify-end gap-1">
+                            <span className="w-full text-right text-xs font-semibold text-rose-300">Dire</span>
                             {direParts.map(celdaJugador)}
                           </div>
                         </>
@@ -386,12 +382,14 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                     </div>
                   )}
 
+                  {sala.estado === 'en_juego' && <ApuestasPublicas salaId={sala.id} compacto />}
+
                   {esAdmin && (
                     <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/5 pt-2.5">
                       <button
                         onClick={() => alternarDestacada(sala)}
                         disabled={destacandoId === sala.id}
-                        className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-200 transition hover:bg-amber-500/20 disabled:opacity-50"
+                        className="rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-200 transition hover:bg-amber-500/20 disabled:opacity-50"
                         title={
                           sala.destacada
                             ? 'Quitar el destaque del hero'
@@ -406,7 +404,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                       </button>
                       <Link
                         href={`/admin/salas/${sala.id}`}
-                        className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-200 transition hover:bg-white/10"
+                        className="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
                         title="Gestionar la sala (equipos, lobby, verificación, cierre)"
                       >
                         Gestionar →
@@ -415,11 +413,12 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                   )}
                 </div>
 
-                <div className="relative mt-3">
+                <div className="sala-acciones relative mt-3 shrink-0">
+                  {sala.estado === 'en_juego' && <BotonApostar sala={sala} className="mb-2 mt-3 w-full" />}
                   {sala.estado === 'en_juego' ? (
                     <Link
                       href={`/salas/${sala.id}/partida`}
-                      className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-500 py-2.5 text-center text-sm font-bold text-[#04120c] shadow-[0_12px_30px_-16px_rgba(16,185,129,0.8)] transition hover:bg-emerald-400"
+                      className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-white/15 bg-white/5 py-2.5 text-center text-sm font-semibold text-slate-200 transition hover:bg-white/10"
                     >
                       <span
                         className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#04120c]/70"
@@ -429,15 +428,15 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                     </Link>
                   ) : !isAuthenticated ? (
                     <Link
-                      href="/login"
-                      className="block w-full rounded-xl bg-white py-2.5 text-center text-sm font-bold text-[#070a10] shadow-[0_0_32px_-16px_rgba(255,255,255,0.7)] transition hover:bg-slate-200"
+                      href={`/login?next=${encodeURIComponent(`/salas/${sala.id}`)}`}
+                      className="block w-full rounded-xl bg-prism-600 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-prism-700"
                     >
                       Inicia sesión para unirte
                     </Link>
                   ) : estoyDentro ? (
                     <Link
                       href={`/salas/${sala.id}`}
-                      className="block w-full rounded-xl bg-emerald-500 py-2.5 text-center text-sm font-bold text-[#04120c] shadow-[0_12px_30px_-16px_rgba(16,185,129,0.8)] transition hover:bg-emerald-400"
+                      className="block w-full rounded-xl border border-white/15 bg-white/5 py-2.5 text-center text-sm font-semibold text-slate-200 transition hover:bg-white/10"
                     >
                       Ir a mi sala
                     </Link>
@@ -445,7 +444,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                     <button
                       onClick={() => unirseASala(sala.id)}
                       disabled={procesando === sala.id}
-                      className="w-full rounded-xl bg-white py-2.5 text-sm font-bold text-[#070a10] shadow-[0_0_32px_-16px_rgba(255,255,255,0.7)] transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="w-full rounded-xl bg-prism-600 py-2.5 text-sm font-semibold text-white transition hover:bg-prism-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {procesando === sala.id ? 'Uniéndose...' : 'Unirse'}
                     </button>

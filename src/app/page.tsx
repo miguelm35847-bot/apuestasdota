@@ -6,6 +6,7 @@ import SalasPublicas from '@/components/SalasPublicas';
 import ActividadPanel from '@/components/ActividadPanel';
 import HistorialGlobal from '@/components/HistorialGlobal';
 import ChatPanel from '@/components/ChatPanel';
+import SiguientePaso from '@/components/SiguientePaso';
 import HeroArena from '@/components/HeroArena';
 import { SalasProvider } from '@/components/SalasProvider';
 import { useAuth } from '@/components/AuthProvider';
@@ -26,10 +27,11 @@ export default function Home() {
         <HeroArena isAuthenticated={!!user} />
 
         {/* Contenido público */}
-        <main className="mx-auto max-w-[1860px] px-4 py-6 sm:px-6 lg:px-8">
-          <div className="grid gap-5 lg:grid-cols-[340px_minmax(0,1fr)_360px] lg:items-start">
+        <main className="mx-auto max-w-[1860px] px-4 py-4 sm:px-6 lg:px-8">
+          <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)_300px] lg:items-start 2xl:grid-cols-[320px_minmax(0,1fr)_340px]">
             {/* Feed de actividades (izquierda) */}
             <aside className="order-2 lg:order-1 lg:sticky lg:top-20">
+              <SiguientePaso />
               <ActividadPanel compacto />
             </aside>
 

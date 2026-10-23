@@ -1,20 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 
 export default function RegisterPage() {
+  const router = useRouter();
   useArenaBody();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [nick, setNick] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [registrado, setRegistrado] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,8 +30,8 @@ export default function RegisterPage() {
       return;
     }
 
-    if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
+    if (password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres');
       setLoading(false);
       return;
     }
@@ -49,15 +51,17 @@ export default function RegisterPage() {
       setError(error.message);
       setLoading(false);
     } else if (data.user) {
+      if (data.session) { router.push('/'); return; }
       // Registro exitoso
-      alert('Registro exitoso! Revisa tu email para confirmar tu cuenta.');
-      router.push('/');
+      setRegistrado(true);
+      setLoading(false);
     } else {
       setError('Error desconocido');
       setLoading(false);
     }
   }
 
+  if (registrado) return <main className="arena-shell min-h-screen p-8 text-slate-100"><h1 className="text-xl font-bold">Revisa tu correo</h1><p>Confirma tu cuenta para ingresar. También revisa la carpeta de spam.</p><button className="mt-4 rounded-lg bg-white/10 p-3" onClick={async () => { const { error } = await supabase.auth.resend({ type: 'signup', email }); setError(error?.message ?? 'Correo reenviado'); }}>Reenviar confirmación</button><p role="status">{error}</p><Link href="/login">Iniciar sesión</Link></main>;
   return (
     <div className="arena-shell arena-hero flex min-h-screen items-center justify-center px-4 py-10">
       <div className="arena-card w-full max-w-md space-y-8 rounded-2xl border border-white/10 bg-[#111827] p-8 shadow-arena">
@@ -122,7 +126,7 @@ export default function RegisterPage() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-slate-300">
-              Contraseña (mínimo 6 caracteres)
+              Contraseña (mínimo 8 caracteres)
             </label>
             <input
               id="password"

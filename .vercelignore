@@ -1,0 +1,7 @@
+qa-artifacts/
+docs/
+scripts/
+supabase/
+.github/
+AGENTS.md
+.env*

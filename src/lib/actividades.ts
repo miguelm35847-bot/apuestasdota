@@ -67,4 +67,7 @@ export const ETIQUETAS_MOVIMIENTO: Record<string, string> = {
   donacion_enviada: 'Donación enviada',
   donacion_recibida: 'Donación recibida',
   perdida_partida: 'Pérdida de partida',
+  apuesta_aporte: 'Aporte de apuesta',
+  apuesta_premio: 'Premio de apuesta',
+  apuesta_reembolso: 'Reembolso de apuesta',
 };

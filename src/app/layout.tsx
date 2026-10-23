@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Manrope, Sora, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import FocoModal from "@/components/FocoModal";
 import { AuthProvider } from "@/components/AuthProvider";
 import AvisoVerificacion from "@/components/AvisoVerificacion";
 import { DonarProvider } from "@/components/DonarProvider";
+import { ApuestasProvider } from "@/components/ApuestasProvider";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -34,10 +36,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${manrope.variable} ${sora.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
+        <FocoModal />
         <AuthProvider>
           <DonarProvider>
-            <AvisoVerificacion />
-            {children}
+            <ApuestasProvider>
+              <AvisoVerificacion />
+              {children}
+            </ApuestasProvider>
           </DonarProvider>
         </AuthProvider>
       </body>

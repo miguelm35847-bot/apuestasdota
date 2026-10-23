@@ -26,37 +26,25 @@ export default function VivoMarcador({ partida, compacto = false, className = ''
         compacto ? 'px-2.5 py-1.5' : 'p-2.5'
       } ${className}`.trim()}
     >
-      {compacto ? (
-        <div className="relative flex items-center justify-center">
-          <span className="absolute left-0 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-            En vivo
-          </span>
-          <span className="text-[11px] font-bold tabular-nums text-slate-200">
-            ⏱ {relojDePartida(partida.duracionSegundos)}
-          </span>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-300">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-            En vivo
-          </span>
-          <span className="text-[11px] font-bold tabular-nums text-slate-300">
-            ⏱ {relojDePartida(partida.duracionSegundos)}
-          </span>
-        </div>
-      )}
+      <div className={compacto ? 'grid grid-cols-[1fr_auto_1fr] items-center gap-2' : 'flex items-center justify-between gap-3'}>
+        <span className="text-xs font-medium leading-4 text-slate-400">
+          Datos de demostración
+        </span>
+        <span className="whitespace-nowrap text-xs font-semibold tabular-nums text-slate-200" aria-label={`Tiempo de partida: ${relojDePartida(partida.duracionSegundos)}`}>
+          {relojDePartida(partida.duracionSegundos)}
+        </span>
+        {compacto && <span aria-hidden="true" />}
+      </div>
 
       <div className="mt-1 flex items-center gap-1.5">
         <span className="font-display text-lg font-extrabold leading-none tabular-nums text-emerald-300">
           {radiant.score}
         </span>
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+        <span className="text-xs font-medium text-slate-300">
           Radiant
         </span>
-        <span className="flex-1 text-center text-[10px] text-slate-600">vs</span>
-        <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+        <span className="flex-1 text-center text-xs text-slate-400">vs</span>
+        <span className="text-xs font-medium text-slate-300">
           Dire
         </span>
         <span className="font-display text-lg font-extrabold leading-none tabular-nums text-rose-300">

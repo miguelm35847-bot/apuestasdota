@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import SaldoDisplay from '@/components/SaldoDisplay';
 import Navbar from '@/components/Navbar';
+import SoportePagos from '@/components/SoportePagos';
 import { useArenaBody } from '@/lib/useArenaBody';
 import type { Retiro } from '@/lib/types';
 
@@ -14,6 +15,7 @@ export default function RetirarPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
+  const peticion=useRef<{id:string;datos:string}|null>(null);
   const [monto, setMonto] = useState('');
   const [destino, setDestino] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +62,10 @@ export default function RetirarPage() {
 
     setLoading(true);
 
-    const { error: rpcError } = await supabase.rpc('solicitar_retiro', {
+    const datos=JSON.stringify([montoNum,destino.trim()]);
+    if(peticion.current?.datos!==datos)peticion.current={id:crypto.randomUUID(),datos};
+    const { error: rpcError } = await supabase.rpc('solicitar_retiro_seguro', {
+      p_peticion:peticion.current.id,
       p_monto: Math.round(montoNum * 100),
       p_destino: destino.trim(),
     });
@@ -76,9 +81,11 @@ export default function RetirarPage() {
       setError(errores[rpcError.message] ?? rpcError.message);
     } else {
       setSuccess('Retiro solicitado correctamente. Un administrador lo procesará.');
+      peticion.current=null;
       setMonto('');
       setDestino('');
       cargarRetiros();
+      window.dispatchEvent(new Event('saldo:refresh'));
     }
 
     setLoading(false);
@@ -209,6 +216,7 @@ export default function RetirarPage() {
             </div>
           )}
         </div>
+        <div className="mt-6"><SoportePagos /></div>
       </main>
     </div>
   );

@@ -281,6 +281,20 @@ function PerfilContenido() {
   const [conteos, setConteos] = useState({ partidas: 0, movimientos: 0, billetera: 0 });
   const [cargandoTab, setCargandoTab] = useState(false);
 
+  useEffect(() => {
+    // El contenido del perfil aparece después del fallback de Suspense.
+    // Resuelve también los enlaces directos al montar, cuando ya existe el destino.
+    const irASeccion = () => {
+      const id = window.location.hash.slice(1);
+      if (id === 'steam' || id === 'perfil-dota') {
+        document.getElementById(id)?.scrollIntoView({ block: 'start' });
+      }
+    };
+    irASeccion();
+    window.addEventListener('hashchange', irASeccion);
+    return () => window.removeEventListener('hashchange', irASeccion);
+  }, []);
+
   // Estado para historial
   const [misPartidas, setMisPartidas] = useState<PartidaPerfil[]>([]);
 
@@ -648,7 +662,7 @@ function PerfilContenido() {
         {success && <Aviso tono="success">{success}</Aviso>}
 
         {/* Cabecera: identidad, saldo y resumen */}
-        <section className="arena-card relative overflow-hidden rounded-2xl border border-white/10 bg-[#111827] shadow-arena-soft">
+        <section id="steam" className="arena-card relative scroll-mt-24 overflow-hidden rounded-2xl border border-white/10 bg-[#111827] shadow-arena-soft">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_100%_at_0%_0%,rgba(99,102,241,0.14),transparent_55%)]"
@@ -792,7 +806,7 @@ function PerfilContenido() {
         </section>
 
         {/* Perfil competitivo */}
-        <section className="mt-6 arena-card rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-arena-soft sm:p-6">
+        <section id="perfil-dota" className="mt-6 arena-card scroll-mt-24 rounded-2xl border border-white/10 bg-[#111827] p-5 shadow-arena-soft sm:p-6">
           <div className="flex items-start gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-prism-500/15 text-prism-200 ring-1 ring-inset ring-prism-500/20">
               <svg

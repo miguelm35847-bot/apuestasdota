@@ -245,7 +245,7 @@ function AdminSalaContenido() {
       .eq('id', salaId)
       .single();
 
-    if (salaData) setSala(salaData as unknown as Sala);
+    if (salaData) { setSala(salaData as unknown as Sala); setAutoCierre(salaData.auto_cierre !== false); if (salaData.dota_match_id_esperado) setDotaMatchId(String(salaData.dota_match_id_esperado)); }
 
     const { data: partData } = await supabase
       .from('participantes_sala')
@@ -1550,7 +1550,7 @@ function AdminSalaContenido() {
                 <div>
                   <h2 className="font-display text-base font-bold text-white">Terminar partida</h2>
                   <p className="mt-0.5 text-xs text-slate-400">
-                    La app busca la partida automáticamente. También puedes ingresar el ID y verificar el resultado.
+                    Asocia el ID exacto y verifica el resultado. Auto valida todos los jugadores y sus lados antes de pagar.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1558,7 +1558,12 @@ function AdminSalaContenido() {
                     <input
                       type="checkbox"
                       checked={autoCierre}
-                      onChange={(e) => setAutoCierre(e.target.checked)}
+                      onChange={async (e) => {
+                        const valor = e.target.checked;
+                        const { error } = await supabase.rpc('admin_configurar_cierre', { p_sala: salaId, p_auto: valor, p_match: Number(dotaMatchId) || null });
+                        if (error) setEstadoDeteccion('No se pudo guardar Auto: ' + error.message);
+                        else setAutoCierre(valor);
+                      }}
                       className="h-3.5 w-3.5 accent-emerald-500"
                     />
                     Auto
@@ -1597,7 +1602,7 @@ function AdminSalaContenido() {
               <div className="mt-3 space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-300">
-                    ID de la partida de Dota 2
+                    ID exacto de la partida de Dota 2 (necesario para Auto)
                   </label>
                   <div className="mt-1 flex gap-2">
                     <input
@@ -1609,7 +1614,11 @@ function AdminSalaContenido() {
                       placeholder="Ej: 7654321098"
                     />
                     <button
-                      onClick={verificarPartida}
+                      onClick={async () => {
+                        const { error } = await supabase.rpc('admin_configurar_cierre', { p_sala: salaId, p_auto: autoCierre, p_match: Number(dotaMatchId) || null });
+                        if (error) { setEstadoDeteccion('No se pudo asociar la partida: ' + error.message); return; }
+                        await verificarPartida();
+                      }}
                       disabled={verificando || !dotaMatchId}
                       className="rounded-lg bg-prism-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-prism-400 disabled:opacity-50"
                     >
