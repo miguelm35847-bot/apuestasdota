@@ -205,7 +205,7 @@ function Columna({
 
   return (
     <div
-      className={`arena-card flex flex-col overflow-hidden rounded-xl border bg-[#111827] shadow-arena-soft ${t.contenedor}`}
+      className={`arena-card @container flex flex-col overflow-hidden rounded-xl border bg-[#111827] shadow-arena-soft ${t.contenedor}`}
     >
       <div className={`relative px-3 py-2 ${t.cabecera}`}>
         <span
@@ -274,7 +274,7 @@ function Columna({
             return (
               <div
                 key={p.user_id}
-                className={`relative rounded-lg border px-1.5 py-1 pr-6 transition hover:border-prism-400/40 ${
+                className={`relative min-w-0 rounded-lg border p-2 transition hover:border-prism-400/40 ${
                   esTuyo ? 'border-prism-400/60 bg-prism-500/10' : 'border-white/5 bg-white/[0.03]'
                 }`}
               >
@@ -296,7 +296,7 @@ function Columna({
                   <Link
                     href={`/jugadores/${p.user_id}`}
                     aria-label={`Ver perfil de ${nick}`}
-                    className="flex min-h-10 items-start gap-1.5 transition hover:opacity-90"
+                    className="flex min-h-10 min-w-0 items-start gap-1.5 pr-4 transition hover:opacity-90"
                   >
                     {/* Avatar y, justo debajo, el héroe que está jugando. */}
                     <span className="flex shrink-0 flex-col items-center gap-0.5">
@@ -318,9 +318,9 @@ function Columna({
                         {nick}
                         {esTuyo ? ' (tú)' : ''}
                       </p>
-                      <div className="flex min-w-0 items-center justify-between gap-1">
+                      <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
                         <p
-                          className={`flex min-w-0 items-center gap-1 text-[11px] font-bold ${
+                          className={`flex shrink-0 items-center gap-1 text-[11px] font-bold ${
                             mmr != null ? 'text-prism-300' : 'text-slate-500'
                           }`}
                         >
@@ -330,7 +330,7 @@ function Columna({
                             inline
                             className="shrink-0"
                           />
-                          <span className="truncate">
+                          <span className="whitespace-nowrap">
                             {mmr != null ? `MMR ${formatearMmr(mmr)}` : 'Sin MMR'}
                           </span>
                         </p>
@@ -363,9 +363,7 @@ function Columna({
 
                 {/* El resumen va fuera del enlace del perfil: si no, el enlace a
                     Dotabuff quedaría anidado dentro de otro <a>. */}
-                <div className="pl-9">
-                  <ResumenJugador userId={p.user_id} compacto className="mt-1" />
-                </div>
+                <ResumenJugador userId={p.user_id} compacto className="mt-2" />
               </div>
             );
           }
@@ -1778,7 +1776,7 @@ function SalaContenido() {
                   capacidad={sala.cupo}
                   horizontal
                   compacta
-                  columnas="grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-2"
+                  columnas="grid-cols-1 @min-[420px]:grid-cols-2"
                   tono="neutral"
                   icono={<IconoEspera />}
                 />

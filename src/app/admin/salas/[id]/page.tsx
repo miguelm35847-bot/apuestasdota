@@ -50,7 +50,7 @@ function FilaJugador({
   onExpulsar: (p: Participante) => void;
 }) {
   return (
-    <div className="rounded-md border border-white/10 px-2 py-1">
+    <div className="min-w-0 rounded-md border border-white/10 px-2 py-1">
       <div className="flex items-center justify-between gap-2">
         <Link
           href={`/jugadores/${p.user_id}`}
@@ -140,9 +140,7 @@ function FilaJugador({
       {/* El resumen de Dota 2 va fuera del enlace del perfil para no anidar
           dos <a> (el de Dotabuff dentro del del perfil). */}
       {actual === null && (
-        <div className="pl-9">
-          <ResumenJugador userId={p.user_id} compacto className="mt-1" />
-        </div>
+        <ResumenJugador userId={p.user_id} compacto className="mt-2" />
       )}
     </div>
   );

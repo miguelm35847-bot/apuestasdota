@@ -6,12 +6,20 @@ import type { ResumenDota } from '@/lib/dotaResumen';
 
 type Props = {
   userId: string;
-  /** Versión reducida: solo los 3 héroes y el rol más jugado. */
+  /** Versión reducida para las tarjetas de la lista de espera. */
   compacto?: boolean;
   className?: string;
 };
 
 const cache = new Map<string, ResumenDota>();
+const ROLES_CORTOS: Record<string, string> = {
+  'Safe / Carry': 'HC',
+  Mid: 'Mid',
+  Offlane: 'Off',
+  Support: 'Sup.',
+};
+
+const rolCorto = (rol: string) => ROLES_CORTOS[rol] ?? rol;
 
 /**
  * Datos destacados de un jugador dentro de la sala.
@@ -58,59 +66,86 @@ export default function ResumenJugador({ userId, compacto = false, className = '
 
   if (!resumen?.disponible) return null;
 
-  const { heroes, roles, rolesRecientes, winrateReciente, dotabuffUrl, ultimaPartida } = resumen;
+  const { heroes, roles, rolesRecientes, winrateReciente, dotabuffUrl, ultimaPartida, partidasAnalizadas } = resumen;
 
   if (heroes.length === 0 && roles.length === 0 && !dotabuffUrl) return null;
 
   return (
-    <div className={`flex flex-col gap-1 ${className}`}>
+    <div
+      data-resumen-jugador
+      className={`min-w-0 space-y-2.5 border-t border-white/10 pt-2.5 ${className}`}
+    >
       {/* 3 héroes más jugados */}
       {heroes.length > 0 && (
-        <div className="flex items-center gap-1" title={heroes.map((h) => `${h.nombre} (${h.partidas})`).join(' · ')}>
-          {heroes.map((heroe) => (
-            <span key={heroe.id} className="relative inline-block">
-              {/* eslint-disable-next-line @next/next/no-img-element -- icono de héroe del CDN de Valve */}
-              <img
-                src={heroe.imagen}
-                alt={heroe.nombre}
-                width={18}
-                height={18}
-                className="h-[18px] w-[18px] rounded-full bg-white/5 object-cover ring-1 ring-white/10"
-                loading="lazy"
-              />
-            </span>
-          ))}
-          {!compacto && (
-            <span className="truncate text-[10px] text-slate-400">
-              {heroes[0].nombre}
-            </span>
-          )}
+        <div>
+          <p className="mb-1.5 text-[10px] font-semibold text-slate-400">Héroes más jugados</p>
+          <div className="grid grid-cols-3 gap-1.5">
+            {heroes.map((heroe) => (
+              <div
+                key={heroe.id}
+                title={`${heroe.partidas} partidas en la muestra analizada`}
+                className="min-w-0 overflow-hidden rounded-md border border-white/10 bg-slate-950/35"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- retrato de héroe del CDN de Valve */}
+                <img
+                  src={heroe.imagen}
+                  alt={heroe.nombre}
+                  width={80}
+                  height={45}
+                  className={`aspect-video w-full bg-white/5 object-cover ${compacto ? 'max-h-11' : 'max-h-14'}`}
+                  loading="lazy"
+                />
+                <p className="px-1 py-0.5 text-center text-[9px] leading-4 text-slate-400">
+                  <span className="font-semibold tabular-nums text-slate-200">{heroe.partidas}</span>
+                  {' '}{heroe.partidas === 1 ? 'partida' : 'partidas'}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       {/* Roles más jugados con su winrate */}
       {roles.length > 0 && (
-        <p
-          className="truncate text-[10px] text-slate-400"
-          title={roles.map((r) => `${r.rol}: ${r.winrate}% (${r.partidas})`).join(' · ')}
-        >
-          {roles.map((rol) => `${rol.rol} ${rol.winrate}%`).join(' · ')}
-        </p>
+        <div>
+          <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-[10px] text-slate-400">
+            <p className="font-semibold">Roles más jugados</p>
+            <span className="text-[9px] text-slate-500">% victorias</span>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {roles.map((rol) => (
+              <span
+                key={rol.rol}
+                title={`${rol.rol}: ${rol.winrate}% de victorias en ${rol.partidas} partidas`}
+                aria-label={`${rolCorto(rol.rol)}: ${rol.winrate}% de victorias en ${rol.partidas} partidas`}
+                className="inline-flex max-w-full flex-wrap items-center gap-x-1.5 rounded-md border border-prism-400/15 bg-prism-500/[0.08] px-1.5 py-1 text-[10px] leading-none"
+              >
+                <span className="font-semibold break-words text-prism-200">{rolCorto(rol.rol)}</span>
+                <span className="font-semibold tabular-nums text-slate-200">{rol.winrate}%</span>
+              </span>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Roles de las últimas partidas */}
       {rolesRecientes.length > 0 && (
-        <p
-          className="truncate text-[10px] text-slate-500"
-          title="Roles de sus últimas partidas"
-        >
-          Últimos: {rolesRecientes.join(' · ')}
-        </p>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px]">
+          <span className="text-slate-500">Últimos roles</span>
+          <div className="flex flex-wrap items-center gap-1" aria-label="Roles del más reciente al más antiguo">
+            {rolesRecientes.map((rol, i) => (
+              <span key={`${rol}-${i}`} className="inline-flex items-center gap-1">
+                {i > 0 && <span aria-hidden="true" className="text-slate-600">·</span>}
+                <span title={rol} className="rounded bg-white/5 px-1.5 py-0.5 text-slate-300">{rolCorto(rol)}</span>
+              </span>
+            ))}
+          </div>
+        </div>
       )}
 
       {!compacto && winrateReciente !== null && (
-        <p className="truncate text-[10px] text-slate-500">
-          Últimas 10: <span className="text-slate-300">{winrateReciente}%</span>
+        <p className="text-[10px] text-slate-500">
+          Últimas {Math.min(partidasAnalizadas, 10)}: <span className="text-slate-300">{winrateReciente}% de victorias</span>
           {ultimaPartida && (
             <span className={ultimaPartida.victoria ? 'text-emerald-300' : 'text-rose-300'}>
               {' · '}
@@ -120,18 +155,21 @@ export default function ResumenJugador({ userId, compacto = false, className = '
         </p>
       )}
 
-      {dotabuffUrl && (
-        <a
-          href={dotabuffUrl}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="inline-flex w-fit items-center gap-0.5 text-[10px] font-semibold text-prism-300 transition hover:text-prism-200 hover:underline"
-          onClick={(event) => event.stopPropagation()}
-        >
-          Dotabuff
-          <span aria-hidden="true">↗</span>
-        </a>
-      )}
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-[9px]">
+        <span className="text-slate-500">Muestra: {partidasAnalizadas} partidas</span>
+        {dotabuffUrl && (
+          <a
+            href={dotabuffUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex items-center gap-1 font-semibold text-prism-300 transition hover:text-prism-200 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-prism-400"
+            onClick={(event) => event.stopPropagation()}
+          >
+            Dotabuff
+            <span aria-hidden="true">↗</span>
+          </a>
+        )}
+      </div>
     </div>
   );
 }
