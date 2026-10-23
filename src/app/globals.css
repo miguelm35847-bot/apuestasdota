@@ -181,13 +181,39 @@ html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
 
 .arena-hero-banner .arena-hero-figure-izquierda {
   left: -7%;
-  animation: arena-hero-invoker-float 11s ease-in-out infinite alternate;
+  animation: arena-hero-invoker-float 4.8s ease-in-out infinite;
 }
 
 .arena-hero-banner .arena-hero-figure-derecha {
   right: -7%;
-  animation: arena-hero-void-float 14s ease-in-out infinite alternate;
-  animation-delay: -5s;
+  animation: arena-hero-void-float 5.6s ease-in-out infinite;
+  animation-delay: -1.8s;
+}
+
+.arena-hero-banner .arena-hero-moon {
+  position: absolute;
+  z-index: -9;
+  top: 8px;
+  left: calc(50% - 360px);
+  width: 128px;
+  height: 128px;
+  opacity: 0.86;
+  pointer-events: none;
+}
+
+.arena-hero-banner .arena-hero-moon::before {
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  background: rgba(216, 202, 255, 0.06);
+  box-shadow: 0 0 32px 12px rgba(167, 139, 250, 0.09);
+  content: '';
+}
+
+.arena-hero-banner .arena-hero-moon svg {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .arena-hero-banner[data-escena='convergencia'] .arena-hero-vignette {
@@ -223,20 +249,22 @@ html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
 }
 
 @keyframes arena-hero-invoker-float {
-  from {
-    transform: translate3d(0, 0, 0) rotate(-0.15deg);
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-0.25deg);
   }
-  to {
-    transform: translate3d(1px, -5px, 0) rotate(0.2deg);
+  50% {
+    transform: translate3d(2px, 20px, 0) rotate(0.25deg);
   }
 }
 
 @keyframes arena-hero-void-float {
-  from {
-    transform: translate3d(0, -1px, 0) rotate(0.2deg);
+  0%,
+  100% {
+    transform: translate3d(-2px, 18px, 0) rotate(0.28deg);
   }
-  to {
-    transform: translate3d(-2px, -6px, 0) rotate(-0.18deg);
+  50% {
+    transform: translate3d(1px, 0, 0) rotate(-0.22deg);
   }
 }
 
@@ -261,6 +289,14 @@ html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
 }
 
 @media (max-width: 1023px) {
+  .arena-hero-banner .arena-hero-moon {
+    top: 18px;
+    right: 24px;
+    left: auto;
+    width: 100px;
+    height: 100px;
+  }
+
   .arena-hero-banner .arena-hero-figure {
     top: 12px;
     bottom: auto;
@@ -279,6 +315,14 @@ html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
 }
 
 @media (max-width: 639px) {
+  .arena-hero-banner .arena-hero-moon {
+    top: 10px;
+    right: 3px;
+    width: 48px;
+    height: 48px;
+    opacity: 0.7;
+  }
+
   .arena-hero-banner .arena-hero-figure {
     top: 12px;
     width: 240px;
