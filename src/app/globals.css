@@ -159,6 +159,49 @@ html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
   animation: arena-hero-mist-drift 28s ease-in-out infinite alternate;
 }
 
+.arena-hero-banner .arena-hero-vignette {
+  background: linear-gradient(90deg, rgba(5, 7, 12, 0.28), rgba(5, 7, 12, 0.16) 46%, rgba(5, 7, 12, 0.03));
+}
+
+.arena-hero-banner .arena-hero-figures {
+  position: absolute;
+  inset: 0 0 72px;
+  z-index: -15;
+  pointer-events: none;
+}
+
+.arena-hero-banner .arena-hero-figure {
+  position: absolute;
+  bottom: -14%;
+  width: clamp(280px, 27vw, 510px);
+  height: 110%;
+  pointer-events: none;
+  transform-origin: 50% 75%;
+}
+
+.arena-hero-banner .arena-hero-figure-izquierda {
+  left: -7%;
+  animation: arena-hero-invoker-float 11s ease-in-out infinite alternate;
+}
+
+.arena-hero-banner .arena-hero-figure-derecha {
+  right: -7%;
+  animation: arena-hero-void-float 14s ease-in-out infinite alternate;
+  animation-delay: -5s;
+}
+
+.arena-hero-banner[data-escena='convergencia'] .arena-hero-vignette {
+  background:
+    linear-gradient(90deg, transparent 8%, rgba(5, 7, 12, 0.58) 25%, rgba(5, 7, 12, 0.64) 45%, rgba(5, 7, 12, 0.3) 70%, transparent 91%),
+    linear-gradient(0deg, #070a10, transparent 32%);
+}
+
+.arena-hero-banner[data-escena='convergencia'] .arena-hero-mist {
+  background:
+    radial-gradient(ellipse at 10% 68%, rgba(251, 191, 36, 0.14), transparent 43%),
+    radial-gradient(ellipse at 94% 55%, rgba(167, 139, 250, 0.2), transparent 44%);
+}
+
 .arena-hero-banner .arena-particle {
   background: rgba(103, 232, 249, 0.75);
   box-shadow: 0 0 9px rgba(34, 211, 238, 0.5);
@@ -169,15 +212,32 @@ html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
   box-shadow: 0 0 9px rgba(248, 113, 113, 0.5);
 }
 
-.arena-hero-banner[data-motion='paused'] .arena-hero-backdrop,
-.arena-hero-banner[data-motion='paused'] .arena-hero-mist,
-.arena-hero-banner[data-motion='paused'] .arena-particle,
-.arena-hero-banner[data-motion='paused'] .animate-ping {
-  animation-play-state: paused;
+.arena-hero-banner[data-escena='convergencia'] .arena-particle {
+  background: rgba(196, 181, 253, 0.7);
+  box-shadow: 0 0 9px rgba(167, 139, 250, 0.45);
 }
 
-.arena-hero-banner[data-motion='paused'] .arena-spotlight {
-  display: none;
+.arena-hero-banner[data-escena='convergencia'] .arena-particle:nth-child(-n + 4) {
+  background: rgba(253, 224, 128, 0.7);
+  box-shadow: 0 0 9px rgba(251, 191, 36, 0.4);
+}
+
+@keyframes arena-hero-invoker-float {
+  from {
+    transform: translate3d(0, 0, 0) rotate(-0.15deg);
+  }
+  to {
+    transform: translate3d(1px, -5px, 0) rotate(0.2deg);
+  }
+}
+
+@keyframes arena-hero-void-float {
+  from {
+    transform: translate3d(0, -1px, 0) rotate(0.2deg);
+  }
+  to {
+    transform: translate3d(-2px, -6px, 0) rotate(-0.18deg);
+  }
 }
 
 @keyframes arena-hero-breathe {
@@ -197,6 +257,45 @@ html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
   to {
     transform: translate3d(1%, -1%, 0) scale(1.025);
     opacity: 0.7;
+  }
+}
+
+@media (max-width: 1023px) {
+  .arena-hero-banner .arena-hero-figure {
+    top: 12px;
+    bottom: auto;
+    width: 340px;
+    height: 480px;
+    opacity: 0.65;
+  }
+
+  .arena-hero-banner .arena-hero-figure-izquierda {
+    left: -100px;
+  }
+
+  .arena-hero-banner .arena-hero-figure-derecha {
+    right: -100px;
+  }
+}
+
+@media (max-width: 639px) {
+  .arena-hero-banner .arena-hero-figure {
+    top: 12px;
+    width: 240px;
+    height: 330px;
+    opacity: 0.5;
+  }
+
+  .arena-hero-banner .arena-hero-figure-izquierda {
+    left: -120px;
+  }
+
+  .arena-hero-banner .arena-hero-figure-derecha {
+    right: -120px;
+  }
+
+  .arena-hero-banner[data-escena='convergencia'] .arena-hero-vignette {
+    background: linear-gradient(90deg, rgba(5, 7, 12, 0.2), rgba(5, 7, 12, 0.7) 35%, rgba(5, 7, 12, 0.7) 65%, rgba(5, 7, 12, 0.2));
   }
 }
 
@@ -347,13 +446,13 @@ html:has(.arena-shell)::-webkit-scrollbar-thumb:hover {
 @media (prefers-reduced-motion: reduce) {
   .arena-hero-banner .arena-hero-backdrop,
   .arena-hero-banner .arena-hero-mist,
+  .arena-hero-banner .arena-hero-figure,
   .arena-hero-banner .animate-ping {
     animation: none;
     transform: none;
   }
 
   .arena-hero-banner .arena-spotlight,
-  .arena-hero-banner .arena-hero-motion-toggle,
   .arena-hero-banner .arena-particle {
     display: none;
   }

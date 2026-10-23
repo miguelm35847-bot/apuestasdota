@@ -1,4 +1,4 @@
-# Fondo del hero de KódigoDota
+# Opción guardada: Shadow Fiend y Phantom Assassin
 
 Arte generado el 23/10/2026 con la herramienta integrada `image_gen` (habilidad `imagegen`), para el banner principal existente. No se utilizó la API por CLI.
 
@@ -6,7 +6,9 @@ Arte generado el 23/10/2026 con la herramienta integrada `image_gen` (habilidad 
 - Resolución: 2172 × 724 px, panorámica 3:1.
 - Peso: 210 654 bytes; WebP a calidad 88, exportado con Sharp ya disponible en el proyecto.
 - Dirección visual: Shadow Fiend en rojo volcánico a la izquierda, Phantom Assassin en azul/cian a la derecha y ruinas oscuras en el centro para mantener legibles la marca y la sala destacada.
-- El movimiento ambiental se aplica en CSS al fondo y la bruma, con control de pausa y respeto a la preferencia de reducir movimiento. El título y las tarjetas permanecen quietos.
+- Disponible como `HERO_ESCENAS['sf-phantom']`. Para recuperarlo, cambia `HERO_ESCENA_ACTIVA` en `src/lib/heroEscenas.ts` a `'sf-phantom'`.
+- El movimiento ambiental se aplica en CSS al fondo y la bruma, respetando la preferencia de reducir movimiento. El control de pausa se retiró por petición del usuario. El título y las tarjetas permanecen quietos.
+- La nueva opción activa y sus prompts están en `docs/HERO-CONVERGENCIA.md`.
 
 ## Prompt final
 
