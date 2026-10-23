@@ -90,7 +90,7 @@ function FilaJugador({ jugador }: { jugador: JugadorVivo }) {
       <div className="min-w-0 flex-1 basis-28">
         <div className="flex items-center gap-1.5">
           <p className="truncate text-xs font-semibold text-slate-100">{jugador.nick}</p>
-          <MedallaMmr mmr={jugador.mmr} size="xs" inline className="shrink-0" />
+          <MedallaMmr mmr={jugador.mmr} size="sm" inline className="shrink-0" />
           {jugador.respawn > 0 && (
             <span
               className="shrink-0 rounded bg-rose-500/15 px-1 text-[9px] font-bold text-rose-300 ring-1 ring-inset ring-rose-500/30"
