@@ -335,8 +335,9 @@ function PerfilContenido() {
     setCargandoTab(true);
     const { data } = await supabase
       .from('participantes_sala')
-      .select('sala_id, equipo, salas(*, partidas(*))')
+      .select('sala_id, equipo, salas!inner(nombre, cuota, created_at, partidas!inner(equipo_ganador, premio_por_ganador))')
       .eq('user_id', user.id)
+      .eq('salas.estado', 'terminada')
       .order('created_at', { ascending: false })
       .limit(20);
     if (data) setMisPartidas(data as unknown as PartidaPerfil[]);
@@ -438,8 +439,9 @@ function PerfilContenido() {
       const [partidas, recargas, retiros, movimientos] = await Promise.all([
         supabase
           .from('participantes_sala')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id),
+          .select('sala_id, salas!inner(partidas!inner(equipo_ganador))', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('salas.estado', 'terminada'),
         supabase
           .from('recargas')
           .select('*', { count: 'exact', head: true })
@@ -995,10 +997,10 @@ function PerfilContenido() {
             <PanelTab
               id="panel-historial"
               titulo="Mis partidas"
-              descripcion="Tus últimas 20 partidas."
+              descripcion="Tus últimas 20 partidas terminadas."
               cargando={cargandoTab && misPartidas.length === 0}
               vacio={misPartidas.length === 0}
-              vacioTexto="Aún no has jugado ninguna partida."
+              vacioTexto="Aún no tienes partidas terminadas."
               vacioAccion={{ href: '/salas', label: 'Ver salas disponibles' }}
             >
               <div className="space-y-3">
@@ -1007,7 +1009,6 @@ function PerfilContenido() {
                   const miEquipo = p.equipo;
                   const gano =
                     ganador !== null && ganador !== undefined && miEquipo === ganador;
-                  const enCurso = !ganador;
                   const monto = gano
                     ? p.salas?.partidas?.premio_por_ganador ?? 0
                     : -(p.salas?.cuota ?? 0);
@@ -1043,29 +1044,21 @@ function PerfilContenido() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        {enCurso ? (
-                          <span className="rounded-full bg-white/5 px-2.5 py-1 text-xs font-semibold text-slate-400 ring-1 ring-inset ring-white/10">
-                            En curso
-                          </span>
-                        ) : (
-                          <span
-                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
-                              gano
-                                ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30'
-                                : 'bg-rose-500/15 text-rose-300 ring-rose-500/30'
-                            }`}
-                          >
-                            {gano ? 'Ganaste' : 'Perdiste'}
-                          </span>
-                        )}
                         <span
-                          className={`font-display text-lg font-bold tabular-nums ${
-                            enCurso ? 'text-slate-400' : gano ? 'text-emerald-300' : 'text-rose-300'
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
+                            gano
+                              ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/30'
+                              : 'bg-rose-500/15 text-rose-300 ring-rose-500/30'
                           }`}
                         >
-                          {enCurso
-                            ? '—'
-                            : `${gano ? '+' : '-'}S/ ${(Math.abs(monto) / 100).toFixed(2)}`}
+                          {gano ? 'Ganaste' : 'Perdiste'}
+                        </span>
+                        <span
+                          className={`font-display text-lg font-bold tabular-nums ${
+                            gano ? 'text-emerald-300' : 'text-rose-300'
+                          }`}
+                        >
+                          {`${gano ? '+' : '-'}S/ ${(Math.abs(monto) / 100).toFixed(2)}`}
                         </span>
                       </div>
                     </article>
