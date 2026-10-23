@@ -8,7 +8,7 @@ Estado revisado el 23/10/2026. Es una preparación de la siguiente etapa; los ac
 - La configuración pública de Supabase confirma `google=false`, `facebook=false` y registro de cuentas habilitado.
 - Steam ya tiene un flujo OpenID verificado en servidor, pero `/api/auth/steam/start` exige una sesión y el callback solo vincula un perfil existente. No crea cuentas ni inicia una sesión nueva.
 - El propietario confirmó que todavía no tiene aplicaciones de Google Cloud ni Meta.
-- Dominio conectado y web publicada: `kodigodota.com` en Spaceship redirige al principal `www.kodigodota.com` en Vercel. Pasos y ajuste pendiente de URL Configuration de Supabase en [DOMINIO.md](DOMINIO.md). Usar el dominio con www al configurar los proveedores.
+- Dominio conectado y web publicada: `kodigodota.com` en Spaceship redirige al principal `www.kodigodota.com` en Vercel. Site URL y redirección de recuperación con www confirmados por HTTP tras el ajuste del propietario. Pasos en [DOMINIO.md](DOMINIO.md). Usar el dominio con www al configurar los proveedores.
 
 ## Implementación propuesta
 
