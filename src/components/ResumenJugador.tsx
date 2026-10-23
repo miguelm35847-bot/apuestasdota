@@ -73,12 +73,12 @@ export default function ResumenJugador({ userId, compacto = false, className = '
   return (
     <div
       data-resumen-jugador
-      className={`min-w-0 space-y-2.5 border-t border-white/10 pt-2.5 ${className}`}
+      className={`min-w-0 border-t border-white/10 ${compacto ? 'space-y-1 pt-1.5' : 'space-y-2.5 pt-2.5'} ${className}`}
     >
       {/* 3 héroes más jugados */}
       {heroes.length > 0 && (
         <div>
-          <p className="mb-1.5 text-[10px] font-semibold text-slate-400">Héroes más jugados</p>
+          <p className={`${compacto ? 'mb-1' : 'mb-1.5'} text-[10px] font-semibold text-slate-400`}>Héroes más jugados</p>
           <div className="grid grid-cols-3 gap-1.5">
             {heroes.map((heroe) => (
               <div
@@ -92,7 +92,7 @@ export default function ResumenJugador({ userId, compacto = false, className = '
                   alt={heroe.nombre}
                   width={80}
                   height={45}
-                  className={`aspect-video w-full bg-white/5 object-cover ${compacto ? 'max-h-11' : 'max-h-14'}`}
+                  className={`aspect-video w-full bg-white/5 object-cover ${compacto ? 'max-h-8' : 'max-h-14'}`}
                   loading="lazy"
                 />
                 <p className="px-1 py-0.5 text-center text-[9px] leading-4 text-slate-400">
@@ -108,7 +108,7 @@ export default function ResumenJugador({ userId, compacto = false, className = '
       {/* Roles más jugados con su winrate */}
       {roles.length > 0 && (
         <div>
-          <div className="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-[10px] text-slate-400">
+          <div className={`${compacto ? 'mb-1' : 'mb-1.5'} flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-[10px] text-slate-400`}>
             <p className="font-semibold">Roles más jugados</p>
             <span className="text-[9px] text-slate-500">% victorias</span>
           </div>

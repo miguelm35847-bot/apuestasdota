@@ -171,6 +171,7 @@ function Columna({
   horizontal = false,
   columnas,
   compacta = false,
+  compactarVacios = false,
   tono,
   icono,
   esParticipante,
@@ -189,6 +190,7 @@ function Columna({
   horizontal?: boolean;
   columnas?: string;
   compacta?: boolean;
+  compactarVacios?: boolean;
   tono: TonoEquipo;
   icono: ReactNode;
   esParticipante: boolean;
@@ -202,9 +204,18 @@ function Columna({
   const esMiEquipo = esParticipante && miEquipo === equipo;
   const lleno = equipo !== null && jugadores.length >= capacidad;
   const t = TONOS_EQUIPO[tono];
+  const slotsVisibles = compacta
+    ? Math.max(jugadores.length, 1)
+    : compactarVacios && jugadores.length === 0 ? 1 : capacidad;
+  const textoVacio = compacta
+    ? 'Esperando jugadores'
+    : compactarVacios && jugadores.length === 0
+      ? `${capacidad} ${capacidad === 1 ? 'cupo disponible' : 'cupos disponibles'}`
+      : 'Libre';
 
   return (
     <div
+      data-equipo={equipo ?? 'espera'}
       className={`arena-card @container flex flex-col overflow-hidden rounded-xl border bg-[#111827] shadow-arena-soft ${t.contenedor}`}
     >
       <div className={`relative px-3 py-2 ${t.cabecera}`}>
@@ -237,16 +248,16 @@ function Columna({
             : 'space-y-1'
         }`}
       >
-        {Array.from({ length: capacidad }).map((_, i) => {
+        {Array.from({ length: slotsVisibles }).map((_, i) => {
           const p = jugadores[i];
 
           if (!p) {
             return (
               <div
                 key={`libre-${i}`}
-                className="flex min-h-10 items-center justify-center rounded-lg border-2 border-dashed border-white/10 text-xs text-slate-500"
+                className={`flex min-h-10 items-center justify-center rounded-lg border-2 border-dashed border-white/10 text-xs text-slate-500 ${compacta ? 'col-span-full' : ''}`}
               >
-                Libre
+                {textoVacio}
               </div>
             );
           }
@@ -363,7 +374,7 @@ function Columna({
 
                 {/* El resumen va fuera del enlace del perfil: si no, el enlace a
                     Dotabuff quedaría anidado dentro de otro <a>. */}
-                <ResumenJugador userId={p.user_id} compacto className="mt-2" />
+                <ResumenJugador userId={p.user_id} compacto className="mt-1.5" />
               </div>
             );
           }
@@ -1736,7 +1747,7 @@ function SalaContenido() {
           />
         ) : (
           <section>
-            <div className="mb-1.5 flex items-center justify-between">
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <h2 className="font-display text-base font-bold text-white">Jugadores en la sala</h2>
               {puedeMoverse && (
                 <p className="text-xs text-slate-500">
@@ -1745,28 +1756,8 @@ function SalaContenido() {
               )}
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <Columna
-                {...columnaProps}
-                equipo={1}
-                titulo="Radiant"
-                descripcion="Equipo verde"
-                jugadores={radiant}
-                capacidad={limiteEquipo}
-                tono="radiant"
-                icono={<IconoRadiant />}
-              />
-              <Columna
-                {...columnaProps}
-                equipo={2}
-                titulo="Dire"
-                descripcion="Equipo rojo"
-                jugadores={dire}
-                capacidad={limiteEquipo}
-                tono="dire"
-                icono={<IconoDire />}
-              />
-              <div className="md:col-span-2 xl:col-span-1">
+            <div className="space-y-3">
+              {(espera.length > 0 || participantes.length === 0) && (
                 <Columna
                   {...columnaProps}
                   equipo={null}
@@ -1776,9 +1767,35 @@ function SalaContenido() {
                   capacidad={sala.cupo}
                   horizontal
                   compacta
-                  columnas="grid-cols-1 @min-[420px]:grid-cols-2"
+                  columnas={sala.cupo === 2
+                    ? 'grid-cols-1 @min-[420px]:grid-cols-2'
+                    : 'grid-cols-1 @min-[420px]:grid-cols-2 @min-[660px]:grid-cols-3 @min-[960px]:grid-cols-5'}
                   tono="neutral"
                   icono={<IconoEspera />}
+                />
+              )}
+              <div className="grid gap-3 md:grid-cols-2">
+                <Columna
+                  {...columnaProps}
+                  equipo={1}
+                  titulo="Radiant"
+                  descripcion="Equipo verde"
+                  jugadores={radiant}
+                  capacidad={limiteEquipo}
+                  compactarVacios={espera.length > 0 || participantes.length === 0}
+                  tono="radiant"
+                  icono={<IconoRadiant />}
+                />
+                <Columna
+                  {...columnaProps}
+                  equipo={2}
+                  titulo="Dire"
+                  descripcion="Equipo rojo"
+                  jugadores={dire}
+                  capacidad={limiteEquipo}
+                  compactarVacios={espera.length > 0 || participantes.length === 0}
+                  tono="dire"
+                  icono={<IconoDire />}
                 />
               </div>
             </div>
