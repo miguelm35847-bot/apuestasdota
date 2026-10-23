@@ -1135,7 +1135,6 @@ function SalaContenido() {
       )?.[1];
       setError(traducido ?? rpcError.message);
     } else {
-      setSuccess('Te uniste a la sala. Estás en la lista de espera.');
       window.dispatchEvent(new Event('saldo:refresh'));
       cargarSala();
     }
@@ -1206,13 +1205,6 @@ function SalaContenido() {
     if (rpcError) {
       setError(rpcError.message);
     } else {
-      setSuccess(
-        equipo === null
-          ? 'Estás en la lista de espera'
-          : equipo === 1
-            ? 'Estás en Radiant'
-            : 'Estás en Dire'
-      );
       cargarSala();
     }
     setCambiandoEquipo(false);
