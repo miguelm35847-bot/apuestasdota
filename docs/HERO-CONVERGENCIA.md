@@ -2,7 +2,7 @@
 
 Nueva escena del hero generada con la herramienta integrada `image_gen` (habilidad `imagegen`), el 23/10/2026. El movimiento usa capas WebP independientes para Invoker y Void Spirit, más bruma y partículas CSS. El control de pausa se ha retirado por petición del usuario; se respeta la preferencia del sistema de reducir movimiento.
 
-El ajuste posterior aumenta el recorrido de Invoker a 20 px en 4.8 s y el de Void Spirit a 18 px en 5.6 s, con desfase para distinguir ambos movimientos. Los extremos bajan desde la posición original para conservar las cabezas completas. La luna astral es un SVG decorativo con textura procedural, mares y cráteres, situado en el cielo sobre la marca en PC y en un lateral del móvil. No se modificaron los WebP originales ni se añadieron descargas o dependencias.
+El movimiento de Invoker recorre 20 px en 4.8 s y el de Void Spirit 18 px en 5.6 s, con desfase para distinguir ambos. Los extremos bajan desde la posición original para conservar las cabezas completas. La luna se integra en el paisaje, parcialmente cubierta por nubes y detrás de las montañas; se retiró el SVG superpuesto que provocaba una profundidad incorrecta. La versión activa del fondo es `public/hero-convergencia-cielo.webp`; archivo, prompt de edición y origen conservado en `docs/HERO-CIELO.md`. El paisaje y los retratos originales permanecen guardados; no se añadieron dependencias.
 
 La escena anterior se conserva en `public/hero-arena-v2.webp` y en `HERO_ESCENAS['sf-phantom']`. Para recuperarla, cambia `HERO_ESCENA_ACTIVA` en `src/lib/heroEscenas.ts` a `'sf-phantom'`.
 

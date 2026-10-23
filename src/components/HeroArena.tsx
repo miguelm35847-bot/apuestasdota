@@ -139,58 +139,6 @@ function IconWallet({ className = '' }: { className?: string }) {
   );
 }
 
-function LunaAstral() {
-  return (
-    <div className="arena-hero-moon" aria-hidden="true">
-      <svg viewBox="0 0 160 160" fill="none" focusable="false">
-        <defs>
-          <radialGradient id="arena-moon-surface" cx="0" cy="0" r="1" gradientTransform="translate(48 40) rotate(48) scale(116)" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#f2ede3" />
-            <stop offset="0.38" stopColor="#c5c2cb" />
-            <stop offset="0.75" stopColor="#848398" />
-            <stop offset="1" stopColor="#34364e" />
-          </radialGradient>
-          <radialGradient id="arena-moon-crater">
-            <stop offset="0.3" stopColor="#50516f" stopOpacity="0.26" />
-            <stop offset="0.78" stopColor="#66647f" stopOpacity="0.12" />
-            <stop offset="1" stopColor="#faf1e5" stopOpacity="0.15" />
-          </radialGradient>
-          <filter id="arena-moon-texture" x="0" y="0" width="100%" height="100%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.065" numOctaves="4" seed="27" result="noise" />
-            <feColorMatrix in="noise" type="saturate" values="0" />
-            <feComponentTransfer>
-              <feFuncR type="linear" slope="0.55" intercept="0.45" />
-              <feFuncG type="linear" slope="0.55" intercept="0.45" />
-              <feFuncB type="linear" slope="0.55" intercept="0.45" />
-            </feComponentTransfer>
-            <feBlend in="SourceGraphic" mode="multiply" />
-            <feComposite in2="SourceGraphic" operator="in" />
-          </filter>
-          <clipPath id="arena-moon-disc">
-            <circle cx="80" cy="80" r="58" />
-          </clipPath>
-        </defs>
-        <circle cx="80" cy="80" r="58" fill="url(#arena-moon-surface)" filter="url(#arena-moon-texture)" />
-        <g clipPath="url(#arena-moon-disc)">
-          <path d="M44 29c10-8 24 4 25 14 0 8-11 8-7 17 3 6 16 6 18 16 3 15-15 19-28 12-8-4-7-13-16-17-9-5-14-9-11-19 2-7 12-6 12-13 0-4 3-8 7-10Z" fill="#74758e" fillOpacity="0.28" />
-          <path d="M100 36c13 3 15 16 8 25-3 4-14 3-15 10-2 9 8 13 4 22-5 12-18 7-19-3-2-12 9-17 3-29-8-12 6-29 19-25ZM112 101c13 2 17 13 10 24-7 12-32 16-36 4-4-10 9-9 10-17 1-6 10-12 16-11Z" fill="#62647f" fillOpacity="0.3" />
-          <ellipse cx="47" cy="48" rx="12" ry="9" fill="url(#arena-moon-crater)" />
-          <ellipse cx="63" cy="70" rx="7" ry="6" fill="url(#arena-moon-crater)" />
-          <ellipse cx="96" cy="48" rx="9" ry="7" fill="url(#arena-moon-crater)" />
-          <ellipse cx="118" cy="72" rx="13" ry="15" fill="url(#arena-moon-crater)" />
-          <ellipse cx="83" cy="103" rx="10" ry="9" fill="url(#arena-moon-crater)" />
-          <ellipse cx="44" cy="98" rx="5" ry="7" fill="url(#arena-moon-crater)" />
-          <ellipse cx="63" cy="119" rx="8" ry="5" fill="url(#arena-moon-crater)" />
-          <circle cx="103" cy="91" r="4" fill="url(#arena-moon-crater)" />
-          <circle cx="79" cy="32" r="3" fill="url(#arena-moon-crater)" />
-          <circle cx="34" cy="77" r="3" fill="url(#arena-moon-crater)" />
-          <path d="m82 104-6-12m7 12 10-5m-10 6-6 11m7-11 11 8" stroke="#f1e8f5" strokeOpacity="0.22" strokeWidth="0.8" />
-        </g>
-      </svg>
-    </div>
-  );
-}
-
 export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolean }) {
   const { salas, participantes, loading: cargando } = useSalas();
 
@@ -292,7 +240,6 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
         className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(5,7,12,0.28)_0%,transparent_28%,transparent_62%,#070a10_100%)]"
         aria-hidden="true"
       />
-      {HERO_ESCENA_ACTIVA === 'convergencia' && <LunaAstral />}
       <div className="arena-spotlight -z-10" aria-hidden="true" />
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         {PARTICULAS.map((p, i) => (

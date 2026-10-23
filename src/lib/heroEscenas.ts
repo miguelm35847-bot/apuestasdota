@@ -16,7 +16,7 @@ export const HERO_ESCENAS: Record<'sf-phantom' | 'convergencia', HeroEscena> = {
     figuras: [],
   },
   convergencia: {
-    fondo: '/hero-convergencia-fondo.webp',
+    fondo: '/hero-convergencia-cielo.webp',
     figuras: [
       {
         id: 'invoker',
