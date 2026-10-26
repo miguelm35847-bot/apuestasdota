@@ -1,6 +1,6 @@
 # Registro con Steam, Google y Facebook
 
-Estado revisado el 26/10/2026. Google implementado y publicado, proveedor habilitado; Steam y Facebook siguen pendientes como accesos de cuenta. Falta la prueba real del propietario con una cuenta autorizada de Google.
+Estado revisado el 26/10/2026. Google implementado y publicado, proveedor habilitado; el propietario confirmó el ingreso real con una cuenta de prueba y la elección de nick. Steam y Facebook siguen pendientes como accesos de cuenta.
 
 ## Estado actual
 
@@ -17,7 +17,7 @@ Estado revisado el 26/10/2026. Google implementado y publicado, proveedor habili
 ## Pendientes de la siguiente etapa
 
 1. **Steam primero**: acceso con OpenID para crear la cuenta al primer ingreso o recuperar la cuenta que ya tenga ese Steam vinculado. Mantener el mismo UUID y la misma billetera de las cuentas existentes. La identidad se obtiene únicamente de la respuesta verificada de Steam; cookie HttpOnly/state y protección contra reintentos. El callback debe entregar una sesión de Supabase sin tokens ni SteamID en la URL. Alta del perfil y selección de nick con las validaciones actuales; MMR pendiente hasta que el jugador lo complete. Es un flujo nuevo, separado del vínculo desde el perfil.
-2. **Google**: completar la prueba real con una cuenta autorizada de Google y el consentimiento del propietario. La integración y las respuestas del proveedor están verificadas con fixtures, incluyendo PKCE real del SDK; eso no sustituye la selección de una cuenta y el consentimiento real de Google ni confirma por sí solo el secreto guardado en el panel.
+2. **Google**: prueba real completada según confirmación del propietario el 26/10/2026, después de agregar su usuario de prueba, ingresar con Google y elegir nick. Esto complementa los fixtures con la selección y el consentimiento reales. Antes del lanzamiento general, revisar el estado de publicación en Google → Público; la confirmación de la prueba no confirma que se haya pasado de Pruebas a Producción.
 3. **Facebook**: mismo recorrido de cuenta/perfil, una vez configurada la aplicación de Meta y habilitado su uso público. Verificar los permisos de correo/perfil requeridos por el proveedor y los casos de denegación.
 
 En los tres casos se deben probar cuentas nuevas, cuentas existentes, cancelación, error del proveedor, nick duplicado, retorno a sala, sesión vencida y conservación de saldo/identidad. No vincular ni fusionar cuentas basándose solo en un nombre o avatar.
