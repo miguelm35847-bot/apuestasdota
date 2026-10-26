@@ -157,6 +157,9 @@ export default function RegisterPage() {
             Inicia sesión
           </Link>
         </p>
+        <p className="text-center text-xs leading-5 text-slate-500">
+          Conoce cómo tratamos tus datos en nuestra <Link href="/privacidad" className="text-prism-300 hover:text-prism-200 hover:underline">Política de privacidad</Link>.
+        </p>
       </div>
     </div>
   );

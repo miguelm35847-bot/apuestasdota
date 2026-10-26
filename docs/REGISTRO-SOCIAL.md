@@ -38,11 +38,20 @@ En los tres casos se deben probar cuentas nuevas, cuentas existentes, cancelaci�
    `https://www.kodigodota.com/login/google`
 
    Conservar las URLs existentes de confirmación/recuperación y el Site URL `https://www.kodigodota.com`. El propietario confirmó este ajuste y se comprobó por HTTP con un token inválido que el destino es aceptado, sin enviar correos. La URL anterior de Supabase `/auth/v1/callback` se mantiene en Google; no se sustituye por la de la web.
-8. En Google → **Público → Usuarios de prueba**, añadir los correos que probarán el acceso mientras esté en pruebas. Se pueden agregar antes de implementar la web; no dependen del botón.
+8. En Google → **Público → Usuarios de prueba**, añadir las cuentas previstas para la prueba. Google exceptúa de esa restricción los accesos que solo solicitan identidad básica (`email`, `profile`, `openid` o equivalentes), como el acceso actual de esta web. Se puede mantener una cuenta de prueba para la comprobación operativa; no depende del botón.
 9. Abrir `/login` o `/register`, pulsar **Continuar con Google**, elegir una cuenta autorizada y aceptar. Si es nueva, elegir nick; si ya existe una identidad vinculada, se conserva el perfil. Para comprobar la conservación de una cuenta registrada por correo, usar el mismo correo verificado y revisar nick/saldo antes y después, sin crear cuentas o mover saldo de prueba.
 10. Preparar la publicación del consentimiento de Google cuando se quiera abrir el acceso a usuarios generales. Durante las pruebas no es necesario hacerlo público.
 
 Para probar Google real desde desarrollo, autorizar también el retorno del origen local que se utilice (por ejemplo, `http://localhost:3000/login/google`) en Supabase. Los harnesses automatizados interceptan OAuth y no necesitan abrir Google ni esas autorizaciones locales.
+
+## Publicación de Google para usuarios generales
+
+- Responsable indicado por el propietario: **KódigoDota**. Contacto público para consultas de privacidad: **robertdota123456@gmail.com**.
+- Página pública de privacidad publicada: **https://www.kodigodota.com/privacidad**. Describe cuenta/Google, perfil y estadísticas de juego, visibilidad comunitaria, operaciones, proveedores, almacenamiento de sesión y solicitudes de acceso/corrección/eliminación. No requiere sesión y está enlazada en el inicio, login y registro; incluida en el sitemap. Implementación, QA local y comprobaciones HTTP de producción completos.
+- En Google Auth Platform → **Información de la marca**, usar KódigoDota como nombre, `https://www.kodigodota.com` como inicio y la URL anterior en política de privacidad. El dominio autorizado es `kodigodota.com`, ya verificado por el propietario. El correo de asistencia se elige entre las cuentas o grupos permitidos por Google; no basta escribir cualquier dirección si no aparece en el selector.
+- Google indica que los enlaces de inicio, privacidad y términos del servicio son necesarios para la verificación de aplicaciones externas en producción. **La página de términos del servicio sigue pendiente**; no se ha creado un contrato ni usado la política de privacidad como sustituto.
+- Para el público general: **Público → Externo → Publicar aplicación**, hasta que indique **En producción**. Para mostrar nombre/logo: completar **Verificar marca** y, cuando Google indique que está lista, **Publicar marca**. Publicación de audiencia y verificación de marca son estados separados; no se han cambiado desde esta implementación.
+- La web solo solicita correo y perfil básicos. No añadir permisos de Gmail/Drive para el inicio de sesión. La política publicada no implica aprobación de Google ni certificación de cumplimiento legal.
 
 ## Verificación automatizada
 
@@ -66,4 +75,6 @@ La URL de callback de Supabase pertenece a los proveedores. El retorno de Google
 - [Supabase: Facebook](https://supabase.com/docs/guides/auth/social-sign-in/auth-facebook)
 - [Supabase: PKCE](https://supabase.com/docs/guides/auth/sessions/pkce-flow)
 - [Supabase: vinculación de identidades](https://supabase.com/docs/guides/auth/auth-identity-linking)
+- [Google: información y verificación de marca](https://support.google.com/cloud/answer/15549049?hl=es)
+- [Google: público y estado de publicación](https://support.google.com/cloud/answer/15549945?hl=es)
 - [Steam: autenticación web con OpenID](https://partner.steamgames.com/doc/features/auth#website)

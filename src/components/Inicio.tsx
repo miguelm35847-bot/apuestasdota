@@ -81,6 +81,9 @@ export default function Inicio() {
             <Link href="/salas/historial" className="transition hover:text-slate-300">
               Historial
             </Link>
+            <Link href="/privacidad" className="transition hover:text-slate-300">
+              Privacidad
+            </Link>
           </div>
           <p className="mt-1 text-xs text-slate-600">Pagos con Yape o Plin</p>
         </div>

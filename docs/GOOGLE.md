@@ -7,7 +7,7 @@ Dominio principal: `https://www.kodigodota.com`. El propietario confirma que ya 
 - El logo de `public/kodigodota-mark.svg` se exporta a favicon ICO de 16–256 px, PNG de 96 px y Apple de 180 px. Imagen de marca de 512 px para metadatos y datos estructurados. Regeneración: `node scripts/generar-iconos.mjs` (usa sharp incluido por Next.js).
 - Título y descripción de Dota 2/Perú, identidad WebSite/Organization, URL canónica de la página principal y metadatos propios de guía/historial.
 - `https://www.kodigodota.com/robots.txt` permite rastrear la web y anuncia `https://www.kodigodota.com/sitemap.xml`.
-- El sitemap contiene únicamente inicio, cómo jugar e historial público. `/salas` requiere sesión y queda fuera. Cuenta, pagos, administración, API y demostración llevan `X-Robots-Tag: noindex, nofollow`; se conserva la autenticación existente.
+- El sitemap contiene inicio, cómo jugar, historial público y la política de privacidad (`/privacidad`). `/salas` requiere sesión y queda fuera. Cuenta, pagos, administración, API y demostración llevan `X-Robots-Tag: noindex, nofollow`; se conserva la autenticación existente.
 - Se conserva el archivo HTML de verificación de Search Console.
 
 ## Pasos en tu cuenta de Google
