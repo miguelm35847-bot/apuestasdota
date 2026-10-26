@@ -84,6 +84,9 @@ export default function Inicio() {
             <Link href="/privacidad" className="transition hover:text-slate-300">
               Privacidad
             </Link>
+            <Link href="/terminos" className="transition hover:text-slate-300">
+              Términos del servicio
+            </Link>
           </div>
           <p className="mt-1 text-xs text-slate-600">Pagos con Yape o Plin</p>
         </div>

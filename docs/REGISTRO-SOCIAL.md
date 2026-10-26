@@ -1,6 +1,6 @@
 # Registro con Steam, Google y Facebook
 
-Estado revisado el 26/10/2026. Google implementado y publicado, proveedor habilitado; el propietario confirmó el ingreso real con una cuenta de prueba y la elección de nick. Steam y Facebook siguen pendientes como accesos de cuenta.
+Estado revisado el 26/10/2026. Google implementado y publicado, proveedor habilitado; el propietario confirmó el ingreso real, la elección de nick, el estado **En producción** en Google y la carga del logo en Información de la marca. La carga del logo no confirma por sí sola aprobación de marca. Steam y Facebook siguen pendientes como accesos de cuenta.
 
 ## Estado actual
 
@@ -17,7 +17,7 @@ Estado revisado el 26/10/2026. Google implementado y publicado, proveedor habili
 ## Pendientes de la siguiente etapa
 
 1. **Steam primero**: acceso con OpenID para crear la cuenta al primer ingreso o recuperar la cuenta que ya tenga ese Steam vinculado. Mantener el mismo UUID y la misma billetera de las cuentas existentes. La identidad se obtiene únicamente de la respuesta verificada de Steam; cookie HttpOnly/state y protección contra reintentos. El callback debe entregar una sesión de Supabase sin tokens ni SteamID en la URL. Alta del perfil y selección de nick con las validaciones actuales; MMR pendiente hasta que el jugador lo complete. Es un flujo nuevo, separado del vínculo desde el perfil.
-2. **Google**: prueba real completada según confirmación del propietario el 26/10/2026, después de agregar su usuario de prueba, ingresar con Google y elegir nick. Esto complementa los fixtures con la selección y el consentimiento reales. Antes del lanzamiento general, revisar el estado de publicación en Google → Público; la confirmación de la prueba no confirma que se haya pasado de Pruebas a Producción.
+2. **Google**: prueba real y estado **En producción** confirmados por el propietario el 26/10/2026; logo cargado. Completar los enlaces y revisar la verificación/publicación de marca para su nombre y logo. Estos estados se confirman desde su cuenta de Google; no se deducen de los fixtures de la web.
 3. **Facebook**: mismo recorrido de cuenta/perfil, una vez configurada la aplicación de Meta y habilitado su uso público. Verificar los permisos de correo/perfil requeridos por el proveedor y los casos de denegación.
 
 En los tres casos se deben probar cuentas nuevas, cuentas existentes, cancelación, error del proveedor, nick duplicado, retorno a sala, sesión vencida y conservación de saldo/identidad. No vincular ni fusionar cuentas basándose solo en un nombre o avatar.
@@ -49,9 +49,11 @@ Para probar Google real desde desarrollo, autorizar también el retorno del orig
 - Responsable indicado por el propietario: **KódigoDota**. Contacto público para consultas de privacidad: **robertdota123456@gmail.com**.
 - Página pública de privacidad publicada: **https://www.kodigodota.com/privacidad**. Describe cuenta/Google, perfil y estadísticas de juego, visibilidad comunitaria, operaciones, proveedores, almacenamiento de sesión y solicitudes de acceso/corrección/eliminación. No requiere sesión y está enlazada en el inicio, login y registro; incluida en el sitemap. Implementación, QA local y comprobaciones HTTP de producción completos.
 - En Google Auth Platform → **Información de la marca**, usar KódigoDota como nombre, `https://www.kodigodota.com` como inicio y la URL anterior en política de privacidad. El dominio autorizado es `kodigodota.com`, ya verificado por el propietario. El correo de asistencia se elige entre las cuentas o grupos permitidos por Google; no basta escribir cualquier dirección si no aparece en el selector.
-- Google indica que los enlaces de inicio, privacidad y términos del servicio son necesarios para la verificación de aplicaciones externas en producción. **La página de términos del servicio sigue pendiente**; no se ha creado un contrato ni usado la política de privacidad como sustituto.
-- Para el público general: **Público → Externo → Publicar aplicación**, hasta que indique **En producción**. Para mostrar nombre/logo: completar **Verificar marca** y, cuando Google indique que está lista, **Publicar marca**. Publicación de audiencia y verificación de marca son estados separados; no se han cambiado desde esta implementación.
+- Google indica que los enlaces de inicio, privacidad y términos del servicio son necesarios para la verificación de aplicaciones externas en producción. **Términos del servicio publicados: https://www.kodigodota.com/terminos**, por solicitud del propietario. Copiar esta URL en Información de la marca → Términos del servicio.
+- El propietario confirma **En producción** y logo cargado. Para mostrar nombre/logo: completar **Verificar marca** y, cuando Google indique que está lista, **Publicar marca**. Publicación de audiencia y verificación de marca son estados separados; no se cambió la configuración de Google desde esta implementación.
 - La web solo solicita correo y perfil básicos. No añadir permisos de Gmail/Drive para el inicio de sesión. La política publicada no implica aprobación de Google ni certificación de cumplimiento legal.
+
+Los términos describen el funcionamiento vigente: cuenta, participación con dinero para mayores de 18 años, juego limpio, cuotas, salidas/penalidades, apuestas S/ 5.50 con premio total S/ 10.00 y ventana de 25 minutos, marcador de ejemplo, recargas/retiros manuales, donaciones, incidencias y atención. Se conservan derechos de reclamación y condiciones de operaciones ya confirmadas. Los avisos de login/registro enlazan los documentos; no se implementó ni se afirma un registro de aceptación contractual o una verificación de edad. La identidad publicada es únicamente la marca y el correo proporcionados; no se inventaron RUC, domicilio, licencia ni autorizaciones. La revisión legal de la operación con dinero y los mecanismos regulatorios que correspondan quedan fuera de esta publicación de contenido; los términos no los sustituyen.
 
 ## Verificación automatizada
 

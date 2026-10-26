@@ -158,7 +158,7 @@ export default function RegisterPage() {
           </Link>
         </p>
         <p className="text-center text-xs leading-5 text-slate-500">
-          Conoce cómo tratamos tus datos en nuestra <Link href="/privacidad" className="text-prism-300 hover:text-prism-200 hover:underline">Política de privacidad</Link>.
+          Antes de continuar, revisa los <Link href="/terminos" className="text-prism-300 hover:text-prism-200 hover:underline">Términos del servicio</Link> y la <Link href="/privacidad" className="text-prism-300 hover:text-prism-200 hover:underline">Política de privacidad</Link>.
         </p>
       </div>
     </div>
