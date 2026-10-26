@@ -19,6 +19,8 @@
     "qa:cierre": "node --experimental-strip-types scripts/qa/cierre.mjs",
     "qa:landing:ui": "node --env-file-if-exists=.env.local scripts/qa/landing-ui.mjs",
     "qa:inicio": "node --experimental-strip-types scripts/qa/siguiente-paso.mjs",
+    "qa:google": "node --experimental-strip-types scripts/qa/google.mjs",
+    "qa:google:ui": "node --env-file-if-exists=.env.local scripts/qa/google-ui.mjs",
     "lint": "eslint"
   },
   "dependencies": {

@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
+import BotonGoogle from '@/components/BotonGoogle';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function RegisterPage() {
   const [nick, setNick] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleCargando, setGoogleCargando] = useState(false);
   const [registrado, setRegistrado] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -87,9 +89,10 @@ export default function RegisterPage() {
           </p>
         </div>
 
+        <BotonGoogle disabled={loading} onError={setError} onProcesando={setGoogleCargando} />
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+            <div role="alert" className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
               {error}
             </div>
           )}
@@ -141,7 +144,7 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || googleCargando}
             className="w-full rounded-lg bg-prism-500 py-2.5 font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
           >
             {loading ? 'Creando cuenta...' : 'Registrarse'}
