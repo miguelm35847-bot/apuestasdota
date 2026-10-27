@@ -2,7 +2,7 @@
 // PostgreSQL desechable, sin conectarse a Supabase ni cargar .env.local.
 // PG_BIN puede apuntar al directorio bin de PostgreSQL 16+.
 import { spawn } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { appendFile, mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -62,7 +62,16 @@ const insertarResultado = (r,equipo) => real
 let iniciado = false;
 try {
   await ejecutar('initdb', ['-D', data, '-U', 'postgres', '-A', 'trust', '--encoding=UTF8', '--no-locale']);
-  await ejecutar('pg_ctl', ['-D', data, '-l', path.join(temporal, 'postgres.log'), '-o', `-h 127.0.0.1 -p ${port} -c wal_level=logical`, '-w', 'start']);
+  // Todas las conexiones del harness usan TCP local. En Linux el socket Unix
+  // predeterminado puede apuntar a un directorio reservado al usuario postgres.
+  await appendFile(path.join(data, 'postgresql.conf'), "\nunix_socket_directories = ''\n");
+  const registro = path.join(temporal, 'postgres.log');
+  try {
+    await ejecutar('pg_ctl', ['-D', data, '-l', registro, '-o', `-h 127.0.0.1 -p ${port} -c wal_level=logical`, '-w', 'start']);
+  } catch (error) {
+    const log = await readFile(registro, 'utf8').catch(() => 'Registro no disponible.');
+    throw new Error(`No se pudo iniciar PostgreSQL de QA.\n${log}`, { cause: error });
+  }
   iniciado = true;
   if(real) await prepararSchemaReal(sql,u);
   else await sql(`
