@@ -7,6 +7,7 @@ import AvisoVerificacion from "@/components/AvisoVerificacion";
 import { DonarProvider } from "@/components/DonarProvider";
 import { ApuestasProvider } from "@/components/ApuestasProvider";
 import { DESCRIPCION_SITIO, NOMBRE_SITIO, REDES_SITIO, TITULO_SITIO, URL_SITIO } from '@/lib/sitio';
+import { Analytics } from '@vercel/analytics/next';
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             </ApuestasProvider>
           </DonarProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
