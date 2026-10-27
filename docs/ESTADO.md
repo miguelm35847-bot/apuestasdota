@@ -19,7 +19,9 @@ Actualizado: 27/10/2026. Punto de entrada para retomar el proyecto. El detalle d
 | 3. Índices y políticas | Completado | Doce índices nuevos; FK sin índice 12 → 0 y superposiciones 7 → 1 intencional en chat. Grants conservados. [Detalle](OPTIMIZACION-DB.md). |
 | 4. Estructura de salas y perfil | Completado | Diecisiete módulos visuales; corregidos ciclo de historial y remontajes de fichas del draft. [Mapa y QA](ESTRUCTURA-UI.md). |
 | 5. Documentación | Completado | Estado y pendientes separados, README adaptado y referencias antiguas señaladas. Se conservan historial, SQL y fixtures. |
-| 6. Limpieza local | Pendiente | Medir y retirar cachés regenerables cuando estén libres; revisar checkouts antes de retirar dependencias o un worktree. Conservar entregables de imágenes, snapshots y SQL utilizados por QA. |
+| 6. Limpieza local | Completado | Liberados unos 718 MiB (753 MB) netos después de verificar la compilación. Retiradas dos cachés antiguas y tres perfiles temporales de QA cerrados; conservados servidor/desarrollo, dependencias, worktrees, capturas, informes e imágenes/ZIP solicitados. |
+
+Limpieza comprobada contra rutas absolutas, ausencia de procesos que usen los objetivos y enlaces, y hashes de los 12 entregables de imágenes/metadatos/ZIP. El servidor del puerto 3000 conserva su proceso y responde 200; `.next/dev` sigue en uso. Las dependencias de ambos checkouts siguen siendo necesarias para trabajar. Tipos/lint/build correctos tras limpiar; se conserva la caché nueva de unos 47 MiB generada por esa compilación, ya descontada del ahorro. Liberar disco local no cambia el rendimiento de producción.
 
 ## Funcionalidades disponibles
 
