@@ -9,6 +9,7 @@ import { randomUUID } from 'node:crypto';
 import assert from 'node:assert/strict';
 import net from 'node:net';
 import {prepararSchemaReal} from './schema-real.mjs';
+import {verificarOptimizacionDB} from './optimizacion-db.mjs';
 const real=process.argv.includes('--schema-real');
 
 const bin = process.env.PG_BIN ?? (process.platform === 'win32' ? 'C:/Program Files/PostgreSQL/18/bin' : '/usr/bin');
@@ -108,6 +109,7 @@ try {
     await sql(await readFile('docs/sql/2026-10-23-frecuencia-apuestas.sql','utf8'));
     await sql(await readFile('docs/sql/2026-10-23-verificacion-rondas.sql','utf8'));
     await sql(await readFile('docs/sql/2026-10-23-verificacion-rondas.sql','utf8'));
+    await verificarOptimizacionDB(sql,u,caso);
     await caso('verificación: entrada parcial, solicitud manual, ronda completa y sala vacía', async()=>{
       const r=randomUUID();
       const actores=Array.from({length:10},()=>randomUUID());
