@@ -4,7 +4,9 @@
 
 Next.js 16.4.2 (App Router, Turbopack) · React 19 · TypeScript · Tailwind CSS v4 · Supabase (auth, Postgres, Realtime).
 
-## Estado actual (26/10/2026)
+## Estado actual (27/10/2026)
+
+- **Comunidad Discord (27/10/2026)**: servidor KódigoDota creado por el propietario. Añadidos bienvenida, reglas, anuncios y buscar-partida, más Lobby, Radiant y Dire de voz; general, clips-y-destacados, Sala y Juegos existentes se conservan. Invitación `https://discord.gg/2FrCBBKph3` verificada en una sesión pública: entrada por bienvenida, sin vencimiento y con usos ilimitados. Descripción de bienvenida guardada con enlace a la web. Acceso «Únete a Discord» al extremo izquierdo del pie del landing, con símbolo SVG de Discord; identidad y enlaces legales centrados en PC y debajo del acceso en móvil. Ajuste y publicación autorizados expresamente por el propietario. Tsc/lint/build y QA visual 3/3 correctos en PC y móviles. Publicación de `main` mediante la integración GitHub/Vercel existente. Detalle en `docs/COMUNIDAD-DISCORD.md`.
 
 - **Reingreso tras cerrar sesión (26/10/2026)**: corregido el formulario que Next conservaba con «Ingresando…». La carga se libera en finally en éxito/error y se borra la contraseña después de autenticar; volver por el enlace permite otro ingreso sin recargar. Error reproducido antes de la corrección y 4/4 recorridos aislados correctos en PC/móvil, incluidos reintento y documento conservado. Tsc/lint/build correctos; publicado y 4/4 recorridos de reingreso también correctos sobre el dominio de producción.
 
