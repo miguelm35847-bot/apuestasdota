@@ -17,11 +17,13 @@
  *    en Dota y poner la sala en juego.
  *  - 'fin': la partida terminó. Suena para todos los jugadores de la sala,
  *    estén o no dentro de la sala (llega por notificación).
+ *  - 'mensaje': aviso breve por mensaje nuevo en el chat general abierto.
  */
-export type TonoSonido = 'verificacion' | 'listos' | 'moneda' | 'fin';
+export type TonoSonido = 'verificacion' | 'listos' | 'moneda' | 'fin' | 'mensaje';
 
 let contexto: AudioContext | null = null;
 let preparado = false;
+let siguienteMensaje = 0;
 
 function obtenerContexto(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -79,6 +81,13 @@ function tocarTono(
 }
 
 function sonar(ctx: AudioContext, tono: TonoSonido) {
+  if (tono === 'mensaje') {
+    // Aviso corto y suave. Separa los mensajes de una misma ráfaga.
+    const inicio = Math.max(ctx.currentTime, siguienteMensaje);
+    tocarTono(ctx, 1046, inicio - ctx.currentTime, 0.085, 0.045);
+    siguienteMensaje = inicio + 0.12;
+    return;
+  }
   if (tono === 'verificacion') {
     tocarTono(ctx, 880, 0, 0.13, 0.16);
     tocarTono(ctx, 1174, 0.17, 0.16, 0.16);
@@ -108,6 +117,12 @@ function sonar(ctx: AudioContext, tono: TonoSonido) {
 /** Reproduce un sonido de la arena. */
 export function reproducirSonido(tono: TonoSonido) {
   if (typeof window === 'undefined') return;
+
+  // El chat no intenta autoplay ni acumula avisos para el primer clic.
+  if (tono === 'mensaje') {
+    if (contexto?.state === 'running') sonar(contexto, tono);
+    return;
+  }
 
   const ctx = obtenerContexto();
   if (!ctx) return;

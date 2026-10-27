@@ -26,6 +26,8 @@
     "qa:steam:server": "node scripts/qa/steam-server.mjs",
     "qa:steam:ui": "node --env-file-if-exists=.env.local scripts/qa/steam-ui.mjs",
     "qa:login:ui": "node --env-file-if-exists=.env.local scripts/qa/login-volver-ui.mjs",
+    "qa:chat": "node --experimental-strip-types scripts/qa/chat-sonido.mjs",
+    "qa:chat:ui": "node --env-file-if-exists=.env.local scripts/qa/chat-sonido-ui.mjs",
     "lint": "eslint"
   },
   "dependencies": {

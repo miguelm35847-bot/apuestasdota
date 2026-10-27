@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
@@ -8,6 +8,8 @@ import type { MensajeChat } from '@/lib/types';
 import Avatar from '@/components/Avatar';
 import MedallaMmr from '@/components/MedallaMmr';
 import PerfilHover from '@/components/PerfilHover';
+import { crearAvisosChat, type MensajeAviso } from '@/lib/avisosChat';
+import { prepararSonido, reproducirSonido } from '@/lib/sonidos';
 
 function formatearHora(fecha: string) {
   return new Date(fecha).toLocaleTimeString('es-PE', {
@@ -37,63 +39,52 @@ export default function ChatPanel({
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  const cargarMensajes = useCallback(async () => {
-    let query = supabase
-      .from('mensajes_chat')
-      .select(
-        'id, sala_id, user_id, mensaje, created_at, profiles(nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos)'
-      )
-      .order('created_at', { ascending: false })
-      .limit(50);
+  const acciones = useRef<{ recargar: () => Promise<void>; recibir: (m: MensajeAviso) => void } | null>(null);
 
-    query = salaId ? query.eq('sala_id', salaId) : query.is('sala_id', null);
-
-    const { data, error: fetchError } = await query;
-
-    if (fetchError) {
-      setError('No se pudo cargar el chat: ' + fetchError.message);
+  useEffect(() => {
+    let activo = true;
+    const avisos = salaId ? null : crearAvisosChat(() => reproducirSonido('mensaje'));
+    if (!salaId) prepararSonido();
+    async function cargarMensajes() {
+      let query = supabase.from('mensajes_chat')
+        .select('id, sala_id, user_id, mensaje, created_at, profiles(nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos)')
+        .order('created_at', { ascending: false }).limit(50);
+      query = salaId ? query.eq('sala_id', salaId) : query.is('sala_id', null);
+      const { data, error: fetchError } = await query;
+      if (!activo) return;
+      if (fetchError) {
+        setError('No se pudo cargar el chat: ' + fetchError.message);
+        setLoading(false);
+        return;
+      }
+      const filas = (data as unknown as MensajeChat[]) ?? [];
+      avisos?.sincronizar(filas);
+      setMensajes([...filas].reverse());
+      setError(null);
       setLoading(false);
-      return;
     }
-
-    const filas = (data as unknown as MensajeChat[]) ?? [];
-    setMensajes(filas.reverse());
-    setError(null);
-    setLoading(false);
-  }, [salaId]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial del chat
+    const actual = { recargar: cargarMensajes, recibir: (m: MensajeAviso) => { if (activo) avisos?.recibir(m); } };
+    acciones.current = actual;
     void cargarMensajes();
-  }, [cargarMensajes]);
-
-  useEffect(() => {
-    const channel = supabase
-      .channel(`chat-${salaId ?? 'general'}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'mensajes_chat',
-          ...(salaId ? { filter: `sala_id=eq.${salaId}` } : {}),
-        },
-        () => {
-          void cargarMensajes();
-        }
-      )
-      .subscribe();
-
-    // Respaldo por si Realtime no está habilitado en Supabase
-    const interval = setInterval(() => {
-      if (!document.hidden) void cargarMensajes();
-    }, 30000);
-
+    const channel = supabase.channel(`chat-${salaId ?? 'general'}`)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'mensajes_chat',
+        ...(salaId ? { filter: `sala_id=eq.${salaId}` } : {}),
+      }, payload => {
+        if (!activo) return;
+        const nuevo = payload.new as MensajeAviso;
+        if (salaId ? nuevo.sala_id !== salaId : nuevo.sala_id !== null) return;
+        actual.recibir(nuevo);
+        void cargarMensajes();
+      }).subscribe();
+    const interval = setInterval(() => { if (!document.hidden) void cargarMensajes(); }, 30000);
     return () => {
+      activo = false;
+      if (acciones.current === actual) acciones.current = null;
       clearInterval(interval);
-      supabase.removeChannel(channel);
+      void supabase.removeChannel(channel);
     };
-  }, [cargarMensajes, salaId]);
+  }, [salaId]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -109,19 +100,22 @@ export default function ChatPanel({
     setEnviando(true);
     setError(null);
 
-    const { error: insertError } = await supabase.from('mensajes_chat').insert({
-      sala_id: salaId,
-      user_id: user.id,
-      mensaje: limpio.slice(0, 500),
-    });
-
-    if (insertError) {
-      setError('No se pudo enviar: ' + insertError.message);
-    } else {
-      setTexto('');
-      await cargarMensajes();
-    }
-    setEnviando(false);
+    const chat = acciones.current;
+    try {
+      const { data, error: insertError } = await supabase.from('mensajes_chat').insert({
+        sala_id: salaId, user_id: user.id, mensaje: limpio.slice(0, 500),
+      }).select('id, sala_id, created_at').single();
+      if (acciones.current !== chat) return;
+      if (insertError) {
+        setError('No se pudo enviar: ' + insertError.message);
+      } else {
+        setTexto('');
+        if (data) chat?.recibir(data);
+        await chat?.recargar();
+      }
+    } catch {
+      if (acciones.current === chat) setError('No se pudo enviar el mensaje. Inténtalo nuevamente.');
+    } finally { setEnviando(false); }
   }
 
   return (
