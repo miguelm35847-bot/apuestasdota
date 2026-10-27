@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
+import { useRefrescoSala, type DatosSala } from '@/lib/useRefrescoSala';
 import Navbar from '@/components/Navbar';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import ChatPanel from '@/components/ChatPanel';
@@ -234,64 +235,29 @@ function AdminSalaContenido() {
   const [pidiendoVerificacion, setPidiendoVerificacion] = useState(false);
   const cierreAutoEnviado = useRef(false);
 
-  const cargarSala = useCallback(async () => {
-    if (!salaId || !user) return;
-
-    const { data: salaData } = await supabase
-      .from('salas')
-      .select('*')
-      .eq('id', salaId)
-      .single();
-
-    if (salaData) { setSala(salaData as unknown as Sala); setAutoCierre(salaData.auto_cierre !== false); if (salaData.dota_match_id_esperado) setDotaMatchId(String(salaData.dota_match_id_esperado)); }
-
-    const { data: partData } = await supabase
-      .from('participantes_sala')
-      .select(
-        'user_id, equipo, es_capitan, pick_orden, verificado_at, profiles(nick, steam_avatar_url, mmr, roles_preferidos)'
-      )
-      .eq('sala_id', salaId)
-      .order('created_at', { ascending: true });
-
-    // La preferencia de lado es un dato opcional: si el SQL todavía no está
-    // aplicado, el panel admin debe funcionar igual.
-    const { data: prefData } = await supabase
-      .from('participantes_sala')
-      .select('user_id, preferencia_equipo')
-      .eq('sala_id', salaId);
-
-    const preferencias = new Map(
-      (prefData ?? []).map((p) => [p.user_id, (p as { preferencia_equipo?: number | null }).preferencia_equipo ?? null])
-    );
-
-    if (partData) {
-      const parts = (partData as unknown as Participante[]).map((p) => ({
-        ...p,
-        preferencia_equipo: preferencias.get(p.user_id) ?? null,
-      }));
-      setParticipantes(parts);
+  const aplicarSala = useCallback((datos: DatosSala) => {
+    if (datos.sala) {
+      setSala(datos.sala);
+      setAutoCierre(datos.sala.auto_cierre !== false);
+      if (datos.sala.dota_match_id_esperado) setDotaMatchId(String(datos.sala.dota_match_id_esperado));
+    }
+    if (datos.participantes) {
+      setParticipantes(datos.participantes);
       const eq: Record<string, number | null> = {};
-      parts.forEach((p) => {
-        eq[p.user_id] = p.equipo;
-      });
+      datos.participantes.forEach((p) => { eq[p.user_id] = p.equipo; });
       setEquipos(eq);
     }
-
-    const { data: lobbyData } = await supabase
-      .from('lobbies')
-      .select('*')
-      .eq('sala_id', salaId)
-      .maybeSingle();
-
-    if (lobbyData) {
-      const datosLobby = lobbyData as unknown as Lobby;
-      setLobby(datosLobby);
-      setLobbyNombre((prev) => prev || datosLobby.nombre);
-      setLobbyClave((prev) => prev || datosLobby.clave);
+    if (datos.lobby !== undefined) {
+      setLobby(datos.lobby);
+      if (datos.lobby) {
+        const datosLobby = datos.lobby;
+        setLobbyNombre((prev) => prev || datosLobby.nombre);
+        setLobbyClave((prev) => prev || datosLobby.clave);
+      }
     }
-
     setLoading(false);
-  }, [salaId, user]);
+  }, []);
+  const cargarSala = useRefrescoSala(salaId, user?.id, aplicarSala);
 
   const revisarCierreAuto = useCallback(async () => {
     if (!salaId || cierreAutoEnviado.current) return;
@@ -342,71 +308,6 @@ function AdminSalaContenido() {
       router.push('/login');
     }
   }, [user, authLoading, router]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial desde Supabase
-    if (user && salaId) cargarSala();
-  }, [user, salaId, cargarSala]);
-
-  // Cambios en vivo mientras el admin gestiona la sala
-  useEffect(() => {
-    if (!salaId || !user) return;
-
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const refrescar = () => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => cargarSala(), 250);
-    };
-
-    const channel = supabase
-      .channel(`sala-admin-${salaId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'participantes_sala',
-          filter: `sala_id=eq.${salaId}`,
-        },
-        refrescar
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'participantes_sala',
-          filter: `sala_id=eq.${salaId}`,
-        },
-        refrescar
-      )
-      .on(
-        // Sin filtro: los DELETE no siempre incluyen sala_id
-        'postgres_changes',
-        { event: 'DELETE', schema: 'public', table: 'participantes_sala' },
-        refrescar
-      )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'salas', filter: `id=eq.${salaId}` },
-        refrescar
-      )
-      .on(
-        // Roles/MMR de los jugadores: se ven al instante.
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'profiles' },
-        refrescar
-      )
-      .subscribe();
-
-    const interval = setInterval(() => cargarSala(), 5000);
-
-    return () => {
-      if (timer) clearTimeout(timer);
-      clearInterval(interval);
-      supabase.removeChannel(channel);
-    };
-  }, [salaId, user, cargarSala]);
 
   // El fin de partida se avisa por notificación (suena para todos los jugadores
   // de la sala, estén o no dentro de ella), así que aquí no se duplica el tono.

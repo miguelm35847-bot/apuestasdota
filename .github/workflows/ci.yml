@@ -22,6 +22,7 @@ jobs:
       - run: npm run qa:google
       - run: npm run qa:steam
       - run: npm run qa:chat
+      - run: npm run qa:refresco
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x

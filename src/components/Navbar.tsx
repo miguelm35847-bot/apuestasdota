@@ -8,6 +8,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { sincronizarSteam } from '@/lib/steamClient';
 import { etiquetaCuenta } from '@/lib/acceso';
+import { crearRefrescoVisible } from '@/lib/refrescoVisible';
 import NotificationBell from '@/components/NotificationBell';
 import Avatar from '@/components/Avatar';
 
@@ -35,9 +36,9 @@ export default function Navbar({ titulo }: { titulo?: string }) {
     return () => window.removeEventListener('hashchange', syncHash);
   }, [pathname]);
 
-  const cargarSaldo = useCallback(async () => {
-    const { data, error } = await supabase.rpc('mi_saldo');
-    if (!error && data !== null) setSaldo(data as number);
+  const cargarSaldo = useCallback(async (signal: AbortSignal) => {
+    const { data, error } = await supabase.rpc('mi_saldo').abortSignal(signal);
+    if (!signal.aborted && !error && data !== null) setSaldo(data as number);
   }, []);
 
   const cargarPerfil = useCallback(async () => {
@@ -67,21 +68,19 @@ export default function Navbar({ titulo }: { titulo?: string }) {
   useEffect(() => {
     if (!user) return;
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial del saldo
-    cargarSaldo();
+    const refresco = crearRefrescoVisible(cargarSaldo, { intervaloMs: 15000 });
     supabase.rpc('es_admin').then(({ data }) => setEsAdmin(data === true));
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- lectura inicial asíncrona del perfil
     cargarPerfil();
 
-    // Refresca el saldo cada 15 segundos y al volver a la pestaña
-    const interval = setInterval(cargarSaldo, 15000);
-    const onFocus = () => cargarSaldo();
-    const onRefresh = () => cargarSaldo();
+    const onFocus = refresco.notificar;
+    const onRefresh = () => { void refresco.actualizar(); };
 
     window.addEventListener('focus', onFocus);
     window.addEventListener('saldo:refresh', onRefresh);
 
     return () => {
-      clearInterval(interval);
+      refresco.detener();
       window.removeEventListener('focus', onFocus);
       window.removeEventListener('saldo:refresh', onRefresh);
     };

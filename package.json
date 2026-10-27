@@ -27,6 +27,8 @@
     "qa:steam:ui": "node --env-file-if-exists=.env.local scripts/qa/steam-ui.mjs",
     "qa:login:ui": "node --env-file-if-exists=.env.local scripts/qa/login-volver-ui.mjs",
     "qa:chat": "node --experimental-strip-types scripts/qa/chat-sonido.mjs",
+    "qa:refresco": "node --experimental-strip-types scripts/qa/refresco.mjs",
+    "qa:refresco:ui": "node --env-file-if-exists=.env.local scripts/qa/refresco-ui.mjs",
     "qa:chat:ui": "node --env-file-if-exists=.env.local scripts/qa/chat-sonido-ui.mjs",
     "lint": "eslint"
   },

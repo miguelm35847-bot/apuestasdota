@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { crearRefrescoVisible } from '@/lib/refrescoVisible';
 import Avatar from '@/components/Avatar';
 import PerfilHover from '@/components/PerfilHover';
 import {
@@ -73,12 +74,15 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
   const [limite, setLimite] = useState(compacto ? 8 : 12);
   const [hayMas, setHayMas] = useState(false);
 
-  const cargar = useCallback(async () => {
+  const cargar = useCallback(async (signal: AbortSignal) => {
     const { data, error } = await supabase
       .from('actividades')
       .select(SELECT_EMBED)
       .order('creado_en', { ascending: false })
-      .limit(limite);
+      .limit(limite)
+      .abortSignal(signal);
+
+    if (signal.aborted) return;
 
     if (!error && data) {
       const filas = data as unknown as Actividad[];
@@ -93,7 +97,10 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
       .from('actividades')
       .select('id, tipo, emisor_id, receptor_id, monto, descripcion, creado_en')
       .order('creado_en', { ascending: false })
-      .limit(limite);
+      .limit(limite)
+      .abortSignal(signal);
+
+    if (signal.aborted) return;
 
     if (simple.error) {
       setCargando(false);
@@ -122,7 +129,9 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
       const res = await supabase
         .from('profiles')
         .select('id, nick, steam_avatar_url, steam_nombre, mmr, roles_preferidos')
-        .in('id', ids);
+        .in('id', ids)
+        .abortSignal(signal);
+      if (signal.aborted) return;
       for (const perfil of res.data ?? []) {
         perfiles[perfil.id] = {
           nick: perfil.nick,
@@ -146,25 +155,19 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
   }, [limite]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial desde Supabase
-    void cargar();
+    const refresco = crearRefrescoVisible(cargar, { intervaloMs: 30000 });
 
     const channel = supabase
       .channel('actividad_realtime')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'actividades' },
-        () => {
-          void cargar();
-        }
+        refresco.notificar
       )
-      .subscribe();
-
-    // Respaldo por si Realtime se cae
-    const interval = setInterval(() => void cargar(), 30000);
+      .subscribe(refresco.estadoRealtime);
 
     return () => {
-      clearInterval(interval);
+      refresco.detener();
       supabase.removeChannel(channel);
     };
   }, [cargar]);

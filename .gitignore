@@ -15,6 +15,7 @@
 
 # QA visual
 /qa-artifacts
+/output
 
 # next.js
 /.next/
