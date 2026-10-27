@@ -6,7 +6,8 @@ import { setTimeout as sleep } from 'node:timers/promises';
 const base = new URL(process.env.QA_BASE ?? 'http://127.0.0.1:3001').origin;
 const auth = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin;
 const cdp = process.env.QA_CDP ?? 'http://127.0.0.1:9222';
-const shots = 'output/qa-refresco/capturas';
+const paneles = process.argv.includes('--paneles');
+const shots = process.env.QA_SHOTS ?? (paneles ? 'output/qa-refactor/capturas' : 'output/qa-refresco/capturas');
 const uid = '22000000-0000-4000-8000-000000000001';
 const rid = '11000000-0000-4000-8000-000000000001';
 const profile = { id: uid, nick: 'Jugador QA', mmr: 3000, roles_preferidos: ['mid'], steam_nombre: null, steam_avatar_url: base + '/dota2.svg' };
@@ -17,6 +18,15 @@ const session = { access_token: `eyJhbGciOiJIUzI1NiJ9.${payload}.qa`, refresh_to
 const key = `sb-${new URL(auth).hostname.split('.')[0]}-auth-token`;
 const room = { id: rid, nombre: 'Sala QA de refresco', estado: 'abierta', cupo: 10, cuota: 1000, comision_bp: 0, creado_por: uid, picks_estado: 'inactivo', verificacion_estado: 'inactiva', auto_cierre: false, created_at: new Date().toISOString() };
 let fixture = {}, reads = {}, fallos = [], paralelas = 0, maximo = 0, total = 0, seq = 0;
+let acciones = [];
+const actorId = i => '22000000-0000-4000-8000-' + String(i + 1).padStart(12, '0');
+const jugadores = (fase = 'inactivo', cupo = 10) => Array.from({ length: cupo }, (_, i) => ({
+  sala_id: rid, user_id: actorId(i), equipo: fase === 'en_curso' && i < 2 ? i + 1 : null,
+  preferencia_equipo: 2, es_capitan: fase !== 'inactivo' && i < 2, verificado_at: '2026-10-20T12:00:00Z',
+  profiles: { ...profile, nick: i === 0 ? 'Jugador QA' : `Jugador ${i + 1}` },
+}));
+const historial = [1, 2].map((equipo, i) => ({ sala_id: `11000000-0000-4000-8000-00000000000${i+2}`, equipo,
+  salas: { nombre: i === 0 ? 'QA victoria' : 'QA derrota', estado: 'terminada', cuota: 1000, created_at: '2026-10-20T12:00:00Z', partidas: { equipo_ganador: 1, premio_por_ganador: 2000 } } }));
 const pending = new Map();
 const tab = await (await fetch(`${cdp}/json/new?about:blank`, { method: 'PUT' })).json();
 const ws = new WebSocket(tab.webSocketDebuggerUrl);
@@ -38,36 +48,58 @@ async function respond({ requestId, request }) {
   const url = new URL(request.url), endpoint = url.pathname.split('/').pop();
   const headers = [{ name: 'content-type', value: 'application/json' }, { name: 'access-control-allow-origin', value: base }, { name: 'access-control-allow-headers', value: '*' }, { name: 'access-control-allow-methods', value: 'GET,POST,HEAD,OPTIONS' }, { name: 'access-control-expose-headers', value: 'content-range' }, { name: 'content-range', value: '0-0/0' }];
   let data = [], status = 200, detallada = false;
+  const sala = { ...room, ...fixture.sala };
+  const perfil = { ...profile, mmr: fixture.sinMmr ? null : fixture.mmr ?? profile.mmr, roles_preferidos: fixture.roles ?? profile.roles_preferidos };
   if (request.method === 'OPTIONS') status = 204;
   else if (url.pathname.includes('/rpc/')) {
-    assert.ok(['es_admin', 'mi_saldo'].includes(endpoint), 'RPC inesperada: ' + endpoint);
-    if (endpoint === 'mi_saldo') { incrementar('saldo'); data = 10000; } else data = fixture.admin;
+    const permitidas = ['guardar_perfil_competitivo','guardar_roles_preferidos','iniciar_picks','elegir_radiant_o_lastpick','elegir_lado','pickear_jugador','admin_configurar_cierre'];
+    assert.ok(['es_admin', 'mi_saldo'].includes(endpoint) || paneles && permitidas.includes(endpoint), 'RPC inesperada: ' + endpoint);
+    if (endpoint === 'mi_saldo') { incrementar('saldo'); data = 10000; }
+    else if (endpoint === 'es_admin') data = fixture.admin;
+    else {
+      const body = JSON.parse(request.postData ?? '{}'); acciones.push({ endpoint, body }); data = null;
+      if (endpoint === 'guardar_perfil_competitivo') {
+        if (fixture.errorGuardar) { status = 400; data = { code: 'P0001', message: 'Rechazo QA' }; }
+        else { fixture.sinMmr = false; fixture.mmr = body.p_mmr; fixture.roles = body.p_roles; }
+      }
+      if (endpoint === 'guardar_roles_preferidos') fixture.roles = body.p_roles;
+      if (endpoint === 'admin_configurar_cierre') fixture.sala = { ...fixture.sala, auto_cierre: body.p_auto };
+    }
   } else {
-    assert.equal(request.method, 'GET', 'Sin escrituras: ' + url.pathname);
+    assert.ok(['GET','HEAD'].includes(request.method), 'Sin escrituras: ' + url.pathname);
     if (endpoint === 'user') data = user;
-    else if (endpoint === 'profiles') data = new Headers(request.headers).get('accept')?.includes('vnd.pgrst.object') ? profile : [profile];
+    else if (endpoint === 'profiles') data = new Headers(request.headers).get('accept')?.includes('vnd.pgrst.object') ? perfil : [perfil];
     else if (endpoint === 'salas') {
-      if (url.searchParams.get('id') === 'eq.' + rid) { incrementar('sala'); detallada = true; data = room; }
-      else data = [{ ...room, participantes_sala: [{ count: fixture.vacio ? 0 : 1 }] }];
+      if (url.searchParams.get('id') === 'eq.' + rid) { incrementar('sala'); detallada = true; data = sala; }
+      else data = [{ ...sala, participantes_sala: [{ count: fixture.vacio ? 0 : 1 }] }];
     } else if (endpoint === 'participantes_sala') {
       const select = url.searchParams.get('select') ?? '';
       if (url.searchParams.get('sala_id') === 'eq.' + rid && select.includes('verificado_at')) {
         incrementar('participantes'); detallada = true;
         assert.ok(select.includes('preferencia_equipo'), 'Preferencia incluida en la consulta principal');
         if (fixture.error) { status = 403; data = { code: '42501', message: 'Permiso denegado de prueba' }; }
-        else data = fixture.vacio ? [] : [{ sala_id: rid, user_id: uid, equipo: null, preferencia_equipo: 2, es_capitan: false, verificado_at: null, profiles: profile }];
+        else data = fixture.vacio ? [] : fixture.partes ?? [{ sala_id: rid, user_id: uid, equipo: null, preferencia_equipo: 2, es_capitan: false, verificado_at: null, profiles: perfil }];
+      } else if (select.includes('partidas')) {
+        incrementar('historial'); data = fixture.vacio ? [] : historial;
+        if (select.includes('!inner')) assert.equal(url.searchParams.get('salas.estado'), 'eq.terminada');
+        if (fixture.errorHistorial) { status = 403; data = { message:'Historial rechazado QA' }; }
       } else {
         assert.notEqual(select, 'user_id,preferencia_equipo', 'No hay consulta separada de preferencias');
         data = [];
       }
     } else if (endpoint === 'lobbies') { incrementar('lobby'); detallada = true; data = fixture.lobby ? [{ sala_id: rid, nombre: 'QA Lobby', clave: 'qa-clave' }] : []; }
+    else if (endpoint === 'recargas') data = fixture.vacio ? [] : [{ id:'recarga-qa', monto:5000, numero_operacion:'QA-123', estado:'aprobada', created_at:'2026-10-20T12:00:00Z' }];
+    else if (endpoint === 'retiros') data = fixture.vacio ? [] : [{ id:'retiro-qa', monto:1000, destino:'Destino QA', estado:'pendiente', created_at:'2026-10-20T12:00:00Z' }];
+    else if (endpoint === 'movimientos_billetera') data = fixture.vacio ? [] : [{ id:'mov-qa',tipo:'ajuste_admin',monto:-200,descripcion:'Multa QA',created_at:'2026-10-20T12:00:00Z' }];
     else if (endpoint === 'actividades') { incrementar('actividad'); data = []; }
-    else if (url.pathname === '/api/perfil/steam') data = { vinculado: false };
-    else if (url.pathname.includes('/api/dota/jugador/')) { status = 404; data = {}; }
+    else if (url.pathname === '/api/perfil/steam') data = url.searchParams.has('estado') ? { vinculado: false } : { steamId: null };
+    else if (url.pathname === '/api/dota/match') data = { match_id:1234567890,radiant_win:true,duration:1800,radiant_score:30,dire_score:20 };
+    else if (url.pathname.includes('/api/dota/jugador/')) { incrementar('resumenDota'); status = 404; data = {}; }
     else if (url.pathname.endsWith('/links')) data = { steamUrl: null, dotabuffUrl: null };
   }
   if (detallada) { paralelas++; maximo = Math.max(maximo, paralelas); await sleep(60); }
-  try { await send('Fetch.fulfillRequest', { requestId, responseCode: status, responseHeaders: headers, body: status === 204 ? '' : Buffer.from(JSON.stringify(data)).toString('base64') }); }
+  headers.find(h=>h.name==='content-range').value = `0-0/${Array.isArray(data)?data.length:1}`;
+  try { await send('Fetch.fulfillRequest', { requestId, responseCode: status, responseHeaders: headers, body: status === 204 || request.method === 'HEAD' ? '' : Buffer.from(JSON.stringify(data)).toString('base64') }); }
   catch (error) {
     // Una navegación puede cancelar la solicitud mientras se simula su latencia.
     if (!error.message.includes('Invalid InterceptionId')) throw error;
@@ -98,13 +130,28 @@ async function fresh(route, options = {}) {
   fixture = { admin: false, vacio: false, error: false, lobby: true, ...options };
   await send('Page.navigate', { url: base + '/login' }); await wait("location.pathname==='/login'&&document.querySelector('form')");
   await evaluate(`localStorage.clear();sessionStorage.clear();${options.visitante ? '' : `localStorage.setItem(${JSON.stringify(key)},${JSON.stringify(JSON.stringify(session))});`}true`);
-  reads = {}; maximo = 0; fallos = [];
+  // Dejar terminar respuestas canceladas de la vista anterior antes de medir otra.
+  await settled();
+  reads = {}; maximo = 0; fallos = []; acciones = [];
   await send('Page.navigate', { url: base + route });
-  await wait(route === '/' ? "document.body.innerText.includes('Actividad reciente')" : options.visitante ? "location.pathname==='/login'" : "document.body.innerText.includes('Sala QA de refresco')");
+  await wait(route === '/' ? "document.body.innerText.includes('Actividad reciente')" : route.startsWith('/perfil') ? options.visitante ? "document.querySelector('#perfil-dota')" : "document.querySelector('#steam')?.innerText.includes('Jugador QA')" : options.visitante ? "location.pathname==='/login'" : "document.body.innerText.includes('Sala QA de refresco')");
   await sleep(550);
 }
 async function settled() { await sleep(450); assert.equal(paralelas, 0); }
 async function test(name, fn) { await fn(); assert.deepEqual(fallos, []); total++; console.log('[ok] ' + name); }
+async function click(texto, exacto = false) {
+  await evaluate(`(()=>{const button=[...document.querySelectorAll('button')].find(b=>${exacto ? `b.textContent.trim()===${JSON.stringify(texto)}` : `b.textContent.includes(${JSON.stringify(texto)})`});if(!button)throw new Error('No existe el botón solicitado');button.click();})()`);
+  await sleep(80);
+}
+async function input(selector, value) {
+  await evaluate(`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e)throw new Error('No existe el campo solicitado');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));})()`);
+  await sleep(80);
+}
+async function rpc(endpoint) {
+  for (let i=0;i<100;i++) { const action=acciones.find(a=>a.endpoint===endpoint); if(action)return action.body; await sleep(50); }
+  throw new Error('No se recibió RPC '+endpoint);
+}
+const fase = (picks, cupo=10) => ({ partes: jugadores(picks,cupo), sala: { cupo,estado:'llena',verificacion_estado:'completa',picks_estado:picks,pick_capitan1:uid,pick_capitan2:actorId(1),pick_ganador_moneda:uid,pick_decision_user_id:uid,pick_decision_tipo:'lado',pick_turno_user_id:uid,pick_turno_expira_at:new Date(Date.now()+45000).toISOString() } });
 try {
   await mkdir(shots, { recursive: true }); await send('Page.enable'); await send('Runtime.enable');
   await send('Fetch.enable', { patterns: [{ urlPattern: auth + '/*', requestStage: 'Request' }, { urlPattern: base + '/api/*', requestStage: 'Request' }] });
@@ -144,6 +191,81 @@ try {
         await fresh(route, opciones); assert.equal(await evaluate('document.documentElement.scrollWidth > innerWidth + 1'), false);
         const shot = await send('Page.captureScreenshot', { format: 'png' }); await writeFile(`${shots}/${nombre}-${width}x${height}.png`, Buffer.from(shot.data, 'base64'));
       });
+    }
+  }
+  if (paneles) {
+    await send('Emulation.setDeviceMetricsOverride', {width:1366,height:768,deviceScaleFactor:1,mobile:false});
+    await test('perfil: abrir historial no provoca consultas continuas', async()=>{
+      await fresh('/perfil'); const antes=count('historial'); await sleep(500); assert.equal(count('historial'),antes);
+    });
+    await test('perfil: historial distingue victoria, derrota e importes',async()=>{
+      await wait("document.querySelector('#panel-historial')?.innerText.includes('QA victoria')");
+      const texto=await evaluate("document.querySelector('#panel-historial').innerText");
+      assert.ok(texto.includes('Ganaste')&&texto.includes('Perdiste')&&texto.includes('+S/ 20.00')&&texto.includes('-S/ 10.00'));
+    });
+    await test('perfil: pestañas de solicitudes y billetera conservan signos y estados',async()=>{
+      await evaluate("document.querySelector('#panel-movimientos-tab').click()"); await wait("document.querySelector('#panel-movimientos')?.innerText.includes('QA-123')");
+      let texto=await evaluate("document.querySelector('#panel-movimientos').innerText"); assert.ok(texto.includes('+S/ 50.00')&&texto.includes('-S/ 10.00')&&texto.toLowerCase().includes('aprobada'));
+      await evaluate("document.querySelector('#panel-billetera-tab').click()"); await wait("document.querySelector('#panel-billetera')?.innerText.includes('Multa QA')");
+      texto=await evaluate("document.querySelector('#panel-billetera').innerText"); assert.ok(texto.includes('-S/ 2.00')&&texto.includes('QA derrota'));
+    });
+    await test('perfil: MMR registrado queda bloqueado y guarda los roles elegidos',async()=>{
+      assert.equal(await evaluate("document.querySelector('input[aria-label=MMR]')===null"),true);
+      await click('Carry'); await evaluate("document.querySelector('#perfil-dota form').requestSubmit()");
+      assert.deepEqual(await rpc('guardar_roles_preferidos'),{p_roles:['mid','carry']}); await wait("document.body.innerText.includes('Roles guardados correctamente')");
+    });
+    await test('perfil: alta de MMR se bloquea después de guardar',async()=>{
+      await fresh('/perfil',{sinMmr:true}); await input('input[aria-label=MMR]','4500');
+      await evaluate("document.querySelector('#perfil-dota form').requestSubmit()"); assert.equal((await rpc('guardar_perfil_competitivo')).p_mmr,4500);
+      await wait("document.body.innerText.includes('Perfil guardado correctamente')&&!document.querySelector('input[aria-label=MMR]')");
+    });
+    await test('perfil: guardar rechazado conserva formulario editable',async()=>{
+      await fresh('/perfil',{sinMmr:true,errorGuardar:true}); await input('input[aria-label=MMR]','4500'); await evaluate("document.querySelector('#perfil-dota form').requestSubmit()");
+      await wait("document.body.innerText.includes('Rechazo QA')"); assert.ok(await evaluate("document.querySelector('input[aria-label=MMR]')&&!document.querySelector('#perfil-dota button[type=submit]').disabled"));
+    });
+    await test('perfil: vacío y error de lectura conservan sus estados de panel',async()=>{
+      await fresh('/perfil',{vacio:true}); await wait("document.querySelector('#panel-historial')?.innerText.includes('Aún no tienes partidas terminadas')");
+      await fresh('/perfil',{errorHistorial:true}); await wait("document.querySelector('#panel-historial')?.innerText.includes('Aún no tienes partidas terminadas')");
+    });
+    await test('perfil: visitante no consulta datos privados',async()=>{
+      await fresh('/perfil',{visitante:true}); assert.equal(count('historial'),0); assert.ok(!(await evaluate('document.body.innerText')).includes('Multa QA'));
+    });
+    await test('picks 5v5: ganador elige Radiant y conserva la RPC',async()=>{
+      await fresh('/salas/'+rid,fase('eleccion')); await click('pickeo primero'); assert.deepEqual(await rpc('elegir_radiant_o_lastpick'),{p_sala:rid,p_opcion:'radiant'});
+    });
+    await test('picks 1v1: elección de lado conserva su RPC',async()=>{
+      await fresh('/salas/'+rid,fase('eleccion',2)); await click('Radiant',true); assert.deepEqual(await rpc('elegir_lado'),{p_sala:rid,p_equipo:1});
+    });
+    await test('draft: capitán elige un jugador del pool',async()=>{
+      await fresh('/salas/'+rid,fase('en_curso')); await click('Pickear',true); assert.deepEqual(await rpc('pickear_jugador'),{p_sala:rid,p_user:actorId(2)});
+    });
+    await test('draft: actualizar el contador no vuelve a montar las fichas',async()=>{
+      const antes=count('resumenDota'); assert.ok(antes>0); await sleep(1200); assert.equal(count('resumenDota'),antes);
+    });
+    await test('draft: jugador fuera de turno no puede pickear',async()=>{
+      const opciones=fase('en_curso'); opciones.sala.pick_turno_user_id=actorId(1); await fresh('/salas/'+rid,opciones);
+      assert.equal(await evaluate("document.body.innerText.includes('Jugador 3')&&!([...document.querySelectorAll('button')].some(b=>b.textContent.trim()==='Pickear'))"),true); assert.equal(acciones.length,0);
+    });
+    await test('admin: cancelación requiere confirmación y puede descartarse',async()=>{
+      await fresh('/admin/salas/'+rid,{admin:true}); await click('Cancelar sala',true); await wait("document.querySelector('[role=dialog]')");
+      await evaluate("[...document.querySelectorAll('[role=dialog] button')].find(b=>b.textContent.trim()==='Cancelar').click()"); await wait("!document.querySelector('[role=dialog]')"); assert.equal(acciones.length,0);
+    });
+    await test('admin: elección de capitanes mantiene ambos identificadores',async()=>{
+      const opciones=fase('inactivo'); opciones.admin=true; await fresh('/admin/salas/'+rid,opciones);
+      await evaluate(`(()=>{const selects=[...document.querySelectorAll('select')];selects[0].value=${JSON.stringify(uid)};selects[0].dispatchEvent(new Event('change',{bubbles:true}));selects[1].value=${JSON.stringify(actorId(1))};selects[1].dispatchEvent(new Event('change',{bubbles:true}));})()`); await sleep(100);
+      await click('Guardar capitanes'); assert.deepEqual(await rpc('iniciar_picks'),{p_sala:rid,p_capitan1:uid,p_capitan2:actorId(1)});
+    });
+    await test('admin: Auto y verificación de partida mantienen configuración y diálogo',async()=>{
+      await fresh('/admin/salas/'+rid,{admin:true,sala:{estado:'en_juego',auto_cierre:false}});
+      await evaluate("document.querySelector('input[type=checkbox]').click()"); assert.deepEqual(await rpc('admin_configurar_cierre'),{p_sala:rid,p_auto:true,p_match:null});
+      acciones=[]; await input('input[placeholder="Ej: 7654321098"]','1234567890'); await click('Verificar',true);
+      assert.equal((await rpc('admin_configurar_cierre')).p_match,1234567890); await wait("document.body.innerText.includes('Partida verificada')");
+      await click('Confirmar y terminar'); await wait("document.querySelector('[role=dialog]')");
+      await evaluate("[...document.querySelectorAll('[role=dialog] button')].find(b=>b.textContent.trim()==='Cancelar').click()");
+    });
+    for (const [width,height] of [[1366,768],[390,844],[360,800]]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<500});
+      await test(`perfil sin desborde en ${width}×${height}`,async()=>{await fresh('/perfil');assert.equal(await evaluate('document.documentElement.scrollWidth>innerWidth+1'),false);const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(`${shots}/perfil-${width}x${height}.png`,Buffer.from(shot.data,'base64'));});
     }
   }
   console.log(`${total}/${total} recorridos de refresco, permisos y vistas correctos.`);

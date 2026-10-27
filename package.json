@@ -29,6 +29,7 @@
     "qa:chat": "node --experimental-strip-types scripts/qa/chat-sonido.mjs",
     "qa:refresco": "node --experimental-strip-types scripts/qa/refresco.mjs",
     "qa:refresco:ui": "node --env-file-if-exists=.env.local scripts/qa/refresco-ui.mjs",
+    "qa:paneles:ui": "node --env-file-if-exists=.env.local scripts/qa/refresco-ui.mjs --paneles",
     "qa:chat:ui": "node --env-file-if-exists=.env.local scripts/qa/chat-sonido-ui.mjs",
     "lint": "eslint"
   },
