@@ -21,6 +21,10 @@
     "qa:inicio": "node --experimental-strip-types scripts/qa/siguiente-paso.mjs",
     "qa:google": "node --experimental-strip-types scripts/qa/google.mjs",
     "qa:google:ui": "node --env-file-if-exists=.env.local scripts/qa/google-ui.mjs",
+    "qa:steam": "node --experimental-strip-types scripts/qa/steam.mjs",
+    "qa:steam:db": "node scripts/qa/steam-db.mjs",
+    "qa:steam:server": "node scripts/qa/steam-server.mjs",
+    "qa:steam:ui": "node --env-file-if-exists=.env.local scripts/qa/steam-ui.mjs",
     "lint": "eslint"
   },
   "dependencies": {

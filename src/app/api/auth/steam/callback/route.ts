@@ -1,106 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { verifySteamOpenId } from '@/lib/steam';
-import { obtenerResumenSteam } from '@/lib/steamServer';
-import {
-  STEAM_STATE_COOKIE,
-  verificarStateSteam,
-} from '@/lib/steamState';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { persistSession: false },
-});
-
-function redirigir(request: NextRequest, path: string) {
-  const response = NextResponse.redirect(new URL(path, request.url));
-  response.cookies.set(STEAM_STATE_COOKIE, '', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/api/auth/steam',
-    maxAge: 0,
-  });
-  return response;
-}
+import { crearTokenSteam, hashSteam, leerTokenSteam, origenSteam, STEAM_CALLBACK, STEAM_ENTREGA_COOKIE, STEAM_ENTREGA_MAX_AGE, STEAM_STATE_COOKIE } from '@/lib/steamState';
+import { clienteSteamAdmin, opcionesCookieSteam } from '@/lib/steamAuthServer';
 
 export async function GET(request: NextRequest) {
+  let origen: string;
+  try { origen = origenSteam(request.url); } catch { return new NextResponse(null, { status: 503 }); }
+  const redirigir = (error?: string, entrega?: string) => {
+    const respuesta = NextResponse.redirect(new URL(`/login/steam${error ? `?error=${error}` : ''}`, origen));
+    respuesta.headers.set('Cache-Control', 'no-store');
+    respuesta.headers.set('Referrer-Policy', 'no-referrer');
+    respuesta.cookies.set(STEAM_STATE_COOKIE, '', opcionesCookieSteam(origen, 0));
+    respuesta.cookies.set(STEAM_ENTREGA_COOKIE, entrega ?? '', opcionesCookieSteam(origen, entrega ? STEAM_ENTREGA_MAX_AGE : 0));
+    return respuesta;
+  };
   try {
-    const { searchParams } = new URL(request.url);
-    const state = searchParams.get('state');
-    const cookieState = request.cookies.get(STEAM_STATE_COOKIE)?.value ?? null;
-
-    // El state debe coincidir con la cookie HttpOnly creada al iniciar el flujo.
-    if (!state || !cookieState || state !== cookieState) {
-      return redirigir(request, '/perfil?error=steam_auth_failed');
-    }
-
-    const userId = verificarStateSteam(state);
-    if (!userId) {
-      return redirigir(request, '/perfil?error=steam_auth_failed');
-    }
-
-    // Verificar la respuesta OpenID de Steam.
-    const steamId = await verifySteamOpenId(searchParams);
-    if (!steamId) {
-      return redirigir(request, '/perfil?error=steam_auth_failed');
-    }
-
-    // El state también debe ser el mismo que Steam devolvió en openid.return_to.
-    // Así un tercero no puede reutilizar una respuesta OpenID ajena cambiando
-    // solo el parámetro state de la URL del callback.
-    const returnTo = searchParams.get('openid.return_to');
-    if (!returnTo) {
-      return redirigir(request, '/perfil?error=steam_auth_failed');
-    }
-
-    try {
-      const returnToUrl = new URL(returnTo);
-      const returnToState = returnToUrl.searchParams.get('state');
-      if (
-        returnToUrl.pathname !== '/api/auth/steam/callback' ||
-        !returnToState ||
-        returnToState !== cookieState
-      ) {
-        return redirigir(request, '/perfil?error=steam_auth_failed');
-      }
-    } catch {
-      return redirigir(request, '/perfil?error=steam_auth_failed');
-    }
-
-    // Verificar que este Steam ID no esté vinculado a otra cuenta.
-    const { data: existing } = await supabaseAdmin
-      .from('profiles')
-      .select('id')
-      .eq('steam_id', steamId)
-      .maybeSingle();
-
-    if (existing && existing.id !== userId) {
-      return redirigir(request, '/perfil?error=steam_already_linked');
-    }
-
-    // Vincular Steam ID al perfil del usuario autenticado por el state firmado.
-    const resumen = await obtenerResumenSteam(steamId);
-    const datosPerfil = resumen
-      ? {
-          steam_id: resumen.steamId,
-          steam_avatar_url: resumen.avatarUrl,
-          steam_nombre: resumen.nombre,
-        }
-      : { steam_id: steamId };
-
-    const { error: updateError } = await supabaseAdmin
-      .from('profiles')
-      .update(datosPerfil)
-      .eq('id', userId);
-
-    if (updateError) {
-      return redirigir(request, '/perfil?error=steam_link_failed');
-    }
-
-    return redirigir(request, '/perfil?steam=linked');
-  } catch {
-    return redirigir(request, '/perfil?error=unknown');
-  }
+    const params = request.nextUrl.searchParams;
+    const state = params.get('state');
+    if (!state || state !== request.cookies.get(STEAM_STATE_COOKIE)?.value) return redirigir('invalido');
+    const intento = leerTokenSteam(state);
+    if (!intento) return redirigir('invalido');
+    if (params.get('openid.mode') === 'cancel') return redirigir('cancelado');
+    const esperado = new URL(STEAM_CALLBACK, origen);
+    esperado.searchParams.set('state', state);
+    const steamId = await verifySteamOpenId(params, esperado.toString());
+    if (!steamId) return redirigir('invalido');
+    const admin = clienteSteamAdmin();
+    const { error } = await admin.rpc('steam_auth_tomar', {
+      p_id: intento.id, p_state_hash: intento.hash, p_origen: origen, p_nonce_hash: hashSteam(params.get('openid.response_nonce')!),
+    });
+    if (error) return redirigir('invalido');
+    const entrega = crearTokenSteam(intento.id);
+    const { error: errorEntrega } = await admin.rpc('steam_auth_preparar', {
+      p_id: intento.id, p_state_hash: intento.hash, p_steam: steamId, p_entrega_hash: entrega.hash,
+    });
+    if (errorEntrega) return redirigir('invalido');
+    return redirigir(undefined, entrega.valor);
+  } catch { return redirigir('invalido'); }
 }

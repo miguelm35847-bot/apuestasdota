@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { sincronizarSteam } from '@/lib/steamClient';
+import { etiquetaCuenta } from '@/lib/acceso';
 import NotificationBell from '@/components/NotificationBell';
 import Avatar from '@/components/Avatar';
 
@@ -130,7 +131,7 @@ export default function Navbar({ titulo }: { titulo?: string }) {
   const nickMostrado =
     nick ||
     (typeof user?.user_metadata?.nick === 'string' ? user.user_metadata.nick : '') ||
-    user?.email?.split('@')[0] ||
+    (etiquetaCuenta(user) === 'Acceso con Steam' ? 'Jugador' : user?.email?.split('@')[0]) ||
     'Jugador';
   const enHistorial = pathname === '/salas/historial';
   const enReglas = pathname === '/como-jugar' && hash === '#reglas';
@@ -258,7 +259,7 @@ export default function Navbar({ titulo }: { titulo?: string }) {
                             )}
                           </div>
                           {user.email && (
-                            <p className="mt-0.5 truncate text-xs text-slate-400">{user.email}</p>
+                            <p className="mt-0.5 truncate text-xs text-slate-400">{etiquetaCuenta(user)}</p>
                           )}
                         </div>
                       </div>

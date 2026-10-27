@@ -13,7 +13,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     // Google intercambia su código PKCE con un cliente temporal; el resto conserva
     // la detección actual para confirmaciones y recuperación de contraseña.
-    detectSessionInUrl: (url, params) => url.pathname !== '/login/google' && Boolean(
+    detectSessionInUrl: (url, params) => !['/login/google', '/login/steam'].includes(url.pathname) && Boolean(
       params.access_token || params.error || params.error_description || params.error_code
     ),
   },

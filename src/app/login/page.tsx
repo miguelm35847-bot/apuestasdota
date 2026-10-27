@@ -8,6 +8,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 import BotonGoogle from '@/components/BotonGoogle';
+import BotonSteam from '@/components/BotonSteam';
 import { rutaRetornoSegura } from '@/lib/acceso';
 
 export default function LoginPage() {
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleCargando, setGoogleCargando] = useState(false);
+  const [steamCargando, setSteamCargando] = useState(false);
   const { signIn } = useAuth();
   const router = useRouter();
 
@@ -70,7 +72,8 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <BotonGoogle disabled={loading} onError={setError} onProcesando={setGoogleCargando} />
+        <BotonSteam disabled={loading || googleCargando || steamCargando} onError={setError} onProcesando={setSteamCargando} />
+        <BotonGoogle disabled={loading || steamCargando} onError={setError} onProcesando={setGoogleCargando} />
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div role="alert" className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
@@ -110,7 +113,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading || googleCargando}
+            disabled={loading || googleCargando || steamCargando}
             className="w-full rounded-lg bg-prism-500 py-2.5 font-semibold text-white shadow-arena-glow transition hover:bg-prism-400 disabled:opacity-50"
           >
             {loading ? 'Ingresando...' : 'Iniciar sesión'}

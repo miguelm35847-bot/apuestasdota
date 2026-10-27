@@ -1,89 +1,39 @@
-import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
+import { createHash, createHmac, randomBytes, randomUUID } from 'node:crypto';
 
 export const STEAM_STATE_COOKIE = 'steam_oauth_state';
-export const STEAM_STATE_MAX_AGE = 10 * 60; // 10 minutos
+export const STEAM_ENTREGA_COOKIE = 'steam_login_handoff';
+export const STEAM_STATE_MAX_AGE = 600;
+export const STEAM_ENTREGA_MAX_AGE = 120;
+export const STEAM_CALLBACK = '/api/auth/steam/callback';
+export const hashSteam = (valor: string) => createHash('sha256').update(valor).digest('hex');
 
-type SteamStatePayload = {
-  sub: string;
-  exp: number;
-  nonce: string;
-};
-
-function secreto(): string {
-  const valor =
-    process.env.STEAM_STATE_SECRET ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    '';
-
-  if (!valor) {
-    throw new Error('Falta STEAM_STATE_SECRET o SUPABASE_SERVICE_ROLE_KEY');
-  }
-
-  return valor;
+export function crearTokenSteam(id: string = randomUUID()) {
+  const secreto = randomBytes(32).toString('base64url');
+  return { id, valor: `${id}.${secreto}`, hash: hashSteam(secreto) };
 }
 
-function base64url(valor: string | Buffer): string {
-  return Buffer.from(valor).toString('base64url');
+export function leerTokenSteam(valor: string | null | undefined) {
+  if (!valor || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\.[A-Za-z0-9_-]{43}$/.test(valor)) return null;
+  const [id, secreto] = valor.split('.');
+  return { id, hash: hashSteam(secreto) };
 }
 
-function firmar(payload: string): string {
-  return createHmac('sha256', secreto()).update(payload).digest('base64url');
+export function challengeSteam(verificador: string): string | null {
+  return /^[A-Za-z0-9_-]{43}$/.test(verificador) ? createHash('sha256').update(verificador).digest('base64url') : null;
 }
 
-/**
- * Crea un state firmado y de corta duración para el flujo OpenID de Steam.
- * No contiene tokens de sesión: solo el id del usuario, la expiración y un nonce.
- */
-export function crearStateSteam(userId: string): string {
-  const payload = base64url(
-    JSON.stringify({
-      sub: userId,
-      exp: Date.now() + STEAM_STATE_MAX_AGE * 1000,
-      nonce: randomBytes(16).toString('hex'),
-    } satisfies SteamStatePayload)
-  );
-
-  return `${payload}.${firmar(payload)}`;
+/** Origen público configurado; solo se admite loopback sin configuración local. */
+export function origenSteam(urlPeticion: string): string {
+  const configurado = process.env.NEXT_PUBLIC_APP_URL;
+  const url = new URL(configurado || urlPeticion);
+  const local = ['localhost', '127.0.0.1'].includes(url.hostname);
+  if (url.username || url.password || (url.protocol !== 'https:' && !(local && url.protocol === 'http:')) || (!configurado && !local)) throw new Error('Origen de Steam inválido');
+  return url.origin;
 }
 
-/**
- * Verifica la firma, la expiración y devuelve el id del usuario.
- */
-export function verificarStateSteam(state: string | null): string | null {
-  if (!state) return null;
-
-  const separador = state.lastIndexOf('.');
-  if (separador <= 0 || separador === state.length - 1) return null;
-
-  const payload = state.slice(0, separador);
-  const firma = state.slice(separador + 1);
-  const esperada = firmar(payload);
-
-  const firmaBuffer = Buffer.from(firma);
-  const esperadaBuffer = Buffer.from(esperada);
-
-  if (
-    firmaBuffer.length !== esperadaBuffer.length ||
-    !timingSafeEqual(firmaBuffer, esperadaBuffer)
-  ) {
-    return null;
-  }
-
-  try {
-    const datos = JSON.parse(
-      Buffer.from(payload, 'base64url').toString('utf8')
-    ) as Partial<SteamStatePayload>;
-
-    if (
-      typeof datos.sub !== 'string' ||
-      typeof datos.exp !== 'number' ||
-      datos.exp < Date.now()
-    ) {
-      return null;
-    }
-
-    return datos.sub;
-  } catch {
-    return null;
-  }
+/** La IP no se conserva en claro ni se utiliza como identidad de cuenta. */
+export function remotoSteam(valor: string): string {
+  const secreto = process.env.STEAM_STATE_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!secreto) throw new Error('Configuración de Steam incompleta');
+  return createHmac('sha256', secreto).update(valor.slice(0,200)).digest('hex');
 }

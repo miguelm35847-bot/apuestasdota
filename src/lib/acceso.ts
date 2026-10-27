@@ -27,3 +27,16 @@ export function validarNickGoogle(nick: string, id: string): string | null {
   if (necesitaNickGoogle(id, limpio)) return 'Elige un nick propio para tu perfil.';
   return null;
 }
+
+export function necesitaNickSocial(id: string, nick: string): boolean {
+  return necesitaNickGoogle(id, nick) || nick === `jugador_${id.replaceAll('-', '').slice(0,12)}`;
+}
+
+export function validarNickSocial(nick: string, id: string): string | null {
+  return validarNickGoogle(nick, id) ?? (necesitaNickSocial(id, nick.trim()) ? 'Elige un nick propio para tu perfil.' : null);
+}
+
+/** Solo presentación del identificador técnico de las altas Steam; nunca autorización. */
+export function etiquetaCuenta(user: { email?: string; app_metadata?: Record<string, unknown> } | null): string {
+  return user?.app_metadata?.steam_creada === true && user.email?.endsWith('@steam.kodigodota.invalid') ? 'Acceso con Steam' : user?.email ?? '';
+}

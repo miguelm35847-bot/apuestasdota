@@ -51,6 +51,13 @@ const nextConfig: NextConfig = {
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
       {
+        source: '/api/auth/steam/:resto*',
+        headers: [
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          { key: 'Cache-Control', value: 'no-store' },
+        ],
+      },
+      {
         source: '/salas',
         headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },

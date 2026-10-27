@@ -4,7 +4,7 @@ import { CORREO_PRIVACIDAD, FECHA_PRIVACIDAD, FECHA_PRIVACIDAD_VISIBLE, RESPONSA
 import { REDES_SITIO, URL_SITIO } from '@/lib/sitio';
 
 const titulo = 'Política de privacidad';
-const descripcion = 'Conoce qué datos utiliza KódigoDota, cómo se gestionan el acceso con Google y tu cuenta, y cómo ejercer tus derechos de privacidad.';
+const descripcion = 'Conoce qué datos utiliza KódigoDota, cómo se gestionan el acceso con Google o Steam y tu cuenta, y cómo ejercer tus derechos de privacidad.';
 const enlace = 'text-prism-300 underline decoration-prism-400/30 underline-offset-4 transition hover:text-prism-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-prism-400';
 
 export const metadata: Metadata = {
@@ -40,6 +40,7 @@ const secciones = [
     id: 'finalidades', titulo: '3. Para qué usamos la información',
     contenido: <>
       <p>Usamos los datos necesarios para crear y administrar tu cuenta, verificar el acceso, mostrar tu perfil de juego, organizar las salas y registrar sus resultados. También permiten gestionar el chat y las notificaciones, revisar recargas y retiros, llevar el historial de saldo, resolver apuestas y donaciones, atender consultas y prevenir abusos o uso indebido.</p>
+      <p>Si eliges ingresar con Steam, verificamos tu identidad con ese servicio para encontrar la cuenta vinculada o crear una nueva. Steam no nos entrega tu correo electrónico en este acceso. Conservamos la asociación necesaria para tus próximos ingresos y pruebas temporales para impedir que se reutilice una respuesta de acceso.</p>
       <p>El tratamiento depende de las funciones que utilices y de la información que proporciones en sus formularios. Determinados registros también pueden conservarse para resolver incidencias y atender obligaciones legales aplicables.</p>
     </>,
   },
@@ -71,7 +72,7 @@ const secciones = [
   {
     id: 'almacenamiento', titulo: '7. Sesión y almacenamiento del navegador',
     contenido: <>
-      <p>Utilizamos almacenamiento local del navegador para mantener la sesión, almacenamiento temporal de la pestaña durante el acceso con Google y cookies de seguridad en la vinculación con Steam. Estas funciones permiten autenticarte, volver a la página de origen y proteger los flujos de acceso.</p>
+      <p>Utilizamos almacenamiento local del navegador para mantener la sesión, almacenamiento temporal de la pestaña durante el acceso con Google o Steam y cookies de seguridad en el acceso y la vinculación con Steam. Estas funciones permiten autenticarte, volver a la página de origen y proteger los flujos de acceso.</p>
       <p>Puedes borrar o limitar este almacenamiento desde tu navegador. Hacerlo puede cerrar tu sesión o impedir que se complete un acceso o una vinculación en curso.</p>
     </>,
   },

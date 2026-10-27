@@ -1,26 +1,53 @@
 # Registro con Steam, Google y Facebook
 
-Estado revisado el 26/10/2026. Google implementado y publicado, proveedor habilitado; el propietario confirmó el ingreso real, la elección de nick, el estado **En producción** en Google y la carga del logo en Información de la marca. La carga del logo no confirma por sí sola aprobación de marca. Steam y Facebook siguen pendientes como accesos de cuenta.
+Estado revisado el 26/10/2026. Google publicado y probado por el propietario. Steam publicado en www, con migraciones aplicadas y pruebas locales y de producción; el propietario confirmó el ingreso real con Steam y la conservación de su cuenta vinculada. Facebook sigue pendiente. El propietario confirmó Google **En producción** y logo cargado; esto no confirma por sí solo aprobación de marca.
 
 ## Estado actual
 
-- Login y registro ofrecen **Continuar con Google**, además de correo/contraseña. El nick conserva sus 3–20 caracteres y su unicidad sin distinguir mayúsculas.
+- Login y registro ofrecen **Continuar con Steam** y **Continuar con Google**, además de correo/contraseña. El nick conserva sus 3–20 caracteres y su unicidad sin distinguir mayúsculas.
 - La configuración pública de Supabase confirma `google=true` y registro de cuentas habilitado. El propietario creó el cliente de Google, guardó sus credenciales en Supabase y agregó el retorno de la web.
 - Google utiliza PKCE con verificador en sessionStorage y un cliente temporal separado del acceso por correo. El código de un solo uso se intercambia una sola vez y se elimina de la URL. La sesión verificada se entrega al cliente existente de la aplicación; se limpian las credenciales temporales. No hay Client Secret en la web o el repositorio.
 - `/login/google` conserva un destino interno seguro, maneja cancelación/enlace vencido/error y pide un nick propio si el perfil todavía usa el provisional `jugador_<id>`. La elección se puede reanudar tras recargar la página con la misma sesión; nunca se modifica el nick de otra cuenta si cambió el usuario.
 - El trigger vigente `handle_new_user` ya crea un perfil válido sin metadatos de nick. Se reutiliza `actualizar_nick`, con comprobación de usuario autenticado y nick único, y se verifica la lectura después de guardarlo. No se necesita SQL nuevo.
 - Las identidades se vinculan mediante las reglas verificadas de Supabase; la web no busca cuentas por nombre/avatar ni crea perfiles o billeteras adicionales. Usa el UUID autenticado y los permisos actuales.
-- Steam ya tiene un flujo OpenID verificado en servidor, pero `/api/auth/steam/start` exige una sesión y el callback solo vincula un perfil existente. No crea cuentas ni inicia una sesión nueva.
-- Facebook y el registro directo con Steam no están implementados; no se cambiaron durante el acceso de Google.
+- Steam puede crear una cuenta o recuperar el UUID que ya tenga ese Steam vinculado. El vínculo desde `/perfil` exige conservar la misma sesión al completarlo. Ambos flujos comprueban OpenID y el navegador antes de actuar.
+- Facebook no está implementado.
 - Dominio conectado y web publicada: `kodigodota.com` en Spaceship redirige al principal `www.kodigodota.com` en Vercel. Site URL y redirección de recuperación con www confirmados por HTTP tras el ajuste del propietario. Pasos en [DOMINIO.md](DOMINIO.md). Usar el dominio con www al configurar los proveedores.
 
 ## Pendientes de la siguiente etapa
 
-1. **Steam primero**: acceso con OpenID para crear la cuenta al primer ingreso o recuperar la cuenta que ya tenga ese Steam vinculado. Mantener el mismo UUID y la misma billetera de las cuentas existentes. La identidad se obtiene únicamente de la respuesta verificada de Steam; cookie HttpOnly/state y protección contra reintentos. El callback debe entregar una sesión de Supabase sin tokens ni SteamID en la URL. Alta del perfil y selección de nick con las validaciones actuales; MMR pendiente hasta que el jugador lo complete. Es un flujo nuevo, separado del vínculo desde el perfil.
+1. **Steam**: implementación, publicación y pruebas completas. El propietario confirmó el ingreso real con Steam y la conservación de su cuenta vinculada. Las altas nuevas están cubiertas por los fixtures y la comprobación real de Supabase Auth con un actor temporal eliminado; no se creó otro Steam real para esa prueba.
 2. **Google**: prueba real y estado **En producción** confirmados por el propietario el 26/10/2026; logo cargado. Completar los enlaces y revisar la verificación/publicación de marca para su nombre y logo. Estos estados se confirman desde su cuenta de Google; no se deducen de los fixtures de la web.
 3. **Facebook**: mismo recorrido de cuenta/perfil, una vez configurada la aplicación de Meta y habilitado su uso público. Verificar los permisos de correo/perfil requeridos por el proveedor y los casos de denegación.
 
 En los tres casos se deben probar cuentas nuevas, cuentas existentes, cancelación, error del proveedor, nick duplicado, retorno a sala, sesión vencida y conservación de saldo/identidad. No vincular ni fusionar cuentas basándose solo en un nombre o avatar.
+
+## Acceso y registro con Steam
+
+1. En `/login` o `/register`, pulsar **Continuar con Steam** y autorizar en el sitio oficial de Steam. La web no solicita la contraseña de Steam.
+2. Si el Steam ya está vinculado, se conserva su UUID, perfil, historial, rol y billetera. Si todavía no existe, se crea una cuenta de jugador, Steam queda vinculado y se pide un nick propio. El MMR queda pendiente para completarlo desde el perfil; no se inventa ni se importa como verificado.
+3. **Si ya tienes cuenta por correo o Google y aún no vinculaste Steam**, entra con ese método y vincúlalo desde `/perfil` antes de usar el botón. Steam no comparte tu correo; no se puede deducir ni fusionar de forma segura la cuenta anterior por nick/avatar.
+4. Las altas hechas con Steam ingresan con Steam. Se usa internamente un identificador de Auth con dominio no entregable `.invalid`, sin solicitar un correo real, y la interfaz muestra «Acceso con Steam». Añadir un correo o Google a esa nueva cuenta es una etapa distinta, aún no implementada. No se envían correos a ese identificador.
+5. No hace falta crear otra aplicación OAuth en Google ni activar un proveedor Steam en Supabase. Se conserva `NEXT_PUBLIC_APP_URL=https://www.kodigodota.com` en Production y el `STEAM_API_KEY` existente para nombre/avatar (estos datos son opcionales para el acceso). El retorno OpenID es `/api/auth/steam/callback`; la pantalla final es `/login/steam`. La entrega de sesión ocurre por API, sin añadir otra redirección de Supabase.
+
+### Implementación y límites
+
+- `/api/auth/steam/login` inicia acceso público con Origin exacto y challenge SHA-256. `/api/auth/steam/start` inicia vinculación con JWT validado. Cookie HttpOnly/SameSite=Lax, host público configurado y secreto aleatorio de 256 bits; la IP solo se guarda como HMAC para limitar intentos entre instancias.
+- El callback comprueba namespace, modo, proveedor fijo, campos firmados, ID/identidad coincidentes, parámetros únicos, nonce reciente y retorno exacto. Confirma la firma directamente con Steam. Las pruebas se consumen una sola vez en PostgreSQL; un callback repetido o sin la cookie no crea una sesión.
+- El callback deja una cookie opaca durante dos minutos y redirige a una URL limpia. `/api/auth/steam/session` exige la clave conservada en sessionStorage y, para vincular, el mismo JWT/UUID original. Solo entonces consume la prueba y vincula o crea la cuenta. El protocolo OpenID incluye la identidad de Steam en su retorno al servidor; esa identidad no se incorpora a la URL final, la respuesta JSON de sesión ni el perfil público.
+- `steam_auth.cuentas` reserva un UUID por Steam antes de llamar a Auth; reintentos y altas concurrentes convergen. El índice único existente de `profiles.steam_id` se conserva. Los cambios de vínculo eliminan la asociación anterior, sin tocar nick, MMR, rol o saldo. Borrar un perfil elimina su asociación privada por FK.
+- Se usan las APIs oficiales admin `createUser` y `generateLink`, con verificación interna del token de correo por un cliente separado para entregar una sesión nativa al mismo UUID. No se fabrican JWTs ni se usan metadatos editables como autorización. Un correo real sin confirmar no se confirma a través de Steam y una cuenta con segundo factor verificado no omite ese factor: debe usar su método habitual.
+- Las seis RPCs son solo `service_role`, con `search_path` vacío. Tablas en esquema privado, sin permisos directos para el navegador, RLS y políticas de denegación explícita. Migraciones aplicadas: `supabase/migrations/20261026235759_steam_login.sql` y `20261027002415_steam_login_guardas.sql`. Advisor sin avisos de seguridad para estos objetos; solo INFO de índices nuevos aún sin uso.
+- `CompletarAccesoSocial` comparte la elección de nick con Google. Persistencia de sesión, recuperación por correo, perfil y movimientos anteriores conservados. El verificador de Steam se elimina después de la entrega y el código/errores no permanecen en la URL. No se registra una aceptación contractual ni se valida edad nueva en esta tarea.
+
+### Pruebas de Steam
+
+- `npm run qa:steam`: 31 comprobaciones de protocolo OpenID, tokens, origen, nick y presentación de la cuenta.
+- `npm run qa:steam:db`: 20 casos sobre PostgreSQL aislado con las migraciones reales, permisos, expiración, repetición, cambio de sesión, concurrencia, asociaciones y conservación de saldo/MMR.
+- `npm run qa:steam:server`: 17 casos de los handlers reales y SDK, con Steam/Auth simulados y PostgreSQL aislado. Incluye alta concurrente, vínculo, sesión ajena, bloqueo, correo sin verificar y segundo factor.
+- `npm run qa:steam:ui`: 22 recorridos interceptados de navegador, incluidos PC/móvil, nick, reanudación, error/vacío, UUID, vinculación y cancelación sin cerrar la sesión existente. No utiliza identidades Steam reales ni mueve dinero.
+- Supabase Auth real: alta con UUID reservado y correo técnico, `generateLink`/`verifyOtp`, mismo UUID/rol y perfil válido sin MMR. Sesión cerrada y actor temporal eliminado; catálogo remoto confirma cero perfiles `qa-steam-*` restantes. No se enviaron correos, se vinculó un Steam ficticio ni se movió saldo.
+- Regresión: 38 pruebas puras y 19 recorridos Google correctos, QA general local 12/12 y sesión real de QA en inicio/perfil 6/6. Tsc/lint/build correctos; 22/22 UI Steam y 19/19 UI Google también correctos en producción, con 39 comprobaciones HTTP de páginas legales y controles HTTP de Steam. El propietario confirmó selección/consentimiento e ingreso real con su Steam, conservando la cuenta vinculada. No se simularon identidades del proveedor en producción para emitir sesiones reales. Las altas nuevas no se probaron con otro Steam real.
 
 ## Configuración de Google
 

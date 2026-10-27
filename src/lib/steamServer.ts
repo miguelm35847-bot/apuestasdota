@@ -61,7 +61,7 @@ export async function resolverSteamId(valor: string): Promise<string | null> {
     url.searchParams.set('key', STEAM_API_KEY);
     url.searchParams.set('vanityurl', vanity);
 
-    const response = await fetch(url, { cache: 'no-store' });
+    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
     if (!response.ok) return null;
 
     const data = (await response.json()) as SteamVanityResponse;
@@ -88,7 +88,7 @@ export async function obtenerResumenSteam(valor: string): Promise<SteamResumen |
     url.searchParams.set('key', STEAM_API_KEY);
     url.searchParams.set('steamids', steamId);
 
-    const response = await fetch(url, { cache: 'no-store' });
+    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
     if (!response.ok) return null;
 
     const data = (await response.json()) as SteamSummariesResponse;

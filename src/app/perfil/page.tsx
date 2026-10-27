@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { sincronizarSteam } from '@/lib/steamClient';
+import { iniciarAccesoSteam } from '@/lib/steamAuth';
+import { etiquetaCuenta } from '@/lib/acceso';
 import { useArenaBody } from '@/lib/useArenaBody';
 import { etiquetaRol, ICONOS_ROL, ROLES_DOTA } from '@/lib/balance';
 import { ETIQUETAS_MOVIMIENTO } from '@/lib/actividades';
@@ -511,30 +513,8 @@ function PerfilContenido() {
   async function handleVincularSteam() {
     setError(null);
     setSuccess(null);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      setError('No se pudo obtener la sesión actual');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/auth/steam/start', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-      const data = (await response.json()) as { url?: string; error?: string };
-
-      if (!response.ok || !data.url) {
-        setError(data.error || 'No se pudo iniciar la vinculación con Steam');
-        return;
-      }
-
-      window.location.href = data.url;
-    } catch {
-      setError('No se pudo iniciar la vinculación con Steam');
-    }
+    try { await iniciarAccesoSteam(true); }
+    catch (error) { setError(error instanceof Error ? error.message : 'No se pudo iniciar la vinculación con Steam'); }
   }
 
   async function handleActualizarSteam() {
@@ -685,7 +665,7 @@ function PerfilContenido() {
                     {perfilCompleto ? 'MMR listo' : 'Falta tu MMR'}
                   </span>
                 </div>
-                <p className="mt-1 truncate text-sm text-slate-400">{user?.email}</p>
+                <p className="mt-1 truncate text-sm text-slate-400">{etiquetaCuenta(user)}</p>
                 {user && (
                   <Link
                     href={`/jugadores/${user.id}`}

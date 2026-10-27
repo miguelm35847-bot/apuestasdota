@@ -29,7 +29,7 @@ const secciones = [
     id: 'cuenta', titulo: '2. Cuenta y participación',
     contenido: <>
       <p>La participación en funciones con dinero está reservada a personas de <strong className="font-semibold text-slate-200">18 años o más</strong>, con capacidad para contratar y cuando esté permitida en el lugar donde se encuentren. No utilices la plataforma para eludir restricciones aplicables.</p>
-      <p>Proporciona información auténtica, conserva el control de tu correo y protege tus credenciales. El acceso con Google sirve para autenticar tu cuenta; no cambia las reglas de las salas ni garantiza premios. No compartas contraseñas o códigos de acceso con otros jugadores o con soporte.</p>
+      <p>Proporciona información auténtica, conserva el control de tus medios de acceso y protege tus credenciales. Puedes ingresar con correo y contraseña, Google o Steam según los métodos asociados a tu cuenta. Si ya tienes cuenta y todavía no vinculaste Steam, ingresa con tu método habitual y vincúlalo desde tu perfil antes de usar ese acceso, para conservar la misma cuenta y saldo. No compartas contraseñas o códigos de acceso con otros jugadores o con soporte.</p>
       <p>Para entrar a una sala se requiere Steam vinculado y completar el perfil exigido por la web. El MMR debe reflejar tu nivel real; una vez registrado, las correcciones se solicitan a administración. Tu nick y perfil de juego son visibles para otros usuarios según la política de privacidad.</p>
     </>,
   },
