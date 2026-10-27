@@ -2,8 +2,9 @@
 
 Documento de referencia del proyecto: esquema SQL, archivos, flujos y verificaciones detalladas. Ya no es un documento de traspaso entre chats.
 
-> Estado vigente y pendientes: `docs/ESTADO.md`. Bitácora: `docs/HISTORIAL.md`.
-> Las verificaciones nuevas se anotan en el historial, no aquí.
+> Estado vigente y pendientes: [ESTADO.md](ESTADO.md). Bitácora: [HISTORIAL.md](HISTORIAL.md). Arranque y QA: [README](../README.md).
+> Las secciones fechadas conservan el contexto de su implementación, incluidos pendientes que se resolvieron después. No representan el estado actual de producción. Las verificaciones nuevas se anotan en el historial.
+> Los bloques SQL son snapshots históricos, no una lista para pegar en Supabase. Antes de cualquier migración, contrastar el código, `supabase/migrations/`, `docs/sql/` y el historial remoto. Conservar también `docs/schema/`: participa en las regresiones locales.
 
 ## 0. Landing cinematográfico, rebrand KódigoDota y hero de imagen única (20–21/10/2026)
 
@@ -111,9 +112,9 @@ Estados de sala: `abierta`, `llena`, `en_juego`, `terminada`, `cancelada`.
 - `marcar_inicio_sala()` — trigger `before update` en `salas`: guarda `iniciada_at` al pasar a `en_juego`.
 - `ajuste_admin`, `mi_saldo`, `_saldo_de`, `ganancias_casa`, `es_admin`.
 
-## 6. Funciones y SQL pendientes de ejecutar
+## 6. Referencia histórica de funciones y SQL
 
-Si el usuario aún no los ejecutó, pegarlos en Supabase:
+Las siguientes definiciones documentan etapas anteriores. Las funcionalidades 1v1, cierre y MMR único están aplicadas; algunas definiciones se sustituyeron después. El estado y los pendientes vigentes están en [ESTADO.md](ESTADO.md); esta sección no autoriza reaplicar SQL.
 
 ### Turno de 45 s, auto-pick por mayor MMR y capitanes marcados (ya aplicada)
 
@@ -926,7 +927,7 @@ before delete on public.participantes_sala
 for each row execute function public.bloquear_cambios_en_picks();
 ```
 
-### Sorteo automático de lado en salas 1v1 (pendiente de ejecutar)
+### Sorteo automático de lado en salas 1v1 (snapshot histórico; aplicado posteriormente)
 
 Cuando una sala 1v1 se llena, el servidor sortea al azar quién elige lado. El ganador ve en su
 sala los botones Radiant/Dire; el otro jugador queda en el lado contrario automáticamente. Si un
@@ -1130,7 +1131,7 @@ $function$;
 > Nota: si ya ejecutaste la versión anterior de `bloquear_cambios_en_picks` y `elegir_lado`, este bloque
 > las reemplaza sin tocar los triggers existentes (se referencian por nombre).
 
-### Cierre automático de partida e historial con detalle (pendiente de ejecutar)
+### Cierre automático de partida e historial con detalle (snapshot histórico; aplicado posteriormente)
 
 La app consulta la API de Steam desde `POST /api/dota/auto-close` mientras la sala está `en_juego`.
 Cualquier jugador o admin con la sala abierta dispara la revisión (cada 60–90 s). El servidor:
@@ -1291,7 +1292,7 @@ grant execute on function public.cerrar_partida_auto(uuid, bigint, integer, inte
 > Nota: `cerrar_partida_auto` es la única función que puede ejecutar el route con la service role.
 > No se expone a `anon` ni a `authenticated`. El route además exige sesión de participante o admin.
 
-### SQL del MMR de un solo uso y edición por admin (pendiente de ejecutar)
+### SQL del MMR de un solo uso y edición por admin (snapshot histórico; aplicado posteriormente)
 
 Reemplaza la definición de `guardar_perfil_competitivo` con la versión que bloquea el MMR
 tras el primer registro, agrega `guardar_roles_preferidos` (roles sin tocar el MMR),
@@ -1813,32 +1814,25 @@ notify pgrst, 'reload schema';
 ## 9. Limitaciones conocidas
 
 - **Dota 2 no tiene API pública** para crear lobbies ni enviar invitaciones. Eso lo hace el admin desde el cliente del juego.
-- El cierre de partida es **automático** cuando el lobby es público y hay una sala abierta (jugador o admin): `/api/dota/auto-close` busca la partida en Steam, valida a los jugadores y cierra con `cerrar_partida_auto`. El cierre manual con ID queda como respaldo. Si nadie tiene la app abierta, la detección corre en la siguiente visita a la sala.
+- El cierre automático exige Auto habilitado, ID exacto asociado y resultado final verificable con todos los jugadores y lados correctos. `/api/dota/auto-close` es una vía desde la web; además `arena-cierre` invoca `arena-worker` cada minuto en Supabase, sin depender de pestañas abiertas. El cierre manual queda disponible si no hay datos verificables. La prueba operativa de pago con una partida real sigue pendiente.
 - **Los lobbies personalizados/practice sin ticket no aparecen en la API pública** (Steam/OpenDota). El ID existe en el cliente, pero `GetMatchDetails` responde 500 y OpenDota 404. Probado con `9053507699` (1v1 custom): OpenDota 404 / Steam 500. Para cierre automático hay que usar un **lobby de torneo con ticket/liga** o cerrar manualmente eligiendo el ganador (sin duración/marcador).
 - `GetMatchDetails` de Steam puede devolver HTTP 500 incluso para partidas públicas; `/api/dota/match` y `/api/dota/auto-close` tienen respaldo por `GetMatchHistoryBySequenceNum` y OpenDota.
-- La detección automática consume la API de Steam. Hay caché de 45 s por sala y rate limit en memoria por usuario/clave; en un despliegue multi-instancia conviene un rate limit distribuido (Redis).
+- La vía web de detección consulta Steam/OpenDota; `/api/dota/auto-close` conserva rate limit en memoria y caché de 45 s de cierres exitosos. `arena-worker` consulta resultados finales de OpenDota. La existencia de un marcador simulado no acredita un resultado ni dispara pagos. Los controles financieros persistentes están en PostgreSQL.
 - La UI de admin usa `es_admin` para mostrar/ocultar, pero todas las RPCs administrativas y de dinero validan `es_admin()`/`auth.role()` en el servidor. Auditado con un usuario de prueba: no puede escalar rol, escribir tablas sensibles ni ejecutar RPCs de admin.
 - Notificaciones: lectura solo del propio usuario; el panel admin inserta con `notificar_usuario` y la campana marca leídas con `marcar_notificaciones_leidas`. No hay inserts directos desde el cliente.
 - Los visitantes anónimos solo leen columnas públicas de `profiles`; `steam_id`, `rol` y `baneado` quedan fuera del landing/historial/chat público.
 - El perfil público calcula partidas/victorias/winrate en el cliente a partir de `participantes_sala` + `salas` + `partidas`; solo cuenta salas `terminada` con equipo asignado y partida registrada.
 - `lobbies` solo es legible por participantes de la sala o admin.
-- El flujo Steam usa state HMAC + cookie HttpOnly; el access token de Supabase ya no viaja en la URL. `/api/auth/steam/link` fue eliminado.
-- El auto-pick de los 45 s se dispara desde la sala o el panel admin abiertos (el RPC valida el vencimiento en el servidor). Si nadie tiene la pantalla abierta, se resuelve en la siguiente interacción.
+- Steam tiene acceso/alta y vinculación: OpenID validado en servidor, state/cookie HttpOnly, desafío de navegador y consumo único en PostgreSQL. Vincular exige conservar JWT/UUID; el token de acceso no viaja en URL. Ver implementación y pruebas vigentes en [REGISTRO-SOCIAL.md](REGISTRO-SOCIAL.md); el diseño HMAC de las secciones antiguas fue ampliado por este flujo.
+- El auto-pick de los 45 s se valida en servidor. Además de la interacción web, `arena-plazos` lo ejecuta cada 5 s desde Supabase, junto con los vencimientos; no requiere una pantalla abierta.
 - Los triggers de la fase de picks bloquean mover/expulsar durante `en_curso`; si hiciera falta, el admin debe cancelar la fase primero.
-- No hay tests automatizados.
+- Hay pruebas automatizadas de lógica, SDK/handlers, UI con proveedores simulados y PostgreSQL desechable, más verificación de tipos/lint/build y Deno en GitHub Actions. Comandos y alcance en el [README](../README.md) y [ESTADO.md](ESTADO.md). No equivalen a pruebas reales de autorización de terceros ni a una prueba de carga.
 
-## 10. Próximos módulos
+## 10. Evolución y próximos trabajos
 
-La limpieza técnica ya está hecha: tipos centralizados en `src/lib/types.ts`, sin `any` en las pantallas principales, componentes fuera del render y `npm run lint` / `npm run build` limpios.
+La cola vigente está en [ESTADO.md](ESTADO.md). Chat, perfiles, operaciones, acceso social, worker persistente y mantenimiento de consultas/índices ya están implementados. La estructura actual de salas y perfil está en [ESTRUCTURA-UI.md](ESTRUCTURA-UI.md); los índices/políticas revisados, en [OPTIMIZACION-DB.md](OPTIMIZACION-DB.md).
 
-El chat general y el chat privado por sala también están implementados en `src/components/ChatPanel.tsx`.
-
-Opciones para continuar (elegir una):
-
-1. **Endurecimiento de seguridad/dinero**: completado el 20/10/2026 (RLS de notificaciones/lobbies, columnas públicas de perfiles, RPCs admin, Steam state HMAC, rate limit y cabeceras). Pendiente opcional: rate limit distribuido y revisión de políticas de Storage si se agregan más buckets.
-2. **Historial y estadísticas**: agregar filtros por jugador/sala, detalle de la partida y enlaces a Dotabuff/OpenDota.
-3. **Créditos y comprobantes**: mejorar el flujo de recargas/retiros con comprobantes y validación admin.
-4. **Lobby automático + invitaciones + ticket de torneo**: bot de Steam conectado al Game Coordinator (`steam-user` + `node-dota2`), cuenta(s) bot, creación del lobby, invitaciones automáticas y asociación a una liga/ticket para que Dota 2 muestre “jugando un torneo” y la partida aparezca en la API pública. Requiere dependencias nuevas, un proceso persistente y un league/ticket ID; es un módulo aparte.
+La integración real de datos de Valve y su aprobación/ID de liga siguen pendientes. Automatizar lobbies e invitaciones con una cuenta bot es un módulo adicional que requiere alcance y recursos propios; no es una dependencia de la limpieza local ni de actualizar documentos.
 
 ## 11. Cómo probar rápido
 
@@ -2189,6 +2183,8 @@ Alcance confirmado: aplicar recomendaciones salvo filtros/navegación de salas; 
 
 ## 34. Publicación autorizada en el dominio (23/10/2026)
 
+Referencia histórica: el despliegue por CLI y `link=null` descritos abajo corresponden al 23/10. La integración GitHub/Vercel está conectada actualmente y los envíos autorizados a `main` publican mediante ella; consultar [ESTADO.md](ESTADO.md).
+
 - Solicitud explícita del usuario: aplicar todos los cambios pendientes a la web. Proyecto Vercel enlazado `kodigodota` (`prj_jkGYnGnaeFk2QR8nrEOtUCJuWjNu`), equipo `kodigodota`, Node 22.x; CLI autenticada. Los dominios están verificados: raíz con 308 a `www.kodigodota.com`. Se conserva esa configuración y se establece `NEXT_PUBLIC_APP_URL=https://www.kodigodota.com` en Production, necesaria para que el retorno de Steam comparta origen con la cookie.
 - Publicación con `vercel deploy --prod --skip-domain --yes`, comprobación protegida de landing/recuperación 200 y Mi actividad 404, y promoción posterior con `vercel promote`. Despliegue `dpl_8to1UDW8Dn3RxyXmYxbhT3ymwkup`, URL de versión `https://kodigodota-4ejizx5s0-kodigodota.vercel.app`, estado Ready. Versión anterior para reversión: `dpl_4RDzetSAyNjyJLsz8BqmVfFwEfbQ`.
 - `.vercelignore` excluye capturas, pruebas, documentos, SQL, funciones de Supabase y archivos de entorno del paquete web. Inspección previa redujo la subida de unos 130 MB a 2.2 MB; sin archivos privados incluidos. Las funciones/trabajadores de Supabase ya estaban aplicados; no se reaplicó SQL ni se movió saldo.
@@ -2198,6 +2194,8 @@ Alcance confirmado: aplicar recomendaciones salvo filtros/navegación de salas; 
 - Repositorio GitHub sincronizado con el paquete publicado. El proyecto Vercel no tiene repositorio Git conectado (`link=null`); la publicación actual se hizo mediante CLI.
 
 ## 35. Confirmación de URL Configuration de Supabase
+
+Esta sección conserva la comprobación inicial. El propietario confirmó después recepción del correo, cambio de contraseña e inicio de sesión; Google y Steam también se publicaron y probaron. Estado consolidado en [ESTADO.md](ESTADO.md) y [REGISTRO-SOCIAL.md](REGISTRO-SOCIAL.md).
 
 - El propietario guardó las direcciones con www después de detectar que la primera configuración usaba el dominio raíz y rechazaba el destino de recuperación de la aplicación.
 - Verificado por GET `/auth/v1/verify` con token ficticio inválido, tipo recovery y `redirect:manual`: sin destino explícito devuelve 303 a `https://www.kodigodota.com/`; con el destino explícito devuelve 303 a `https://www.kodigodota.com/recuperar?cambiar=1`. El error esperado `otp_expired` confirma rechazo del token de prueba. La ruta y consulta de recuperación se conservan.

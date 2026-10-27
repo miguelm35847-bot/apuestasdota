@@ -14,11 +14,13 @@ Estado revisado el 26/10/2026. Google publicado y probado por el propietario. St
 - Facebook no está implementado.
 - Dominio conectado y web publicada: `kodigodota.com` en Spaceship redirige al principal `www.kodigodota.com` en Vercel. Site URL y redirección de recuperación con www confirmados por HTTP tras el ajuste del propietario. Pasos en [DOMINIO.md](DOMINIO.md). Usar el dominio con www al configurar los proveedores.
 
-## Pendientes de la siguiente etapa
+## Pruebas completadas y pendientes reales
 
-1. **Steam**: implementación, publicación y pruebas completas. El propietario confirmó el ingreso real con Steam y la conservación de su cuenta vinculada. Las altas nuevas están cubiertas por los fixtures y la comprobación real de Supabase Auth con un actor temporal eliminado; no se creó otro Steam real para esa prueba.
-2. **Google**: prueba real y estado **En producción** confirmados por el propietario el 26/10/2026; logo cargado. Completar los enlaces y revisar la verificación/publicación de marca para su nombre y logo. Estos estados se confirman desde su cuenta de Google; no se deducen de los fixtures de la web.
-3. **Facebook**: mismo recorrido de cuenta/perfil, una vez configurada la aplicación de Meta y habilitado su uso público. Verificar los permisos de correo/perfil requeridos por el proveedor y los casos de denegación.
+| Proveedor | Completado | Pendiente |
+| --- | --- | --- |
+| Steam | Implementación, publicación, regresiones y comprobación real de Supabase Auth con un actor temporal eliminado. El propietario confirmó ingreso real y conservación de su cuenta vinculada. | Alta con otro Steam real; no se creó una identidad adicional del proveedor durante QA. |
+| Google | Acceso real, elección de nick y audiencia **En producción** confirmados por el propietario el 26/10/2026; logo cargado, privacidad y términos publicados. | Confirmar verificación/publicación de marca desde Google Auth Platform. No se deduce de los fixtures ni del acceso exitoso. |
+| Facebook | Sin implementación. | Decidir alcance, configurar la aplicación de Meta e implementar/probar el recorrido de cuenta/perfil, permisos y denegación. |
 
 En los tres casos se deben probar cuentas nuevas, cuentas existentes, cancelación, error del proveedor, nick duplicado, retorno a sala, sesión vencida y conservación de saldo/identidad. No vincular ni fusionar cuentas basándose solo en un nombre o avatar.
 
