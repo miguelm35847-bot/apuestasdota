@@ -24,15 +24,17 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading || googleCargando || steamCargando) return;
     setError(null);
     setLoading(true);
 
-    const { error } = await signIn(email, password);
-
-    if (error) {
-      setError(error);
-      setLoading(false);
-    } else {
+    try {
+      const { error } = await signIn(email, password);
+      if (error) {
+        setError(error);
+        return;
+      }
+      setPassword('');
       // Verificar el rol del usuario
       const { data: isAdmin } = await supabase.rpc('es_admin');
 
@@ -44,6 +46,11 @@ export default function LoginPage() {
         // Usuario normal (jugador) - va a la landing
         router.push('/');
       }
+    } catch {
+      setError('No se pudo iniciar sesión. Inténtalo nuevamente.');
+    } finally {
+      // Next conserva este formulario al navegar: no dejar la carga pendiente.
+      setLoading(false);
     }
   }
 
