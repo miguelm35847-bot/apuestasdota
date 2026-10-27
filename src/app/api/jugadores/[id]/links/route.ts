@@ -3,12 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { playerLinksFromSteamId } from '@/lib/playerLinks';
 import { limitarPorClave } from '@/lib/rateLimit';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { persistSession: false },
-});
-
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CACHE_HEADERS = {
   'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
@@ -42,6 +36,12 @@ export async function GET(
         { status: 429 }
       );
     }
+
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+      { auth: { persistSession: false } }
+    );
 
     const { data, error } = await supabaseAdmin
       .from('profiles')

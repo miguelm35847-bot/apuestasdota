@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { persistSession: false },
-});
-
 // Devuelve el SteamID solo al usuario autenticado. El cliente ya no lee
 // profiles.steam_id directo, así ningún jugador puede pedir el de otro.
 export async function GET(request: NextRequest) {
@@ -17,6 +11,12 @@ export async function GET(request: NextRequest) {
     if (!token) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
     }
+
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+      { auth: { persistSession: false } }
+    );
 
     const {
       data: { user },

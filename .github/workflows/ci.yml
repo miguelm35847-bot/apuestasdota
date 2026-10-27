@@ -19,6 +19,9 @@ jobs:
       - run: npm run build
       - run: npm run qa:cierre
       - run: npm run qa:inicio
+      - run: npm run qa:google
+      - run: npm run qa:steam
+      - run: npm run qa:chat
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x

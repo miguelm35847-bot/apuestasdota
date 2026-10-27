@@ -19,5 +19,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
   - `npm run build`
   - UI: `npm run qa -- --base http://127.0.0.1:3001 --url /` en 1366x768, 390x844 y 360x800 (añade `--hover`, `--url`, `--expect` o `--shot` según el cambio). Requiere Chrome con `--remote-debugging-port=9222` y `npm run qa:serve`. Para flujos con sesión añade `--login` (usa `QA_EMAIL`/`QA_PASSWORD` de `.env.local`).
   - Lógica/datos: suma casos de error, vacío y permisos a la verificación.
-- **Commits**: uno por tarea; muestra el diff y commitea al aprobar. No acumules tareas sobre un árbol sucio.
+- **Commits**: uno por tarea; revisa el diff y commitea los cambios verificados dentro del alcance autorizado. No pidas otra aprobación para cambios, commits o publicaciones que el usuario ya autorizó. No acumules tareas sobre un árbol sucio.
 - **Límites**: no exponer `steam_id` ni datos privados; no agregar SQL, dependencias ni MCPs salvo necesidad justificada.

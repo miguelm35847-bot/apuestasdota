@@ -2,12 +2,6 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { persistSession: false },
-});
-
 export async function GET() {
   try {
     // Leer cookies de Next.js 16 (asíncrono)
@@ -24,6 +18,12 @@ export async function GET() {
     if (!accessToken) {
       return NextResponse.json({ isAdmin: false }, { status: 200 });
     }
+
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+      { auth: { persistSession: false } }
+    );
 
     // Verificar usuario
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(accessToken);

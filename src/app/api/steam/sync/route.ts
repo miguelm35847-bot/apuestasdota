@@ -3,12 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { obtenerResumenSteam } from '@/lib/steamServer';
 import { limitarPorClave } from '@/lib/rateLimit';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { persistSession: false },
-});
-
 export async function POST(request: NextRequest) {
   try {
     const authorization = request.headers.get('authorization') ?? '';
@@ -17,6 +11,12 @@ export async function POST(request: NextRequest) {
     if (!token) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
     }
+
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+      { auth: { persistSession: false } }
+    );
 
     const {
       data: { user },
