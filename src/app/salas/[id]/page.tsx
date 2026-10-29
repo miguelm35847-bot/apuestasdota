@@ -1,5 +1,7 @@
 'use client';
 
+import { premioPorGanador } from '@/lib/importesSala';
+
 import { Columna } from '@/components/salas/ColumnaEquipo';
 import { IconoDire, IconoEspera, IconoRadiant } from '@/components/salas/IconosEquipo';
 import { CabeceraSala, LobbySala, RolesSala } from '@/components/salas/PanelesSala';
@@ -226,12 +228,15 @@ function SalaContenido() {
   }, []);
 
   async function unirseASala() {
+    if (!sala || joining) return;
     setError(null);
     setSuccess(null);
     setJoining(true);
 
-    const { error: rpcError } = await supabase.rpc('unirse_a_sala', {
+    const { error: rpcError } = await supabase.rpc('unirse_a_sala_con_importes', {
       p_sala: salaId,
+      p_cuota_esperada: sala.cuota,
+      p_premio_esperado: premioPorGanador(sala),
     });
 
     if (rpcError) {
@@ -250,6 +255,7 @@ function SalaContenido() {
         rpcError.message.includes(clave)
       )?.[1];
       setError(traducido ?? rpcError.message);
+      if (rpcError.message.includes('Los importes de la sala cambiaron')) await cargarSala();
     } else {
       window.dispatchEvent(new Event('saldo:refresh'));
       cargarSala();
@@ -596,8 +602,7 @@ function SalaContenido() {
   const multaAbandono = sala.cupo === 10 && sala.estado === 'llena' ? 200 : 0;
 
   const pozo = sala.cuota * sala.cupo;
-  const comision = Math.floor((pozo * sala.comision_bp) / 10000);
-  const premio = Math.floor((pozo - comision) / limiteEquipo);
+  const premio = premioPorGanador(sala);
 
   const picksEstado = sala.picks_estado ?? 'inactivo';
   const enFasePicks = picksEstado === 'eleccion' || picksEstado === 'en_curso';

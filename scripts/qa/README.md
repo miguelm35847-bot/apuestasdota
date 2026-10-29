@@ -96,3 +96,10 @@ npm run qa:landing:ui
 
 - `qa:inicio`: 14 decisiones del recorrido inicial, sin red: Steam/MMR pendientes, MMR 0 válido, sala actual, cupos vacíos, usuarios recurrentes/admin y datos desconocidos. Incluido en CI.
 - `qa:landing:ui`: Chrome CDP y build en `:3001`, ejecutado en serie con el resto de QA visual. 26 escenarios con fixtures HTTP: 1v1/5v5 en los tres estados activos, nombres largos, cruces públicos, mismos importes en destacada/tarjeta, guía inicial, errores/reintento, vacío, rondas de verificación y unión/regreso. Revisa 1366×768, 390×844 y 360×800, sin overflow, superposición del reloj ni SteamID visible y con tarjetas de dimensiones uniformes. A 1920×1080 y 1920×945 (alto útil de Chrome en monitor de 1080 px) comprueba las dos primeras completas sin scroll, importes/roster visibles, margen inferior pequeño, separación de 16 px y continuidad de la rueda sobre las tarjetas para visitante/admin/nuevo usuario. Incluye destacada vacía en tercera posición. Intercepta Supabase y `/api/*`; bloquea escrituras inesperadas. Capturas en `qa-artifacts/landing/ui-<timestamp>/`.
+
+## Cuota y premio fijo de salas
+
+- `npm run qa:premios`: 24 comprobaciones de céntimos, precisión, reparto y compatibilidad.
+- `npm run qa:apuestas:local -- --schema-real`: incluye 14 casos nuevos; total 51. Aplica dos veces la migración de premios y verifica permisos, cuota/premio fijo, sin comisión, bonos, bloqueo con inscritos, condiciones antiguas al entrar, concurrencia y cierre sin pagos duplicados.
+- `npm run qa:premios:ui`: 53 recorridos (incluye los paneles existentes) con SDK real y HTTP/Realtime simulado. No realiza escrituras remotas; capturas de crear/gestionar en output/qa-premios/capturas/ para los tres tamaños exigidos.
+- Referencia actual: [Cuota y premio de salas](../../docs/PREMIOS-SALAS.md).

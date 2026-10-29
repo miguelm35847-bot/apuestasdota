@@ -44,6 +44,7 @@ const secciones = [
     id: 'salas', titulo: '4. Salas, cuotas y premios',
     contenido: <>
       <p>Las salas pueden ser 1v1 o 5v5. Antes de unirte, revisa modalidad, cupos, cuota de entrada y premio por ganador que muestra la sala. Al confirmarse la entrada, la cuota se descuenta de tu saldo y quedas registrado como participante.</p>
+      <p>El premio anunciado es el abono total de cada jugador ganador e incluye su cuota aportada. Puede repartir todo lo recaudado o incluir un bono a cargo de la casa. La cuota y el premio solo se modifican mientras la sala esté abierta y sin participantes.</p>
       <p>Los equipos, capitanes, elección de lado, picks y lobby se organizan desde la sala. La confirmación «Estoy listo» se solicita al completarse el cupo o por indicación del administrador. Vincular Steam o confirmar disponibilidad no sustituye el ingreso al lobby de Dota 2.</p>
       <p>El premio de sala depende de sus condiciones y del resultado registrado al cerrarla. No hay una ganancia garantizada: puedes perder la cuota aportada. Consulta el historial de la partida y los movimientos de tu perfil para comprobar el cierre.</p>
     </>,

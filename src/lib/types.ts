@@ -29,6 +29,7 @@ export type Sala = {
   cuota: number;
   cupo: number;
   comision_bp: number;
+  premio_por_ganador?: number | null;
   estado: string;
   modalidad?: string;
   destacada?: boolean;

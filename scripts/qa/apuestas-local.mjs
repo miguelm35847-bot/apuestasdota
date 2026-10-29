@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import net from 'node:net';
 import {prepararSchemaReal} from './schema-real.mjs';
 import {verificarOptimizacionDB} from './optimizacion-db.mjs';
+import {verificarPremiosSala} from './premios-sala-db.mjs';
 const real=process.argv.includes('--schema-real');
 
 const bin = process.env.PG_BIN ?? (process.platform === 'win32' ? 'C:/Program Files/PostgreSQL/18/bin' : '/usr/bin');
@@ -109,6 +110,9 @@ try {
     await sql(await readFile('docs/sql/2026-10-23-frecuencia-apuestas.sql','utf8'));
     await sql(await readFile('docs/sql/2026-10-23-verificacion-rondas.sql','utf8'));
     await sql(await readFile('docs/sql/2026-10-23-verificacion-rondas.sql','utf8'));
+    const premiosFijos = await readFile('supabase/migrations/20261029205220_premios_fijos_salas.sql','utf8');
+    await sql(premiosFijos);
+    await sql(premiosFijos);
     await verificarOptimizacionDB(sql,u,caso);
     await caso('verificación: entrada parcial, solicitud manual, ronda completa y sala vacía', async()=>{
       const r=randomUUID();
@@ -369,6 +373,7 @@ try {
       assert.equal(await sql("select reloptions::text from pg_class where oid='public.perfiles_publicos'::regclass;"),'{security_invoker=true}');
     });
   }
+  if(real) await verificarPremiosSala(sql,u,caso);
   await caso('qa_cleanup elimina las apuestas QA antes de los resultados protegidos', async () => {
     await falla(sesion(u[0],'select qa_cleanup();'), /permission denied|permiso denegado/i);
     await sql('set role service_role; select qa_cleanup();');

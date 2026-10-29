@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { useArenaBody } from '@/lib/useArenaBody';
 import Navbar from '@/components/Navbar';
 import FormularioCrearSala from '@/components/FormularioCrearSala';
+import { premioPorGanador } from '@/lib/importesSala';
 
 type Sala = {
   id: string;
@@ -15,6 +16,7 @@ type Sala = {
   cuota: number;
   cupo: number;
   comision_bp: number;
+  premio_por_ganador?: number | null;
   estado: string;
   modalidad?: string;
   destacada?: boolean;
@@ -217,7 +219,7 @@ export default function SalasPage() {
                         <span className="font-medium">Cupo:</span> {sala.participantes_count}/{sala.cupo}
                       </p>
                       <p>
-                        <span className="font-medium">Comisión:</span> {sala.comision_bp / 100}%
+                        <span className="font-medium">Premio por ganador:</span> S/ {(premioPorGanador(sala) / 100).toFixed(2)}
                       </p>
                     </div>
                   </div>

@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from 'react';
 import { supabase } from '@/lib/supabase';
+import CamposImportesSala from '@/components/CamposImportesSala';
+import { centimosDeTexto } from '@/lib/importesSala';
 
 type Props = {
   /** Se llama cuando la sala ya está creada. */
@@ -13,7 +15,7 @@ type Props = {
 
 /**
  * Formulario de creación de sala (lo usan el panel admin y el landing).
- * La RPC `crear_sala` valida que quien llame sea admin.
+ * La RPC valida que quien llame sea admin y guarda el premio anunciado.
  */
 export default function FormularioCrearSala({
   onCreada,
@@ -23,7 +25,7 @@ export default function FormularioCrearSala({
   const [nombre, setNombre] = useState('');
   const [cuota, setCuota] = useState('');
   const [modalidad, setModalidad] = useState<'1v1' | '5v5'>('5v5');
-  const [comision, setComision] = useState('15');
+  const [premio, setPremio] = useState('');
   const [creando, setCreando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,41 +40,40 @@ export default function FormularioCrearSala({
       return;
     }
 
-    const cuotaNum = parseFloat(cuota);
-    if (isNaN(cuotaNum) || cuotaNum < 1) {
-      setError('La cuota mínima es S/ 1.00');
+    const cuotaCentimos = centimosDeTexto(cuota);
+    if (cuotaCentimos === null || cuotaCentimos < 100) {
+      setError('Escribe una cuota desde S/ 1.00, con hasta dos decimales.');
       return;
     }
 
-    const comisionPct = parseFloat(comision);
-    if (isNaN(comisionPct) || comisionPct < 0 || comisionPct > 50) {
-      setError('La comisión debe estar entre 0 y 50 %');
+    const premioCentimos = centimosDeTexto(premio);
+    if (premioCentimos === null || premioCentimos < 1) {
+      setError('Escribe un premio desde S/ 0.01, con hasta dos decimales.');
       return;
     }
 
     setCreando(true);
 
-    const { data, error: rpcError } = await supabase.rpc('crear_sala', {
-      p_nombre: nombre.trim(),
-      p_cuota: Math.round(cuotaNum * 100),
-      p_cupo: modalidad === '1v1' ? 2 : 10,
-      p_comision_bp: Math.round(comisionPct * 100),
-    });
-
-    if (rpcError) {
-      setError('Error al crear sala: ' + rpcError.message);
+    try {
+      const { data, error: rpcError } = await supabase.rpc('crear_sala_con_premio', {
+        p_nombre: nombre.trim(),
+        p_cuota: cuotaCentimos,
+        p_cupo: modalidad === '1v1' ? 2 : 10,
+        p_premio_por_ganador: premioCentimos,
+      });
+      if (rpcError) { setError('Error al crear sala: ' + rpcError.message); return; }
+      onCreada?.(typeof data === 'string' ? data : '');
+    } catch {
+      setError('No se pudo confirmar la creación. Revisa la lista de salas antes de intentarlo de nuevo.');
+    } finally {
       setCreando(false);
-      return;
     }
-
-    setCreando(false);
-    onCreada?.(typeof data === 'string' ? data : '');
   }
 
   return (
     <form onSubmit={crearSala}>
       {error && (
-        <div className="mb-3 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
+        <div role="alert" className="mb-3 rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-300">
           {error}
         </div>
       )}
@@ -89,22 +90,6 @@ export default function FormularioCrearSala({
             onChange={(e) => setNombre(e.target.value)}
             className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
             placeholder="Ej: Sala Pro 5v5"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="sala-cuota" className="block text-sm font-medium text-slate-300">
-            Cuota (S/)
-          </label>
-          <input
-            id="sala-cuota"
-            type="number"
-            step="0.01"
-            min="1"
-            value={cuota}
-            onChange={(e) => setCuota(e.target.value)}
-            className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
-            placeholder="Ej: 10.00"
           />
         </div>
 
@@ -141,21 +126,11 @@ export default function FormularioCrearSala({
           </p>
         </div>
 
-        <div>
-          <label htmlFor="sala-comision" className="block text-sm font-medium text-slate-300">
-            Comisión (%)
-          </label>
-          <input
-            id="sala-comision"
-            type="number"
-            min="0"
-            max="50"
-            step="1"
-            value={comision}
-            onChange={(e) => setComision(e.target.value)}
-            className="mt-1 block w-full rounded-lg border-2 border-white/15 bg-white/5 px-4 py-3 text-lg text-slate-100 placeholder:text-slate-600 focus:border-prism-400 focus:outline-none"
-          />
-        </div>
+      </div>
+
+      <div className="mt-4">
+        <CamposImportesSala cuota={cuota} premio={premio} cupo={modalidad === '1v1' ? 2 : 10}
+          setCuota={setCuota} setPremio={setPremio} disabled={creando} />
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">

@@ -6,6 +6,7 @@ export type SalaPublica = {
   cuota: number;
   cupo: number;
   comision_bp: number | null;
+  premio_por_ganador?: number | null;
   estado: string;
   modalidad: string | null;
   destacada?: boolean | null;

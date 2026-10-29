@@ -1,5 +1,7 @@
 'use client';
 
+import { premioPorGanador as premioDeSala } from '@/lib/importesSala';
+
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -195,11 +197,7 @@ export default function SalasPublicas({ isAuthenticated }: { isAuthenticated: bo
                   )
                 : null;
 
-            // Mismo cálculo que la sala y el hero: pozo menos comisión, dividido
-            // entre los ganadores de cada equipo.
-            const pozo = sala.cuota * sala.cupo;
-            const comision = Math.floor((pozo * (sala.comision_bp ?? 0)) / 10000);
-            const premioPorGanador = Math.floor((pozo - comision) / (sala.cupo === 2 ? 1 : 5));
+            const premioPorGanador = premioDeSala(sala);
 
             return (
               <div

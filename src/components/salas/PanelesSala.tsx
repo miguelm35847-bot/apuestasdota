@@ -49,7 +49,7 @@ export function CabeceraSala({
               {participantes.length}/{sala.cupo} jugadores
             </span>
             <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-white">
-              Comisión {sala.comision_bp / 100}%
+              Premio S/ {(premio / 100).toFixed(2)} por ganador
             </span>
           </div>
         </div>

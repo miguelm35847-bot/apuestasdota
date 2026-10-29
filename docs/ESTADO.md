@@ -1,6 +1,6 @@
 # Estado de KódigoDota
 
-Actualizado: 27/10/2026. Punto de entrada para retomar el proyecto. El detalle de cambios está en [HISTORIAL.md](HISTORIAL.md); [TRASPASO.md](TRASPASO.md) conserva referencia técnica e implementaciones históricas.
+Actualizado: 29/10/2026. Punto de entrada para retomar el proyecto. El detalle de cambios está en [HISTORIAL.md](HISTORIAL.md); [TRASPASO.md](TRASPASO.md) conserva referencia técnica e implementaciones históricas.
 
 ## Producción y entorno
 
@@ -25,6 +25,7 @@ Limpieza comprobada contra rutas absolutas, ausencia de procesos que usen los ob
 
 ## Funcionalidades disponibles
 
+- **Cuota y premio fijo**: al crear y gestionar salas se define la cuota de cada jugador y el abono total de cada ganador, incluida su entrada. Admite diferencia para la casa, salas sin comisión y bonos. La edición exige sala abierta y vacía; las entradas comparan los importes anunciados antes de cobrar. Cierre, portada, tarjetas y detalle usan el premio guardado; las salas anteriores conservan su cálculo. [Uso, migración y QA](PREMIOS-SALAS.md).
 - **Cuenta y perfil**: correo/contraseña y recuperación operativa; Google y Steam publicados y probados por el propietario. Steam conserva el UUID vinculado; alta nueva pide nick y deja MMR pendiente. Perfil con MMR de registro único, roles editables, saldo, recargas/retiros e historial de partidas terminadas con resultado. Perfil público con estadísticas y enlaces sin revelar el identificador privado de Steam. [Registro social](REGISTRO-SOCIAL.md).
 - **Salas y verificación**: 1v1/5v5, equipos, lobby, gestión admin y aviso global “Estoy listo”. Verificación automática al llenar y solicitud manual explícita también con cupos libres. Una ronda completa no se reabre al entrar otro jugador; una automática pierde vigencia al perder el cupo completo y una sala vacía limpia la ronda. Se descartan avisos antiguos, confirmados, expirados y jugadores que salieron.
 - **Draft**: 1v1 lanza moneda después de ambas confirmaciones y el ganador elige lado. En 5v5 el admin guarda capitanes; moneda con avatares y elección Radiant/LastPick. Ocho picks R-DD-RR-DD-R, 45 s por turno y auto-pick por mayor MMR. Preferencia de lado informativa; resumen público de OpenDota en espera, medallas y roles en fichas.
@@ -51,12 +52,14 @@ Opciones que requieren decidir alcance: Facebook aún no implementado; automatiz
 - Antes de commit: `npx tsc --noEmit`, `npm run lint` y `npm run build`. UI: `npm run qa -- --base http://127.0.0.1:3001 --url /` en 1366×768, 390×844 y 360×800, más rutas/acciones afectadas. Añadir error, vacío y permisos cuando corresponda.
 - Desarrollo: `npm run dev` en 3000. QA: build con `npm run qa:serve` en 3001 y Chrome CDP en 9222; ejecutar suites de navegador en serie. No detener procesos ajenos ni limpiar la caché de un servidor activo.
 - `npm run qa:paneles:ui`: 38 recorridos con SDK real y HTTP/Realtime simulados, comprobados localmente y sobre producción en el paso 4; sin escrituras a proveedores reales. `qa:refresco:ui` conserva su subconjunto de 19 casos.
-- CI: tipos/lint/build, 120 casos puros (cierre/inicio/Google/Steam/chat/refresco), Deno y PostgreSQL desechable: 18 casos mínimos + 37 con esquema real. Cifras de las suites actuales y la ejecución del paso 4; no son prueba de carga ni autorización real de terceros.
+- CI: tipos/lint/build, 144 casos puros (cierre/premios/inicio/Google/Steam/chat/refresco), Deno y PostgreSQL desechable: 18 casos mínimos + 51 con esquema real. Las cifras describen las suites actuales; no son prueba de carga ni autorización real de terceros.
+- `npm run qa:premios:ui`: 53 recorridos con SDK real y HTTP/Realtime simulado, incluidas creación/gestión, bonos, vacío, errores, cambios concurrentes y bloqueo de importes en PC/móvil. Capturas en `output/qa-premios/`; no crea salas ni pagos remotos.
 - `qa:seed`, `qa:probes`, `qa:flows` y `qa:cleanup` usan Supabase y actores QA; pueden crear cuentas y operaciones. Reservarlos para una verificación integrada autorizada. `qa:apuestas:local`, `qa:steam:db` y `qa:steam:server` usan PostgreSQL local desechable.
 - Conservar `docs/schema/`, `docs/sql/`, `supabase/migrations/`, HTML de Google y entregables solicitados de `output/`. Los snapshots/SQL reconstruyen las regresiones. `output/` y `qa-artifacts/` están excluidos de Git, lint, tipos, Tailwind y despliegue.
 
 ## Documentación de consulta
 
+- [PREMIOS-SALAS.md](PREMIOS-SALAS.md): cuota/premio fijo, bonos, restricciones de edición y verificación.
 - [README del proyecto](../README.md): arranque, estructura, verificaciones y publicación.
 - [HISTORIAL.md](HISTORIAL.md): bitácora append-only; agregar entradas sin reescribir las anteriores.
 - [TRASPASO.md](TRASPASO.md): referencia técnica y snapshots históricos; abrir solo la sección necesaria. No es una cola de SQL por ejecutar.

@@ -15,6 +15,7 @@ import { duracionDesdeInicio } from '@/lib/vivo';
 import { jugadorVivoDe, partidaVivaMock } from '@/lib/vivoMock';
 import { HERO_ESCENA_ACTIVA, HERO_ESCENAS } from '@/lib/heroEscenas';
 import type { SalaPublica } from '@/lib/salas';
+import { premioPorGanador } from '@/lib/importesSala';
 
 const ESCENA = HERO_ESCENAS[HERO_ESCENA_ACTIVA];
 
@@ -35,13 +36,6 @@ function soles(centimos: number) {
 
 function jugadoresDe(sala: SalaPublica) {
   return sala.participantes_sala?.[0]?.count ?? 0;
-}
-
-/** Premio por ganador: el pozo menos la comisión, dividido entre los ganadores. */
-function premioPorGanadorDe(sala: SalaPublica) {
-  const comision = Math.floor((sala.cuota * sala.cupo * (sala.comision_bp ?? 0)) / 10000);
-  const ganadores = sala.cupo === 2 ? 1 : 5;
-  return Math.floor((sala.cuota * sala.cupo - comision) / ganadores);
 }
 
 function estadoBadge(estado: string) {
@@ -400,7 +394,7 @@ export default function HeroArena({ isAuthenticated }: { isAuthenticated: boolea
                       {jugadoresDestacada}/{cupoDestacada} jugadores
                     </p>
 
-                    <ImportesSala entrada={destacada.cuota} premio={premioPorGanadorDe(destacada)} className="mt-3" />
+                    <ImportesSala entrada={destacada.cuota} premio={premioPorGanador(destacada)} className="mt-3" />
 
                     <div className="hero-roster mt-3 sm:mt-4">
                       <div className="flex items-center justify-between text-xs font-medium text-slate-400">

@@ -2,6 +2,8 @@
 
 import ChatPanel from '@/components/ChatPanel';
 import type { Lobby, Participante, Sala } from '@/lib/types';
+import { premioPorGanador } from '@/lib/importesSala';
+import { ImportesSalaAdmin } from './ImportesSalaAdmin';
 
 type PropsConfiguracionSalaAdmin = {
   listos: number;
@@ -21,6 +23,7 @@ type PropsConfiguracionSalaAdmin = {
   picksEstado: NonNullable<Sala['picks_estado']>;
   lobby: Lobby | null;
   salaId: string;
+  onImportesActualizados: () => Promise<void>;
 };
 
 export function ConfiguracionSalaAdmin({
@@ -41,9 +44,12 @@ export function ConfiguracionSalaAdmin({
   picksEstado,
   lobby,
   salaId,
+  onImportesActualizados,
 }: PropsConfiguracionSalaAdmin) {
   return (
     <div className="space-y-4">
+      <ImportesSalaAdmin key={`${sala.id}-${sala.cuota}-${premioPorGanador(sala)}`} sala={sala}
+        participantes={participantes.length} onActualizados={onImportesActualizados} />
       <div className="arena-card rounded-2xl border border-white/10 bg-[#111827] p-4 shadow-arena-soft">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>

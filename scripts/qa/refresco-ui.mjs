@@ -7,7 +7,8 @@ const base = new URL(process.env.QA_BASE ?? 'http://127.0.0.1:3001').origin;
 const auth = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin;
 const cdp = process.env.QA_CDP ?? 'http://127.0.0.1:9222';
 const paneles = process.argv.includes('--paneles');
-const shots = process.env.QA_SHOTS ?? (paneles ? 'output/qa-refactor/capturas' : 'output/qa-refresco/capturas');
+const premios = process.argv.includes('--premios');
+const shots = process.env.QA_SHOTS ?? (premios ? 'output/qa-premios/capturas' : paneles ? 'output/qa-refactor/capturas' : 'output/qa-refresco/capturas');
 const uid = '22000000-0000-4000-8000-000000000001';
 const rid = '11000000-0000-4000-8000-000000000001';
 const profile = { id: uid, nick: 'Jugador QA', mmr: 3000, roles_preferidos: ['mid'], steam_nombre: null, steam_avatar_url: base + '/dota2.svg' };
@@ -53,7 +54,8 @@ async function respond({ requestId, request }) {
   if (request.method === 'OPTIONS') status = 204;
   else if (url.pathname.includes('/rpc/')) {
     const permitidas = ['guardar_perfil_competitivo','guardar_roles_preferidos','iniciar_picks','elegir_radiant_o_lastpick','elegir_lado','pickear_jugador','admin_configurar_cierre'];
-    assert.ok(['es_admin', 'mi_saldo'].includes(endpoint) || paneles && permitidas.includes(endpoint), 'RPC inesperada: ' + endpoint);
+    const importes = ['crear_sala_con_premio','admin_actualizar_importes_sala','unirse_a_sala_con_importes'];
+    assert.ok(['es_admin', 'mi_saldo'].includes(endpoint) || paneles && permitidas.includes(endpoint) || premios && importes.includes(endpoint), 'RPC inesperada: ' + endpoint);
     if (endpoint === 'mi_saldo') { incrementar('saldo'); data = 10000; }
     else if (endpoint === 'es_admin') data = fixture.admin;
     else {
@@ -64,6 +66,17 @@ async function respond({ requestId, request }) {
       }
       if (endpoint === 'guardar_roles_preferidos') fixture.roles = body.p_roles;
       if (endpoint === 'admin_configurar_cierre') fixture.sala = { ...fixture.sala, auto_cierre: body.p_auto };
+      if (importes.includes(endpoint)) {
+        if (fixture.errorImportes) {
+          status = 400; data = { code:'P0001', message:fixture.errorImportes };
+          if (endpoint === 'unirse_a_sala_con_importes') fixture.sala = { ...fixture.sala, cuota:600, premio_por_ganador:1500 };
+        } else if (endpoint === 'unirse_a_sala_con_importes') fixture.vacio = false;
+        else {
+          fixture.sala = { ...fixture.sala, cuota:body.p_cuota, premio_por_ganador:body.p_premio_por_ganador,
+            ...(endpoint === 'crear_sala_con_premio' ? { nombre:body.p_nombre,cupo:body.p_cupo } : {}) };
+          if (endpoint === 'crear_sala_con_premio') data = rid;
+        }
+      }
     }
   } else {
     assert.ok(['GET','HEAD'].includes(request.method), 'Sin escrituras: ' + url.pathname);
@@ -266,6 +279,85 @@ try {
     for (const [width,height] of [[1366,768],[390,844],[360,800]]) {
       await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<500});
       await test(`perfil sin desborde en ${width}×${height}`,async()=>{await fresh('/perfil');assert.equal(await evaluate('document.documentElement.scrollWidth>innerWidth+1'),false);const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(`${shots}/perfil-${width}x${height}.png`,Buffer.from(shot.data,'base64'));});
+    }
+  }
+  if (premios) {
+    await test('premio fijo visible en portada, tarjetas y lista aunque difiera de la comisión anterior',async()=>{
+      const sala = { cuota:600,premio_por_ganador:1500,comision_bp:1500,destacada:true };
+      await fresh('/',{sala});
+      assert.ok(await evaluate("document.querySelector('[data-sala-tarjeta]')?.innerText.includes('15.00')"));
+      await fresh('/salas',{sala});
+      assert.ok(await evaluate("document.body.innerText.includes('Premio por ganador: S/ 15.00')"));
+      assert.equal(await evaluate("document.body.innerText.includes('Comisión:')"),false);
+    });
+    await test('crear 5v5 con cuota 11 y premio 20 guarda céntimos y muestra la diferencia de la casa',async()=>{
+      await fresh('/salas',{admin:true}); await click('Crear sala',true);
+      assert.equal(await evaluate("document.querySelector('#sala-comision')!==null"),false);
+      await input('#sala-nombre','QA importes nuevos'); await input('#sala-cuota','11'); await input('#sala-premio','20');
+      assert.ok(await evaluate("document.body.innerText.includes('Diferencia para la casa: S/ 10.00')"));
+      await evaluate("document.querySelector('#sala-nombre').form.requestSubmit()");
+      assert.deepEqual(await rpc('crear_sala_con_premio'),{p_nombre:'QA importes nuevos',p_cuota:1100,p_cupo:10,p_premio_por_ganador:2000});
+      await wait("!document.querySelector('#sala-nombre')&&document.body.innerText.includes('QA importes nuevos')");
+    });
+    await test('crear 1v1 sin comisión y rechazar formulario vacío sin llamar a la RPC',async()=>{
+      await fresh('/salas',{admin:true}); await click('Crear sala',true);
+      await evaluate("document.querySelector('#sala-nombre').form.requestSubmit()"); await sleep(80);
+      assert.equal(acciones.length,0);
+      await input('#sala-nombre','QA sin comisión'); await input('#sala-cuota','6'); await input('#sala-premio','12'); await click('1 vs 1',true);
+      assert.ok(await evaluate("document.body.innerText.includes('Sin comisión: todo lo recaudado')"));
+      await evaluate("document.querySelector('#sala-nombre').form.requestSubmit()");
+      assert.deepEqual(await rpc('crear_sala_con_premio'),{p_nombre:'QA sin comisión',p_cuota:600,p_cupo:2,p_premio_por_ganador:1200});
+    });
+    await test('error de permisos al crear conserva los campos y muestra el rechazo',async()=>{
+      await fresh('/salas',{admin:true,errorImportes:'Solo administradores'}); await click('Crear sala',true);
+      await input('#sala-nombre','QA permisos'); await input('#sala-cuota','6'); await input('#sala-premio','15');
+      await evaluate("document.querySelector('#sala-nombre').form.requestSubmit()");
+      await wait("document.querySelector('[role=alert]')?.innerText.includes('Solo administradores')");
+      assert.equal(await evaluate("document.querySelector('#sala-premio').value"),'15');
+    });
+    await test('gestión guarda cuota 6 y premio 10 y mantiene la edición al refrescar otros datos',async()=>{
+      await fresh('/admin/salas/'+rid,{admin:true,vacio:true,sala:{cuota:1100,premio_por_ganador:2000}});
+      await input('#admin-sala-cuota','6'); await input('#admin-sala-premio','10');
+      await evaluate("window.__qaEmit('profiles')"); await settled();
+      assert.equal(await evaluate("document.querySelector('#admin-sala-premio').value"),'10');
+      await click('Guardar cuota y premio',true);
+      assert.deepEqual(await rpc('admin_actualizar_importes_sala'),{p_sala:rid,p_cuota:600,p_premio_por_ganador:1000});
+      await wait("document.body.innerText.includes('Cuota y premio de la sala actualizados.')&&document.querySelector('#admin-sala-cuota').value==='6.00'");
+    });
+    await test('gestión informa un rechazo por inscripción concurrente sin mostrar éxito',async()=>{
+      await fresh('/admin/salas/'+rid,{admin:true,vacio:true,errorImportes:'No puedes cambiar la cuota ni el premio con jugadores inscritos'});
+      await input('#admin-sala-cuota','6'); await input('#admin-sala-premio','15'); await click('Guardar cuota y premio',true);
+      await wait("document.querySelector('[role=alert]')?.innerText.includes('jugadores inscritos')");
+      assert.equal(await evaluate("document.body.innerText.includes('Cuota y premio de la sala actualizados.')"),false);
+    });
+    for (const [nombre,opciones] of [['con inscritos',{}],['en juego',{vacio:true,sala:{estado:'en_juego',auto_cierre:false}}]]) {
+      await test('importes bloqueados '+nombre,async()=>{
+        await fresh('/admin/salas/'+rid,{admin:true,...opciones});
+        assert.equal(await evaluate("document.querySelector('#admin-sala-cuota').disabled&&document.querySelector('#admin-sala-premio').disabled"),true);
+        await click('Guardar cuota y premio',true); assert.equal(acciones.filter(a=>a.endpoint==='admin_actualizar_importes_sala').length,0);
+      });
+    }
+    await test('entrada incluye los importes vistos y un cambio los refresca sin confirmar inscripción',async()=>{
+      await fresh('/salas/'+rid,{vacio:true,sala:{cuota:1100,premio_por_ganador:2000},errorImportes:'Los importes de la sala cambiaron. Revisa la cuota y el premio antes de volver a unirte'});
+      await click('Unirme a la sala',true);
+      assert.deepEqual(await rpc('unirse_a_sala_con_importes'),{p_sala:rid,p_cuota_esperada:1100,p_premio_esperado:2000});
+      await wait("document.body.innerText.includes('Los importes de la sala cambiaron')&&document.body.innerText.includes('15.00')");
+      assert.ok(await evaluate("[...document.querySelectorAll('button')].some(b=>b.textContent==='Unirme a la sala')"));
+    });
+    for (const [width,height] of [[1366,768],[390,844],[360,800]]) {
+      await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<500});
+      for (const tipo of ['crear','gestionar']) {
+        await test(`premios ${tipo} sin desborde y bono correcto en ${width}×${height}`,async()=>{
+          if (tipo==='crear') { await fresh('/salas',{admin:true}); await click('Crear sala',true); }
+          else await fresh('/admin/salas/'+rid,{admin:true,vacio:true});
+          const prefijo=tipo==='crear'?'sala':'admin-sala';
+          await input('#'+prefijo+'-cuota','6'); await input('#'+prefijo+'-premio','15');
+          assert.ok(await evaluate("document.body.innerText.includes('Bono de la casa: S/ 15.00')"));
+          assert.equal(await evaluate('document.documentElement.scrollWidth>innerWidth+1'),false);
+          await evaluate(`document.querySelector('#${prefijo}-cuota').closest('${tipo==='crear'?'form':'section'}').scrollIntoView({block:'center'})`);
+          const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(`${shots}/${tipo}-${width}x${height}.png`,Buffer.from(shot.data,'base64'));
+        });
+      }
     }
   }
   console.log(`${total}/${total} recorridos de refresco, permisos y vistas correctos.`);

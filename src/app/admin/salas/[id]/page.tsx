@@ -846,6 +846,11 @@ function AdminSalaContenido() {
           />
 
           <ConfiguracionSalaAdmin
+            onImportesActualizados={async () => {
+              setError(null);
+              setSuccess('Cuota y premio de la sala actualizados.');
+              await cargarSala();
+            }}
             listos={listos}
             participantes={participantes}
             verificacionEstado={verificacionEstado}
