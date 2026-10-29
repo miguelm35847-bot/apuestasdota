@@ -81,6 +81,9 @@ await new Promise((resolve, reject) => { ws.addEventListener('open', resolve, { 
 
 async function atender({ requestId, request }) {
   const url = new URL(request.url);
+  if(url.origin==='https://player.kick.com'){
+    await send('Fetch.fulfillRequest',{requestId,responseCode:200,responseHeaders:[{name:'content-type',value:'text/html; charset=utf-8'}],body:Buffer.from('<!doctype html><html lang="es"><body style="background:#090b0d;color:#53fc18">KICK · reproductor de prueba</body></html>').toString('base64')});return;
+  }
   const endpoint = url.pathname.split('/').pop();
   const headers = [
     { name: 'content-type', value: 'application/json' },
@@ -185,7 +188,7 @@ try {
   await mkdir(directorio, { recursive: true });
   await send('Page.enable');
   await send('Runtime.enable');
-  await send('Fetch.enable', { patterns: [{ urlPattern: `${supabase}/*`, requestStage: 'Request' }, { urlPattern: `${base}/api/*`, requestStage: 'Request' }] });
+  await send('Fetch.enable', { patterns: [{ urlPattern: `${supabase}/*`, requestStage: 'Request' }, { urlPattern: `${base}/api/*`, requestStage: 'Request' },{urlPattern:'https://player.kick.com/*',requestStage:'Request'}] });
   await send('Page.addScriptToEvaluateOnNewDocument', { source: `
     if(location.origin===${JSON.stringify(base)}){
       localStorage.clear();

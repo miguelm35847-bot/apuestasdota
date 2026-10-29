@@ -174,11 +174,13 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
 
   return (
     <section
+      data-actividad-panel
+      aria-label="Actividad reciente"
       className={`arena-card overflow-hidden rounded-2xl border border-white/10 bg-[#111827] shadow-arena-soft ${
-        compacto ? 'p-4' : 'p-5'
+        compacto ? 'flex h-[284px] flex-col p-4' : 'p-5'
       }`}
     >
-      <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="mb-3 flex shrink-0 flex-wrap items-center gap-2">
         <span
           className={`h-2 w-2 shrink-0 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]`}
           aria-hidden="true"
@@ -195,6 +197,8 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
         )}
       </div>
 
+      <div data-actividad-scroll className={compacto ? 'min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-prism-400' : undefined}
+        role={compacto ? 'region' : undefined} aria-label={compacto ? 'Lista de actividad reciente' : undefined} tabIndex={compacto ? 0 : undefined}>
       {cargando ? (
         <div className="space-y-2">
           {[0, 1, 2].map((i) => (
@@ -212,7 +216,7 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
           </p>
         </div>
       ) : (
-        <ul className={`space-y-1.5 ${compacto ? 'max-h-[calc(100vh-20rem)] overflow-y-auto pr-1' : ''}`}>
+        <ul className="space-y-1.5">
           {actividades.map((actividad) => {
             const esMulta = actividad.tipo === 'multa';
             const donante = nombreDe(actividad.emisor);
@@ -285,11 +289,12 @@ export default function ActividadPanel({ compacto = false }: { compacto?: boolea
           })}
         </ul>
       )}
+      </div>
 
       {hayMas && (
         <button
           onClick={() => setLimite((actual) => actual + 8)}
-          className="mt-3 w-full rounded-lg border border-white/10 bg-white/5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10"
+          className="mt-3 w-full shrink-0 rounded-lg border border-white/10 bg-white/5 py-1.5 text-[11px] font-semibold text-slate-300 transition hover:bg-white/10"
         >
           Ver más actividad
         </button>

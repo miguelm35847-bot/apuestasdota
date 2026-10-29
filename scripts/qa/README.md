@@ -103,3 +103,8 @@ npm run qa:landing:ui
 - `npm run qa:apuestas:local -- --schema-real`: incluye 14 casos nuevos; total 51. Aplica dos veces la migración de premios y verifica permisos, cuota/premio fijo, sin comisión, bonos, bloqueo con inscritos, condiciones antiguas al entrar, concurrencia y cierre sin pagos duplicados.
 - `npm run qa:premios:ui`: 53 recorridos (incluye los paneles existentes) con SDK real y HTTP/Realtime simulado. No realiza escrituras remotas; capturas de crear/gestionar en output/qa-premios/capturas/ para los tres tamaños exigidos.
 - Referencia actual: [Cuota y premio de salas](../../docs/PREMIOS-SALAS.md).
+
+## Transmisión de Kick
+
+- `npm run qa:kick:ui`: 26 recorridos en Chrome CDP, incluidos siete específicos del reproductor y su posición. Revisa 1920×945, 1366×768, 390×844 y 360×800; actividad vacía, carga, error, mensajes largos y 30 registros con scroll interno, sin desplazar Kick. Intercepta el iframe oficial con HTML estático para aislar el proveedor; la reproducción real se comprueba aparte en Chrome.
+- Capturas: `output/qa-kick/capturas/`. Detalle y límites: [KICK.md](../../docs/KICK.md).

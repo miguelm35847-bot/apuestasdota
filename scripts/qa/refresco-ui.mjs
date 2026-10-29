@@ -8,7 +8,8 @@ const auth = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin;
 const cdp = process.env.QA_CDP ?? 'http://127.0.0.1:9222';
 const paneles = process.argv.includes('--paneles');
 const premios = process.argv.includes('--premios');
-const shots = process.env.QA_SHOTS ?? (premios ? 'output/qa-premios/capturas' : paneles ? 'output/qa-refactor/capturas' : 'output/qa-refresco/capturas');
+const kick = process.argv.includes('--kick');
+const shots = process.env.QA_SHOTS ?? (kick ? 'output/qa-kick/capturas' : premios ? 'output/qa-premios/capturas' : paneles ? 'output/qa-refactor/capturas' : 'output/qa-refresco/capturas');
 const uid = '22000000-0000-4000-8000-000000000001';
 const rid = '11000000-0000-4000-8000-000000000001';
 const profile = { id: uid, nick: 'Jugador QA', mmr: 3000, roles_preferidos: ['mid'], steam_nombre: null, steam_avatar_url: base + '/dota2.svg' };
@@ -47,6 +48,11 @@ const incrementar = name => { reads[name] = count(name) + 1; };
 
 async function respond({ requestId, request }) {
   const url = new URL(request.url), endpoint = url.pathname.split('/').pop();
+  if (url.origin === 'https://player.kick.com') {
+    incrementar('kick');
+    await send('Fetch.fulfillRequest',{requestId,responseCode:200,responseHeaders:[{name:'content-type',value:'text/html; charset=utf-8'}],body:Buffer.from('<!doctype html><html lang="es"><body style="margin:0;background:#090b0d;color:#53fc18;display:grid;place-items:center;height:100vh;font-family:sans-serif">KICK · reproductor de prueba</body></html>').toString('base64')});
+    return;
+  }
   const headers = [{ name: 'content-type', value: 'application/json' }, { name: 'access-control-allow-origin', value: base }, { name: 'access-control-allow-headers', value: '*' }, { name: 'access-control-allow-methods', value: 'GET,POST,HEAD,OPTIONS' }, { name: 'access-control-expose-headers', value: 'content-range' }, { name: 'content-range', value: '0-0/0' }];
   let data = [], status = 200, detallada = false;
   const sala = { ...room, ...fixture.sala };
@@ -104,7 +110,16 @@ async function respond({ requestId, request }) {
     else if (endpoint === 'recargas') data = fixture.vacio ? [] : [{ id:'recarga-qa', monto:5000, numero_operacion:'QA-123', estado:'aprobada', created_at:'2026-10-20T12:00:00Z' }];
     else if (endpoint === 'retiros') data = fixture.vacio ? [] : [{ id:'retiro-qa', monto:1000, destino:'Destino QA', estado:'pendiente', created_at:'2026-10-20T12:00:00Z' }];
     else if (endpoint === 'movimientos_billetera') data = fixture.vacio ? [] : [{ id:'mov-qa',tipo:'ajuste_admin',monto:-200,descripcion:'Multa QA',created_at:'2026-10-20T12:00:00Z' }];
-    else if (endpoint === 'actividades') { incrementar('actividad'); data = []; }
+    else if (endpoint === 'actividades') {
+      incrementar('actividad');
+      if(fixture.errorActividad){status=403;data={message:'Actividad no disponible QA'};}
+      else data=Array.from({length:Math.min(fixture.actividades??0,Number(url.searchParams.get('limit')??8))},(_,i)=>({
+        id:`55000000-0000-4000-8000-${String(i+1).padStart(12,'0')}`,tipo:i%2?'multa':'donacion',emisor_id:null,receptor_id:null,
+        monto:500,descripcion:fixture.mensajesLargos?'Mensaje de prueba con una descripción extensa para comprobar el espacio de la actividad. '.repeat(8):'Actividad de prueba',
+        creado_en:'2026-10-29T12:00:00Z',emisor:{nick:'Jugador QA'},receptor:{nick:'Jugador QA'},
+      }));
+      if(fixture.demoraActividad)await sleep(fixture.demoraActividad);
+    }
     else if (url.pathname === '/api/perfil/steam') data = url.searchParams.has('estado') ? { vinculado: false } : { steamId: null };
     else if (url.pathname === '/api/dota/match') data = { match_id:1234567890,radiant_win:true,duration:1800,radiant_score:30,dire_score:20 };
     else if (url.pathname.includes('/api/dota/jugador/')) { incrementar('resumenDota'); status = 404; data = {}; }
@@ -167,7 +182,7 @@ async function rpc(endpoint) {
 const fase = (picks, cupo=10) => ({ partes: jugadores(picks,cupo), sala: { cupo,estado:'llena',verificacion_estado:'completa',picks_estado:picks,pick_capitan1:uid,pick_capitan2:actorId(1),pick_ganador_moneda:uid,pick_decision_user_id:uid,pick_decision_tipo:'lado',pick_turno_user_id:uid,pick_turno_expira_at:new Date(Date.now()+45000).toISOString() } });
 try {
   await mkdir(shots, { recursive: true }); await send('Page.enable'); await send('Runtime.enable');
-  await send('Fetch.enable', { patterns: [{ urlPattern: auth + '/*', requestStage: 'Request' }, { urlPattern: base + '/api/*', requestStage: 'Request' }] });
+  await send('Fetch.enable', { patterns: [{ urlPattern: auth + '/*', requestStage: 'Request' }, { urlPattern: base + '/api/*', requestStage: 'Request' },{urlPattern:'https://player.kick.com/*',requestStage:'Request'}] });
   await send('Page.addScriptToEvaluateOnNewDocument', { source: mocks });
   await send('Emulation.setDeviceMetricsOverride', { width: 1366, height: 768, deviceScaleFactor: 1, mobile: false });
   await test('sala: tres lecturas paralelas y preferencia integrada', async () => { await fresh('/salas/' + rid); assert.equal(maximo, 3); assert.equal(count('sala'), count('participantes')); assert.equal(count('sala'), count('lobby')); });
@@ -359,6 +374,58 @@ try {
         });
       }
     }
+  }
+  if(kick){
+    const posicion=()=>evaluate(`(()=>{const a=document.querySelector('[data-actividad-panel]').getBoundingClientRect(),k=document.querySelector('[data-kick-panel]').getBoundingClientRect(),s=document.querySelector('[data-actividad-scroll]');return{actividadAlto:a.height,kickY:k.top+scrollY,separacion:k.top-a.bottom,izquierda:k.left,ancho:k.width,scroll:s.scrollHeight>s.clientHeight,desborde:s.scrollWidth>s.clientWidth+1,pagina:document.documentElement.scrollWidth>innerWidth+1};})()`);
+    await test('Kick usa el canal indicado y la política permite exclusivamente su reproductor y el origen propio',async()=>{
+      const respuesta=await fetch(base),csp=respuesta.headers.get('content-security-policy');
+      assert.ok(csp.includes("frame-src 'self' https://player.kick.com;"));
+      assert.equal(respuesta.headers.get('x-frame-options'),'DENY');
+      await fresh('/',{admin:true});
+      await evaluate("document.querySelector('[data-kick-panel]').scrollIntoView({block:'center'})");
+      await wait("document.querySelector('[data-kick-panel] iframe')");
+      assert.equal(await evaluate("document.querySelector('[data-kick-panel] iframe').src"),'https://player.kick.com/kodigodota?autoplay=false&muted=true');
+      for(let i=0;i<50&&!count('kick');i++)await sleep(50);
+      assert.ok(count('kick')>0,'El navegador solicitó el iframe permitido por CSP');
+      assert.equal(await evaluate("document.querySelector('[data-kick-panel] a').href"),'https://kick.com/kodigodota');
+    });
+    for(const [width,height] of [[1920,945],[1366,768],[390,844],[360,800]]){
+      await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<500});
+      await test(`Kick mantiene su posición con 0, 8 y 30 actividades y scroll interno en ${width}×${height}`,async()=>{
+        await fresh('/',{admin:true});const inicial=await posicion();
+        assert.equal(inicial.actividadAlto,284);assert.equal(inicial.separacion,20);
+        fixture.actividades=30;fixture.mensajesLargos=true;
+        await evaluate("window.__qaEmit('actividades','INSERT')");
+        await wait("document.querySelectorAll('[data-actividad-panel] li').length===8");
+        assert.equal((await posicion()).kickY,inicial.kickY);
+        for(const cantidad of [16,24,30]){
+          await click('Ver más actividad',true);
+          await wait(`document.querySelectorAll('[data-actividad-panel] li').length===${cantidad}`);
+          assert.equal((await posicion()).kickY,inicial.kickY);
+        }
+        const final=await posicion();assert.ok(final.scroll);assert.equal(final.desborde,false);assert.equal(final.pagina,false);
+        await evaluate("document.querySelector('[data-actividad-scroll]').scrollTop=200");
+        assert.ok(await evaluate("document.querySelector('[data-actividad-scroll]').scrollTop>0"));
+        assert.equal((await posicion()).kickY,inicial.kickY);
+        if(width>=1024){
+          const columnas=await evaluate("(()=>{const k=document.querySelector('[data-kick-panel]').getBoundingClientRect(),s=document.querySelector('#salas').getBoundingClientRect();return k.right<s.left;})()");
+          assert.ok(columnas,'Kick permanece a la izquierda de las salas');
+          await evaluate("scrollTo({top:document.querySelector('main').getBoundingClientRect().top+scrollY-90,behavior:'instant'})");
+        }else await evaluate("document.querySelector('[data-actividad-panel]').parentElement.scrollIntoView({block:'center'})");
+        const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile(`${shots}/kick-${width}x${height}.png`,Buffer.from(shot.data,'base64'));
+      });
+    }
+    await test('Kick conserva la posición al finalizar la carga inicial de actividad',async()=>{
+      await fresh('/',{admin:true,actividades:3,demoraActividad:2200});const antes=await posicion();
+      await wait("document.querySelectorAll('[data-actividad-panel] li').length===3");
+      assert.equal((await posicion()).kickY,antes.kickY);
+    });
+    await test('Kick sigue visible cuando falla la lectura de actividad',async()=>{
+      await fresh('/',{admin:true,errorActividad:true});
+      assert.ok(await evaluate("document.body.innerText.includes('Todavía no hay actividad')"));
+      assert.equal((await posicion()).actividadAlto,284);
+      assert.ok(await evaluate("document.querySelector('[data-kick-panel] iframe')!==null"));
+    });
   }
   console.log(`${total}/${total} recorridos de refresco, permisos y vistas correctos.`);
 } finally {

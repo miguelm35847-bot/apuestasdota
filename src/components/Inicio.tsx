@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import SalasPublicas from '@/components/SalasPublicas';
 import ActividadPanel from '@/components/ActividadPanel';
+import TransmisionKick from '@/components/TransmisionKick';
 import HistorialGlobal from '@/components/HistorialGlobal';
 import ChatPanel from '@/components/ChatPanel';
 import SiguientePaso from '@/components/SiguientePaso';
@@ -33,6 +34,7 @@ export default function Inicio() {
             <aside className="order-2 lg:order-1 lg:sticky lg:top-20">
               <SiguientePaso />
               <ActividadPanel compacto />
+              <TransmisionKick />
             </aside>
 
             {/* Salas (centro) */}

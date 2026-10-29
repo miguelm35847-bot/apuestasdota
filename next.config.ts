@@ -15,6 +15,7 @@ const contentSecurityPolicy = [
   "script-src " + scriptSrc,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
+  "frame-src 'self' https://player.kick.com",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
   "media-src 'self'",
   "manifest-src 'self'",

@@ -25,6 +25,7 @@ Limpieza comprobada contra rutas absolutas, ausencia de procesos que usen los ob
 
 ## Funcionalidades disponibles
 
+- **Transmisión de Kick**: canal `kodigodota` en la columna izquierda de la portada, justo debajo de Actividad reciente. El panel de actividad reserva 284 px con scroll interno para no desplazar el reproductor al cargar más registros. Video oficial 16:9, reproducción manual y silenciado inicial; enlace al canal y pantalla completa. [Configuración y QA](KICK.md).
 - **Cuota y premio fijo**: al crear y gestionar salas se define la cuota de cada jugador y el abono total de cada ganador, incluida su entrada. Admite diferencia para la casa, salas sin comisión y bonos. La edición exige sala abierta y vacía; las entradas comparan los importes anunciados antes de cobrar. Cierre, portada, tarjetas y detalle usan el premio guardado; las salas anteriores conservan su cálculo. [Uso, migración y QA](PREMIOS-SALAS.md).
 - **Cuenta y perfil**: correo/contraseña y recuperación operativa; Google y Steam publicados y probados por el propietario. Steam conserva el UUID vinculado; alta nueva pide nick y deja MMR pendiente. Perfil con MMR de registro único, roles editables, saldo, recargas/retiros e historial de partidas terminadas con resultado. Perfil público con estadísticas y enlaces sin revelar el identificador privado de Steam. [Registro social](REGISTRO-SOCIAL.md).
 - **Salas y verificación**: 1v1/5v5, equipos, lobby, gestión admin y aviso global “Estoy listo”. Verificación automática al llenar y solicitud manual explícita también con cupos libres. Una ronda completa no se reabre al entrar otro jugador; una automática pierde vigencia al perder el cupo completo y una sala vacía limpia la ronda. Se descartan avisos antiguos, confirmados, expirados y jugadores que salieron.
@@ -59,6 +60,7 @@ Opciones que requieren decidir alcance: Facebook aún no implementado; automatiz
 
 ## Documentación de consulta
 
+- [KICK.md](KICK.md): canal, ubicación estable, reproductor oficial y verificación.
 - [PREMIOS-SALAS.md](PREMIOS-SALAS.md): cuota/premio fijo, bonos, restricciones de edición y verificación.
 - [README del proyecto](../README.md): arranque, estructura, verificaciones y publicación.
 - [HISTORIAL.md](HISTORIAL.md): bitácora append-only; agregar entradas sin reescribir las anteriores.

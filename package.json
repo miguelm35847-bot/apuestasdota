@@ -20,6 +20,7 @@
     "qa:premios": "node --experimental-strip-types scripts/qa/importes-sala.mjs",
     "qa:premios:ui": "node --env-file-if-exists=.env.local scripts/qa/refresco-ui.mjs --premios --paneles",
     "qa:landing:ui": "node --env-file-if-exists=.env.local scripts/qa/landing-ui.mjs",
+    "qa:kick:ui": "node --env-file-if-exists=.env.local scripts/qa/refresco-ui.mjs --kick",
     "qa:inicio": "node --experimental-strip-types scripts/qa/siguiente-paso.mjs",
     "qa:google": "node --experimental-strip-types scripts/qa/google.mjs",
     "qa:google:ui": "node --env-file-if-exists=.env.local scripts/qa/google-ui.mjs",
